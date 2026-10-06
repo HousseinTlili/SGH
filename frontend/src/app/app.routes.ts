@@ -7,8 +7,18 @@ import { ShellComponent } from './layout/shell.component';
 
 export const routes: Routes = [
   {
+    path: 'landing',
+    loadComponent: () => import('./layout/landing.component').then((m) => m.LandingComponent),
+  },
+  {
     path: 'login',
     loadComponent: () => import('./layout/login.component').then((m) => m.LoginComponent),
+  },
+  {
+    path: '',
+    pathMatch: 'full',
+    canMatch: [() => !inject(AuthService).isAuthenticated()],
+    loadComponent: () => import('./layout/landing.component').then((m) => m.LandingComponent),
   },
   {
     path: '',

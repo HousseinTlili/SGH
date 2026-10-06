@@ -1,37 +1,198 @@
-<main class="login">
-  <section class="sgh-card panel" aria-labelledby="login-title">
-    <div class="brand">
-      <mat-icon aria-hidden="true">local_hospital</mat-icon>
-      <span>SGH</span>
-    </div>
+<main class="login-wrapper">
+  <div class="login-container">
+    <!-- Brand Info Panel (Left) -->
+    <aside class="info-panel" aria-label="Hospital information and portal features">
+      <div class="info-top">
+        <a routerLink="/landing" class="back-home-link">
+          <mat-icon>arrow_back</mat-icon>
+          <span>Return to Hospital Home</span>
+        </a>
 
-    @if (mockAuth) {
-      <h1 id="login-title">Sign in (mock mode)</h1>
-      <p class="sgh-muted">
-        No backend and no Keycloak. Choose a seeded user to see that role's menu and start page.
-      </p>
-      <ul class="users">
-        @for (user of users; track user.username) {
-          <li>
-            <button type="button" class="user" (click)="signIn(user.username)">
-              <span class="who">
-                <strong>{{ user.fullName }}</strong>
-                <span class="sgh-muted">{{ user.username }}</span>
-              </span>
-              <span class="sgh-badge" data-tone="neutral">{{ user.roles[0] }}</span>
-            </button>
-          </li>
+        <div class="brand">
+          <div class="brand-badge" aria-hidden="true">
+            <mat-icon>local_hospital</mat-icon>
+          </div>
+          <div class="brand-title">
+            <span class="hospital-name">St. Gabriel Hospital</span>
+            <span class="portal-badge">Integrated Clinical & Patient Portal</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-body">
+        <h2 class="welcome-heading">Unified Access to Your Care & Clinical Workstation</h2>
+        <p class="welcome-desc">
+          Sign in to view real-time patient charts, enter SOAP consultation notes, requisition
+          urgent lab tests, dispense medications, or access personal medical history securely.
+        </p>
+
+        <div class="features-list">
+          <div class="feature-item">
+            <div class="feature-icon" aria-hidden="true">
+              <mat-icon>security</mat-icon>
+            </div>
+            <div>
+              <strong>End-to-End Medical Privacy</strong>
+              <p>HIPAA & GDPR compliant segregated access across clinical roles.</p>
+            </div>
+          </div>
+
+          <div class="feature-item">
+            <div class="feature-icon" aria-hidden="true">
+              <mat-icon>sync_alt</mat-icon>
+            </div>
+            <div>
+              <strong>Instant Telemetry Synchronization</strong>
+              <p>Zero-delay updates across consultation, lab, and pharmacy services.</p>
+            </div>
+          </div>
+
+          <div class="feature-item">
+            <div class="feature-icon" aria-hidden="true">
+              <mat-icon>contact_support</mat-icon>
+            </div>
+            <div>
+              <strong>Need Emergency Clinical Access?</strong>
+              <p>Contact Medical Desk: Ext 4040 / Reception +216 71 800 000</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-footer">
+        <span class="system-tag">St. Gabriel Hospital Information System • v2.0</span>
+      </div>
+    </aside>
+
+    <!-- Sign In Panel (Right) -->
+    <section class="form-panel" aria-labelledby="login-title">
+      <div class="form-header">
+        <div class="mobile-brand">
+          <mat-icon class="mobile-logo" aria-hidden="true">local_hospital</mat-icon>
+          <span>St. Gabriel Hospital</span>
+        </div>
+
+        @if (mockAuth) {
+          <div class="header-titles">
+            <h1 id="login-title">Sign in (mock mode)</h1>
+            <p class="sgh-muted">
+              Choose a seeded role persona or enter credentials below to access that workspace.
+            </p>
+          </div>
+        } @else {
+          <div class="header-titles">
+            <h1 id="login-title">Sign in</h1>
+            <p class="sgh-muted">
+              Keycloak sign-in is not connected yet. To explore the app now, run it in mock mode:
+            </p>
+            <p><code>npm run start:mock</code></p>
+          </div>
         }
-      </ul>
-    } @else {
-      <h1 id="login-title">Sign in</h1>
-      <p>Keycloak sign-in is not connected yet. To explore the app now, run it in mock mode:</p>
-      <p><code>npm run start:mock</code></p>
-    }
+      </div>
 
-    <button mat-button type="button" class="theme" (click)="theme.toggle()">
-      <mat-icon>{{ theme.mode() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
-      {{ theme.mode() === 'dark' ? 'Light theme' : 'Dark theme' }}
-    </button>
-  </section>
+      @if (mockAuth) {
+        <!-- Credentials Form -->
+        <form class="credentials-card" (submit)="onSubmitForm($event)">
+          <div class="card-caption">
+            <mat-icon class="caption-icon" aria-hidden="true">key</mat-icon>
+            <span>Standard Account Sign In</span>
+          </div>
+
+          <div class="input-group">
+            <label for="username-input" class="input-label">Hospital Username or Patient ID</label>
+            <div class="input-wrapper">
+              <mat-icon class="field-icon" aria-hidden="true">person</mat-icon>
+              <input
+                id="username-input"
+                type="text"
+                class="text-input"
+                name="username"
+                [(ngModel)]="usernameInput"
+                placeholder="e.g. doctor1, patient1, nurse1, lab1"
+                autocomplete="username"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="password-input" class="input-label">Security Password</label>
+            <div class="input-wrapper">
+              <mat-icon class="field-icon" aria-hidden="true">lock</mat-icon>
+              <input
+                id="password-input"
+                [type]="showPassword() ? 'text' : 'password'"
+                class="text-input"
+                name="password"
+                [(ngModel)]="passwordInput"
+                placeholder="Enter password"
+                autocomplete="current-password"
+              />
+              <button
+                type="button"
+                class="visibility-btn"
+                (click)="togglePasswordVisibility()"
+                aria-label="Toggle password visibility"
+              >
+                <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <button mat-flat-button class="submit-action" type="submit">
+            <mat-icon>login</mat-icon>
+            <span>Sign In to Portal</span>
+          </button>
+        </form>
+
+        <!-- Persona Demo Grid Divider -->
+        <div class="persona-divider">
+          <span class="divider-line" aria-hidden="true"></span>
+          <span class="divider-text">OR SELECT A QUICK DEMO PERSONA</span>
+          <span class="divider-line" aria-hidden="true"></span>
+        </div>
+
+        <!-- 8 Persona Buttons (Strict test requirement: button.user elements) -->
+        <div class="persona-section">
+          <ul class="users" aria-label="Available test personas">
+            @for (user of users; track user.username) {
+              <li>
+                <button
+                  type="button"
+                  class="user"
+                  (click)="signIn(user.username)"
+                  [attr.aria-label]="'Sign in as ' + user.fullName + ' (' + user.username + ')'"
+                >
+                  <div class="user-avatar" aria-hidden="true">
+                    <mat-icon>{{ getMeta(user.username).icon }}</mat-icon>
+                  </div>
+                  <span class="who">
+                    <strong>{{ user.fullName }}</strong>
+                    <span class="sgh-muted">{{ user.username }}</span>
+                    <span class="meta-title">{{ getMeta(user.username).title }}</span>
+                  </span>
+                  <div class="badge-col">
+                    <span class="sgh-badge" data-tone="neutral">{{ user.roles[0] }}</span>
+                    <span class="dept-caption">{{ getMeta(user.username).department }}</span>
+                  </div>
+                </button>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+
+      <div class="form-footer">
+        <button mat-button type="button" class="theme" (click)="theme.toggle()">
+          <mat-icon>{{ theme.mode() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
+          <span>{{ theme.mode() === 'dark' ? 'Light theme' : 'Dark theme' }}</span>
+        </button>
+
+        <a routerLink="/status" class="status-link">
+          <mat-icon class="status-icon" aria-hidden="true">dns</mat-icon>
+          <span>System Status</span>
+        </a>
+      </div>
+    </section>
+  </div>
 </main>

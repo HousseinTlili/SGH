@@ -12,6 +12,7 @@
   background: var(--sgh-surface);
   color: var(--sgh-text);
   border-bottom: 1px solid var(--sgh-border-subtle);
+  box-shadow: 0 1px 4px rgba(20, 32, 46, 0.05);
 }
 
 .brand {
@@ -23,6 +24,18 @@
   font-weight: 700;
   letter-spacing: 0.02em;
   text-decoration: none;
+
+  .mat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--sgh-radius-sm);
+    background: linear-gradient(135deg, var(--sgh-brand) 0%, #008779 100%);
+    color: var(--sgh-on-brand);
+    font-size: 20px;
+  }
 }
 
 .spacer {
