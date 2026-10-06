@@ -77,6 +77,26 @@
       </div>
 
       @if (mockAuth) {
+        @if (auth.isAuthenticated()) {
+          <div class="active-session-banner">
+            <mat-icon class="session-icon" aria-hidden="true">account_circle</mat-icon>
+            <div class="session-info">
+              <span class="session-title">
+                Signed in as <strong>{{ auth.user()?.fullName }}</strong> ({{
+                  auth.user()?.username
+                }})
+              </span>
+              <span class="session-desc"
+                >Switch roles below or return to your active workspace.</span
+              >
+            </div>
+            <button mat-flat-button class="workspace-btn" type="button" (click)="goToWorkspace()">
+              <span>Go to Workspace</span>
+              <mat-icon>arrow_forward</mat-icon>
+            </button>
+          </div>
+        }
+
         <!-- Standard Account Sign In Card -->
         <form class="account-card" (submit)="onSubmit($event)">
           <div class="account-card-header">

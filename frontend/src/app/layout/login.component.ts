@@ -6,6 +6,7 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../core/auth/auth.service';
 import { MOCK_AUTH_ENABLED, MockAuthBackend } from '../core/auth/mock-auth.backend';
 import { MOCK_USERS } from '../core/auth/mock-users';
+import { landingPathFor } from '../core/auth/roles';
 import { ThemeService } from '../core/theme/theme.service';
 
 interface PersonaCardMeta {
@@ -64,8 +65,8 @@ const PERSONA_DETAILS: Record<string, PersonaCardMeta> = {
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
-export class LoginComponent implements OnInit {
-  private readonly auth = inject(AuthService);
+export class LoginComponent {
+  protected readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly mock = inject(MockAuthBackend);
   protected readonly theme = inject(ThemeService);
@@ -77,10 +78,9 @@ export class LoginComponent implements OnInit {
   protected passwordInput = '••••••••••••';
   protected showPassword = signal(false);
 
-  ngOnInit(): void {
-    if (this.auth.isAuthenticated()) {
-      void this.router.navigateByUrl('/');
-    }
+  goToWorkspace(): void {
+    const target = landingPathFor(this.auth.roles());
+    void this.router.navigateByUrl(target);
   }
 
   signIn(username: string): void {

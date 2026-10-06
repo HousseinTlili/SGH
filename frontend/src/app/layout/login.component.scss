@@ -217,6 +217,63 @@
   margin: 0;
 }
 
+.active-session-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--sgh-brand-container);
+  border: 1px solid rgba(2, 132, 199, 0.25);
+  border-radius: var(--sgh-radius);
+  color: var(--sgh-on-brand-container);
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.session-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  color: #0284c7;
+  flex-shrink: 0;
+}
+
+.session-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-grow: 1;
+}
+
+.session-title {
+  font-size: 0.82rem;
+}
+
+.session-desc {
+  font-size: 0.72rem;
+  color: var(--sgh-text-muted);
+}
+
+.workspace-btn {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+  border-radius: var(--sgh-radius-sm) !important;
+  font-weight: 600 !important;
+  font-size: 0.8rem !important;
+  height: 34px !important;
+  white-space: nowrap;
+
+  .mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
 // Account Sign In Box
 .account-card {
   display: flex;
