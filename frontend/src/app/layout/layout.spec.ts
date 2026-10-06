@@ -8,6 +8,7 @@ import { AuthService } from '../core/auth/auth.service';
 import { MOCK_USERS } from '../core/auth/mock-users';
 import { ServiceStatusService } from '../core/status/service-status.service';
 import { provideFakeAuth, signInAs } from '../../testing/auth';
+import { LandingComponent } from './landing.component';
 import { LoginComponent } from './login.component';
 import { menuFor } from './menu';
 import { ProfileComponent } from './profile.component';
@@ -180,6 +181,50 @@ describe('LoginComponent', () => {
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
     fixture.componentInstance.signIn('nurse1');
     expect(TestBed.inject(AuthService).user()?.username).toBe('nurse1');
+    expect(navigate).toHaveBeenCalledWith('/');
+  });
+});
+
+describe('LandingComponent', () => {
+  async function render(authenticatedUser?: string) {
+    sessionStorage.clear();
+    TestBed.configureTestingModule({
+      providers: [...baseProviders(), { provide: MOCK_AUTH_ENABLED, useValue: true }],
+    });
+    TestBed.inject(MockAuthBackend);
+    if (authenticatedUser) {
+      signInAs(authenticatedUser);
+    }
+    const fixture = TestBed.createComponent(LandingComponent);
+    await fixture.whenStable();
+    return { fixture, el: fixture.nativeElement as HTMLElement };
+  }
+
+  it('renders hospital title, departments and live telemetry preview', async () => {
+    const { el } = await render();
+    expect(el.textContent).toContain('St. Gabriel Hospital');
+    expect(el.textContent).toContain('Compassionate Care');
+    expect(el.textContent).toContain('Consultations & SOAP Notes');
+    expect(el.textContent).toContain('Diagnostic Laboratory');
+    expect(el.textContent).toContain('Live Telemetry');
+  });
+
+  it('allows unauthenticated visitors to navigate to login', async () => {
+    const { el } = await render();
+    const portalLink = el.querySelector('a[href="/login"]');
+    expect(portalLink).not.toBeNull();
+  });
+
+  it('shows user name and workspace action when already signed in', async () => {
+    const { el } = await render('doctor1');
+    expect(el.textContent).toContain('Amel Trabelsi');
+  });
+
+  it('quickSignIn signs in the user directly in mock mode', async () => {
+    const { fixture } = await render();
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+    fixture.componentInstance.quickSignIn('patient1');
+    expect(TestBed.inject(AuthService).user()?.username).toBe('patient1');
     expect(navigate).toHaveBeenCalledWith('/');
   });
 });
