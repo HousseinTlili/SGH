@@ -1,0 +1,10 @@
+{
+  "name": "sgh",
+  "version": "0.0.0",
+  "private": true,
+  "description": "SGH hospital management system: repository-level helper scripts",
+  "scripts": {
+    "mock:install": "npm --prefix tools/mock install",
+    "mock": "npm --prefix tools/mock start"
+  }
+}

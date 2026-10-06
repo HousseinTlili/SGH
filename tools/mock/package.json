@@ -1,0 +1,15 @@
+{
+  "name": "sgh-mock",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Prism mock servers (ports 8081-8086) and the mock gateway (port 8080) for building the Angular app without any backend",
+  "scripts": {
+    "start": "node start.mjs"
+  },
+  "dependencies": {
+    "@stoplight/prism-cli": "^5.16.0",
+    "express": "^5.1.0",
+    "http-proxy-middleware": "^3.0.5"
+  }
+}

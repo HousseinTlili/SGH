@@ -1,0 +1,153 @@
+openapi: 3.0.3
+info:
+  title: SGH staff service (mock spec for the Angular app)
+  description: >-
+    Grown phase by phase with the endpoints the Angular screens call. Examples use the ids and names of
+    Seed Data and Fixtures. Replaced by contracts/openapi/staff.yaml when the contracts phase is done
+    (see tools/mock/README.md).
+  version: 0.0.0
+servers:
+  - url: http://localhost:8086
+security:
+  - bearerAuth: []
+paths:
+  /health:
+    get:
+      summary: Liveness
+      security: []
+      responses:
+        "200":
+          description: The service process is up
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                required: [status]
+              example:
+                status: UP
+  /api/me:
+    get:
+      summary: Profile of the logged-in user
+      description: >-
+        One named example per seeded user. The Angular mock mode sends "Prefer: example=<username>"
+        so the answer matches the user who signed in.
+      responses:
+        "200":
+          description: Profile
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [username, roles, staff, patientId]
+                properties:
+                  username:
+                    type: string
+                  roles:
+                    type: array
+                    items:
+                      type: string
+                  staff:
+                    type: object
+                    nullable: true
+                    properties:
+                      id: {type: string}
+                      fullName: {type: string}
+                      role: {type: string}
+                      specialty: {type: string, nullable: true}
+                      department: {type: string}
+                  patientId:
+                    type: string
+                    nullable: true
+              examples:
+                doctor1:
+                  value:
+                    username: doctor1
+                    roles: [DOCTOR]
+                    staff:
+                      id: b2b2b2b2-0000-4000-8000-000000000001
+                      fullName: Amel Trabelsi
+                      role: DOCTOR
+                      specialty: "Cardiology"
+                      department: Cardiology
+                    patientId: null
+                doctor2:
+                  value:
+                    username: doctor2
+                    roles: [DOCTOR]
+                    staff:
+                      id: b2b2b2b2-0000-4000-8000-000000000002
+                      fullName: Karim Jlassi
+                      role: DOCTOR
+                      specialty: "General practice"
+                      department: General Medicine
+                    patientId: null
+                nurse1:
+                  value:
+                    username: nurse1
+                    roles: [NURSE]
+                    staff:
+                      id: b2b2b2b2-0000-4000-8000-000000000003
+                      fullName: Sonia Gharbi
+                      role: NURSE
+                      specialty: null
+                      department: Nursing
+                    patientId: null
+                lab1:
+                  value:
+                    username: lab1
+                    roles: [LAB_TECHNICIAN]
+                    staff:
+                      id: b2b2b2b2-0000-4000-8000-000000000004
+                      fullName: Walid Mansouri
+                      role: LAB_TECHNICIAN
+                      specialty: null
+                      department: Laboratory
+                    patientId: null
+                pharmacist1:
+                  value:
+                    username: pharmacist1
+                    roles: [PHARMACIST]
+                    staff:
+                      id: b2b2b2b2-0000-4000-8000-000000000005
+                      fullName: Ines Chaabane
+                      role: PHARMACIST
+                      specialty: null
+                      department: Pharmacy
+                    patientId: null
+                reception1:
+                  value:
+                    username: reception1
+                    roles: [RECEPTIONIST]
+                    staff:
+                      id: b2b2b2b2-0000-4000-8000-000000000006
+                      fullName: Rim Bouazizi
+                      role: RECEPTIONIST
+                      specialty: null
+                      department: Front Desk
+                    patientId: null
+                admin1:
+                  value:
+                    username: admin1
+                    roles: [ADMIN]
+                    staff:
+                      id: b2b2b2b2-0000-4000-8000-000000000007
+                      fullName: Sami Hamdi
+                      role: ADMIN
+                      specialty: null
+                      department: IT
+                    patientId: null
+                patient1:
+                  value:
+                    username: patient1
+                    roles: [PATIENT]
+                    staff: null
+                    patientId: a1a1a1a1-0000-4000-8000-000000000001
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

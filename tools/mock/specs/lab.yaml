@@ -1,0 +1,36 @@
+openapi: 3.0.3
+info:
+  title: SGH lab service (mock spec for the Angular app)
+  description: >-
+    Grown phase by phase with the endpoints the Angular screens call. Examples use the ids and names of
+    Seed Data and Fixtures. Replaced by contracts/openapi/lab.yaml when the contracts phase is done
+    (see tools/mock/README.md).
+  version: 0.0.0
+servers:
+  - url: http://localhost:8084
+security:
+  - bearerAuth: []
+paths:
+  /health:
+    get:
+      summary: Liveness
+      security: []
+      responses:
+        "200":
+          description: The service process is up
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                required: [status]
+              example:
+                status: UP
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
