@@ -2,9 +2,7 @@ openapi: 3.0.3
 info:
   title: SGH lab service (mock spec for the Angular app)
   description: >-
-    Grown phase by phase with the endpoints the Angular screens call. Examples use the ids and names of
-    Seed Data and Fixtures. Replaced by contracts/openapi/lab.yaml when the contracts phase is done
-    (see tools/mock/README.md).
+    Mock specification for lab service. Seeded tests catalogue and requests.
   version: 0.0.0
 servers:
   - url: http://localhost:8084
@@ -28,7 +26,76 @@ paths:
                 required: [status]
               example:
                 status: UP
+
+  /api/tests:
+    get:
+      summary: List laboratory test catalogue
+      responses:
+        "200":
+          description: Test catalogue
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LabTest'
+              example:
+                - code: HGB
+                  name: Hemoglobin
+                  unit: g/dL
+                  refLow: 12.0
+                  refHigh: 17.5
+                  criticalLow: 7.0
+                  criticalHigh: 20.0
+                - code: WBC
+                  name: White blood cells
+                  unit: 10^3/µL
+                  refLow: 4.5
+                  refHigh: 11.0
+                  criticalLow: 2.0
+                  criticalHigh: 30.0
+                - code: GLU
+                  name: Fasting glucose
+                  unit: mg/dL
+                  refLow: 70.0
+                  refHigh: 99.0
+                  criticalLow: 50.0
+                  criticalHigh: 350.0
+                - code: CHOL
+                  name: Total cholesterol
+                  unit: mg/dL
+                  refLow: 120.0
+                  refHigh: 200.0
+                  criticalLow: null
+                  criticalHigh: 300.0
+                - code: CRE
+                  name: Creatinine
+                  unit: mg/dL
+                  refLow: 0.6
+                  refHigh: 1.2
+                  criticalLow: null
+                  criticalHigh: 4.0
+                - code: K
+                  name: Potassium
+                  unit: mmol/L
+                  refLow: 3.5
+                  refHigh: 5.1
+                  criticalLow: 2.8
+                  criticalHigh: 6.2
+
 components:
+  schemas:
+    LabTest:
+      type: object
+      required: [code, name, unit, refLow, refHigh]
+      properties:
+        code: { type: string }
+        name: { type: string }
+        unit: { type: string }
+        refLow: { type: number }
+        refHigh: { type: number }
+        criticalLow: { type: number, nullable: true }
+        criticalHigh: { type: number, nullable: true }
   securitySchemes:
     bearerAuth:
       type: http
