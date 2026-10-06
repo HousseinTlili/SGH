@@ -7,22 +7,21 @@ import { MOCK_AUTH_ENABLED, MockAuthBackend } from '../core/auth/mock-auth.backe
 import { landingPathFor } from '../core/auth/roles';
 import { ThemeService } from '../core/theme/theme.service';
 
-interface DepartmentCard {
+interface DepartmentItem {
   readonly title: string;
   readonly code: string;
   readonly icon: string;
-  readonly description: string;
+  readonly summary: string;
   readonly features: readonly string[];
-  readonly tag: string;
 }
 
-interface PersonaQuickAccess {
+interface PersonaQuickLaunch {
   readonly username: string;
-  readonly name: string;
-  readonly role: string;
-  readonly specialty: string;
+  readonly fullName: string;
+  readonly roleLabel: string;
+  readonly title: string;
   readonly icon: string;
-  readonly highlight: string;
+  readonly description: string;
 }
 
 @Component({
@@ -39,117 +38,111 @@ export class LandingComponent {
   private readonly mock = inject(MockAuthBackend);
   protected readonly mockAuth = inject(MOCK_AUTH_ENABLED);
 
-  // Simulated live telemetry values for visual appeal
-  protected readonly heartRate = signal(74);
+  // Live telemetry metrics preview
+  protected readonly heartRate = signal(72);
   protected readonly bloodPressure = signal('118/76');
-  protected readonly spo2 = signal(99);
+  protected readonly oxygen = signal(99);
   protected readonly temp = signal('36.8');
 
-  protected readonly departments: readonly DepartmentCard[] = [
+  protected readonly departments: readonly DepartmentItem[] = [
     {
       title: 'Consultations & SOAP Notes',
-      code: 'CLINICAL-01',
-      icon: 'medical_services',
-      description:
-        'Complete physician clinical workspace with standardized SOAP documentation, vitals history, and ICD-10 diagnostic coding.',
-      features: ['SOAP Notes', 'Vitals Telemetry', 'ICD-10 Codification'],
-      tag: 'Clinical Care',
+      code: 'CLINICAL',
+      icon: 'stethoscope',
+      summary:
+        'Continuous clinical records, structured SOAP notes, and ICD-10 codification for specialist care.',
+      features: ['Structured SOAP Workspace', 'Real-time Vitals History', 'ICD-10 Codification'],
     },
     {
       title: 'Diagnostic Laboratory',
-      code: 'LAB-02',
+      code: 'PATHOLOGY',
       icon: 'biotech',
-      description:
-        'Automated diagnostic requisition engine with barcode tracking, emergency turnaround alerts, and instant verification.',
-      features: ['Direct Electronic Orders', 'Priority Stat Alerts', 'Instant Result Sync'],
-      tag: 'Diagnostics',
+      summary:
+        'Rapid electronic test requisitions with automated barcode tracking and emergency turnaround flags.',
+      features: ['Automated Orders', 'Critical Results Flagging', 'Instant Telemetry Sync'],
     },
     {
-      title: 'Closed-Loop Pharmacy',
-      code: 'PHARM-03',
+      title: 'Hospital Pharmacy',
+      code: 'DISPENSARY',
       icon: 'medication',
-      description:
-        'Zero-error digital prescription fulfillment, live dosage verification, and automated dispensary stock tracking.',
-      features: ['E-Prescriptions', 'Dosage Validation', 'Dispensing Audit'],
-      tag: 'Pharmacy',
+      summary:
+        'Closed-loop digital medication management with electronic dispensing and safety validation.',
+      features: ['Direct E-Prescriptions', 'Dosage Validation', 'Live Stock Tracking'],
     },
     {
-      title: 'Smart Reception & Invoicing',
-      code: 'RECEPT-04',
+      title: 'Patient Reception & Admissions',
+      code: 'ADMISSIONS',
       icon: 'event_available',
-      description:
-        'Rapid multi-specialty appointment booking, zero-queue check-in flow, and itemized transparent billing.',
-      features: ['Smart Scheduling', 'Automated Invoicing', 'Check-in Desk'],
-      tag: 'Front Desk',
+      summary:
+        'Frictionless appointment booking, multi-specialty scheduling, and transparent billing.',
+      features: ['Online Appointments', 'Automated Invoicing', 'Zero-wait Check-in'],
     },
     {
-      title: 'Triage & Vital Signs Station',
-      code: 'TRIAGE-05',
-      icon: 'monitor_heart',
-      description:
-        'Continuous vital sign capture with automated Mean Arterial Pressure (MAP) computation and clinical range validation.',
-      features: ['Live MAP Calculation', 'Clinical Thresholds', 'Nurse Station'],
-      tag: 'Nursing',
+      title: 'Emergency & Triage Vitals',
+      code: 'TRIAGE',
+      icon: 'healing',
+      summary:
+        'High-velocity triage station with automatic Mean Arterial Pressure (MAP) and vital threshold alerts.',
+      features: ['Continuous Vitals Capture', 'MAP Calculation', 'Rapid Triage Routing'],
     },
     {
-      title: 'Patient Health Portal',
-      code: 'PORTAL-06',
+      title: 'Patient Digital Portal',
+      code: 'PORTAL',
       icon: 'person_pin',
-      description:
-        'Direct, secure patient access to personal health records, verified lab reports, and medication instructions.',
-      features: ['Digital Health Records', 'Lab History Access', 'Prescription Tracking'],
-      tag: 'Patient Access',
+      summary:
+        'Secure 24/7 home access to laboratory reports, active medication regimens, and health summaries.',
+      features: ['Lab Report Archive', 'Prescription Tracking', 'Visit Summaries'],
     },
   ];
 
-  protected readonly quickPersonas: readonly PersonaQuickAccess[] = [
+  protected readonly quickPersonas: readonly PersonaQuickLaunch[] = [
     {
       username: 'patient1',
-      name: 'Youssef Ben Salah',
-      role: 'Patient',
-      specialty: 'Patient Portal',
+      fullName: 'Youssef Ben Salah',
+      roleLabel: 'Patient',
+      title: 'Personal Health Portal',
       icon: 'person',
-      highlight: 'View lab results, active prescriptions & upcoming visits',
+      description: 'Access verified lab results, medications & upcoming appointments.',
     },
     {
       username: 'doctor1',
-      name: 'Dr. Amel Trabelsi',
-      role: 'Doctor',
-      specialty: 'Cardiology Specialist',
+      fullName: 'Dr. Amel Trabelsi',
+      roleLabel: 'Cardiologist',
+      title: 'Clinical Consultation Desk',
       icon: 'stethoscope',
-      highlight: 'SOAP consultations, diagnostic lab orders & digital prescriptions',
+      description: 'Review patient history, author SOAP notes & order diagnostic labs.',
     },
     {
       username: 'nurse1',
-      name: 'Sonia Gharbi',
-      role: 'Nurse',
-      specialty: 'Triage & Vitals Lead',
+      fullName: 'Sonia Gharbi',
+      roleLabel: 'Head Nurse',
+      title: 'Triage & Vital Signs',
       icon: 'healing',
-      highlight: 'Record patient vital signs, monitor blood pressure & clinical alerts',
+      description: 'Record patient vitals, verify blood pressure & monitor acute alarms.',
     },
     {
       username: 'lab1',
-      name: 'Walid Mansouri',
-      role: 'Lab Tech',
-      specialty: 'Diagnostic Laboratory',
+      fullName: 'Walid Mansouri',
+      roleLabel: 'Lab Technologist',
+      title: 'Clinical Pathology',
       icon: 'biotech',
-      highlight: 'Analyze specimens, enter test results & verify critical values',
+      description: 'Process urgent test requisitions & publish validated results.',
     },
     {
       username: 'pharmacist1',
-      name: 'Ines Chaabane',
-      role: 'Pharmacist',
-      specialty: 'Hospital Pharmacy',
+      fullName: 'Ines Chaabane',
+      roleLabel: 'Lead Pharmacist',
+      title: 'Hospital Dispensary',
       icon: 'medication',
-      highlight: 'Dispense prescribed medications & audit dosage instructions',
+      description: 'Fulfill digital prescriptions & check dosage instructions.',
     },
     {
       username: 'reception1',
-      name: 'Rim Bouazizi',
-      role: 'Receptionist',
-      specialty: 'Patient Admissions',
+      fullName: 'Rim Bouazizi',
+      roleLabel: 'Admissions Officer',
+      title: 'Front Desk & Billing',
       icon: 'badge',
-      highlight: 'Register patients, schedule appointments & issue invoices',
+      description: 'Register incoming patients, book visits & process patient invoices.',
     },
   ];
 

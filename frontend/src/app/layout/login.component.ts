@@ -8,61 +8,52 @@ import { MOCK_AUTH_ENABLED, MockAuthBackend } from '../core/auth/mock-auth.backe
 import { MOCK_USERS } from '../core/auth/mock-users';
 import { ThemeService } from '../core/theme/theme.service';
 
-interface PersonaMetadata {
+interface PersonaCardMeta {
   readonly title: string;
   readonly department: string;
   readonly icon: string;
-  readonly category: 'PATIENT' | 'DOCTOR' | 'NURSING' | 'DIAGNOSTICS' | 'ADMIN';
 }
 
-const PERSONA_META: Record<string, PersonaMetadata> = {
+const PERSONA_DETAILS: Record<string, PersonaCardMeta> = {
   doctor1: {
     title: 'Senior Cardiologist',
-    department: 'Cardiology Dept',
+    department: 'Cardiology',
     icon: 'stethoscope',
-    category: 'DOCTOR',
   },
   doctor2: {
     title: 'General Practitioner',
     department: 'Internal Medicine',
     icon: 'medical_services',
-    category: 'DOCTOR',
   },
   nurse1: {
     title: 'Head Triage Nurse',
     department: 'Emergency & Triage',
     icon: 'healing',
-    category: 'NURSING',
   },
   lab1: {
-    title: 'Senior Lab Technologist',
-    department: 'Pathology & Lab',
+    title: 'Lead Lab Technologist',
+    department: 'Diagnostic Pathology',
     icon: 'biotech',
-    category: 'DIAGNOSTICS',
   },
   pharmacist1: {
-    title: 'Lead Pharmacist',
+    title: 'Chief Pharmacist',
     department: 'Hospital Dispensary',
     icon: 'medication',
-    category: 'DIAGNOSTICS',
   },
   reception1: {
     title: 'Admissions Officer',
-    department: 'Patient Reception',
+    department: 'Front Desk & Billing',
     icon: 'badge',
-    category: 'ADMIN',
   },
   admin1: {
     title: 'System Administrator',
     department: 'Hospital Operations',
     icon: 'admin_panel_settings',
-    category: 'ADMIN',
   },
   patient1: {
     title: 'Registered Patient',
     department: 'Patient Portal',
     icon: 'person',
-    category: 'PATIENT',
   },
 };
 
@@ -82,7 +73,6 @@ export class LoginComponent implements OnInit {
   protected readonly mockAuth = inject(MOCK_AUTH_ENABLED);
   protected readonly users = MOCK_USERS;
 
-  // Sign-in credentials input
   protected usernameInput = 'doctor1';
   protected passwordInput = '••••••••••••';
   protected showPassword = signal(false);
@@ -98,7 +88,7 @@ export class LoginComponent implements OnInit {
     void this.router.navigateByUrl('/');
   }
 
-  onSubmitForm(event?: Event): void {
+  onSubmit(event?: Event): void {
     if (event) {
       event.preventDefault();
     }
@@ -111,18 +101,17 @@ export class LoginComponent implements OnInit {
     this.signIn(match ? match.username : clean);
   }
 
-  getMeta(username: string): PersonaMetadata {
+  getDetails(username: string): PersonaCardMeta {
     return (
-      PERSONA_META[username] ?? {
-        title: 'Hospital Staff',
+      PERSONA_DETAILS[username] ?? {
+        title: 'Staff Member',
         department: 'Clinical Care',
         icon: 'person',
-        category: 'ADMIN',
       }
     );
   }
 
-  togglePasswordVisibility(): void {
+  toggleShowPassword(): void {
     this.showPassword.update((val) => !val);
   }
 }

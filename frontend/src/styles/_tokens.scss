@@ -11,61 +11,61 @@
 :root {
   color-scheme: light;
 
-  // brand
-  --sgh-brand: #1259c3;
-  --sgh-brand-hover: #0d47a1;
+  // brand (modern clinical sapphire & emerald)
+  --sgh-brand: #0284c7;
+  --sgh-brand-hover: #0369a1;
   --sgh-on-brand: #ffffff;
   --sgh-on-solid: #ffffff; // text/icons on a solid tone colour
-  --sgh-brand-container: #e3eefc;
-  --sgh-on-brand-container: #0a3a82;
+  --sgh-brand-container: #e0f2fe;
+  --sgh-on-brand-container: #034f78;
 
-  // surfaces and text
-  --sgh-bg: #f5f8fc;
+  // surfaces and text (clean, calming healthcare whites & slates)
+  --sgh-bg: #f8fafc;
   --sgh-surface: #ffffff;
-  --sgh-surface-1: #f1f5fa;
-  --sgh-surface-2: #eaf0f7;
-  --sgh-surface-3: #e3eaf3;
-  --sgh-surface-4: #dce5ef;
-  --sgh-text: #14202e;
-  --sgh-text-muted: #4a5a6c;
-  --sgh-border: #6b7a8c;
-  --sgh-border-subtle: #d5dde6;
-  --sgh-inverse-surface: #1d2b3b;
-  --sgh-inverse-text: #eef3f9;
-  --sgh-scrim: #0b1420;
+  --sgh-surface-1: #f1f5f9;
+  --sgh-surface-2: #e2e8f0;
+  --sgh-surface-3: #cbd5e1;
+  --sgh-surface-4: #94a3b8;
+  --sgh-text: #0f172a;
+  --sgh-text-muted: #64748b;
+  --sgh-border: #cbd5e1;
+  --sgh-border-subtle: #e2e8f0;
+  --sgh-inverse-surface: #0f172a;
+  --sgh-inverse-text: #f8fafc;
+  --sgh-scrim: #000000;
 
   // focus ring (always visible on keyboard focus)
-  --sgh-focus: #0b57d0;
+  --sgh-focus: #0284c7;
   --sgh-focus-width: 3px;
 
   // meaning: each tone is a background, a text colour and a solid accent
-  --sgh-tone-info-bg: #e3eefc;
-  --sgh-tone-info-fg: #0a3a82;
-  --sgh-tone-info-solid: #1259c3;
-  --sgh-tone-success-bg: #dff3e6;
+  --sgh-tone-info-bg: #e0f2fe;
+  --sgh-tone-info-fg: #034f78;
+  --sgh-tone-info-solid: #0284c7;
+  --sgh-tone-success-bg: #dcfce7;
   --sgh-tone-success-fg: #14532d;
-  --sgh-tone-success-solid: #1e7a43;
-  --sgh-tone-warning-bg: #fff1d6;
-  --sgh-tone-warning-fg: #6b4100;
-  --sgh-tone-warning-solid: #b26a00;
-  --sgh-tone-danger-bg: #fde4e4;
-  --sgh-tone-danger-fg: #8c1d1d;
-  --sgh-tone-danger-solid: #c62828;
-  --sgh-tone-neutral-bg: #e8ecf0;
-  --sgh-tone-neutral-fg: #3b4856;
-  --sgh-tone-neutral-solid: #6b7a8c;
-  --sgh-tone-accent-bg: #ece6fa;
-  --sgh-tone-accent-fg: #4b2a8a;
-  --sgh-tone-accent-solid: #6b3fc2;
+  --sgh-tone-success-solid: #16a34a;
+  --sgh-tone-warning-bg: #fef3c7;
+  --sgh-tone-warning-fg: #78350f;
+  --sgh-tone-warning-solid: #d97706;
+  --sgh-tone-danger-bg: #fee2e2;
+  --sgh-tone-danger-fg: #7f1d1d;
+  --sgh-tone-danger-solid: #dc2626;
+  --sgh-tone-neutral-bg: #f1f5f9;
+  --sgh-tone-neutral-fg: #334155;
+  --sgh-tone-neutral-solid: #64748b;
+  --sgh-tone-accent-bg: #ede9fe;
+  --sgh-tone-accent-fg: #4c1d95;
+  --sgh-tone-accent-solid: #7c3aed;
 
-  // type
-  --sgh-font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  // type (Plus Jakarta Sans for headings & Inter for body copy)
+  --sgh-font: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
   --sgh-font-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
-  --sgh-text-base: 1rem;
-  --sgh-text-sm: 0.875rem;
-  --sgh-text-lg: 1.125rem;
+  --sgh-text-base: 0.95rem;
+  --sgh-text-sm: 0.85rem;
+  --sgh-text-lg: 1.15rem;
   --sgh-text-xl: 1.5rem;
-  --sgh-line-height: 1.5;
+  --sgh-line-height: 1.6;
 
   // space, shape, elevation
   --sgh-space-1: 4px;
@@ -75,12 +75,16 @@
   --sgh-space-5: 24px;
   --sgh-space-6: 32px;
   --sgh-space-7: 48px;
-  --sgh-radius-sm: 6px;
-  --sgh-radius: 10px;
-  --sgh-radius-lg: 16px;
-  --sgh-shadow: 0 1px 2px rgb(20 32 46 / 8%), 0 2px 8px rgb(20 32 46 / 6%);
-  --sgh-content-max: 1400px;
-  --sgh-sidenav-width: 264px;
+  --sgh-radius-sm: 8px;
+  --sgh-radius: 12px;
+  --sgh-radius-lg: 18px;
+  --sgh-radius-xl: 24px;
+  --sgh-radius-pill: 9999px;
+  --sgh-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  --sgh-shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.03);
+  --sgh-shadow-lg: 0 12px 28px -6px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
+  --sgh-content-max: 1320px;
+  --sgh-sidenav-width: 260px;
 }
 
 :root[data-theme='dark'] {
@@ -127,7 +131,9 @@
   --sgh-tone-accent-fg: #d6c6ff;
   --sgh-tone-accent-solid: #a98bf0;
 
-  --sgh-shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 2px 8px rgb(0 0 0 / 30%);
+  --sgh-shadow: 0 1px 3px 0 rgb(0 0 0 / 30%), 0 1px 2px -1px rgb(0 0 0 / 20%);
+  --sgh-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 40%), 0 2px 4px -2px rgb(0 0 0 / 30%);
+  --sgh-shadow-lg: 0 12px 28px -6px rgb(0 0 0 / 60%), 0 4px 12px -2px rgb(0 0 0 / 40%);
 }
 
 // ---------------------------------------------------------------------------------------------
