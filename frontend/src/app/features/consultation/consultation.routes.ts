@@ -1,6 +1,6 @@
 import type { Routes } from '@angular/router';
 import { roleGuard } from '../../core/auth/auth.guard';
-import { FeaturePlaceholderComponent } from '../../shared/components/feature-placeholder/feature-placeholder.component';
+
 export const CONSULTATION_ROUTES: Routes = [
   {
     path: '',
@@ -8,13 +8,17 @@ export const CONSULTATION_ROUTES: Routes = [
     children: [
       {
         path: '',
-        component: FeaturePlaceholderComponent,
-        data: { title: 'Consultations', service: 'consultation' },
+        loadComponent: () =>
+          import('./consultation-list/consultation-list.component').then(
+            (m) => m.ConsultationListComponent,
+          ),
       },
       {
         path: ':id',
-        component: FeaturePlaceholderComponent,
-        data: { title: 'Consultation', service: 'consultation' },
+        loadComponent: () =>
+          import('./consultation-workspace/consultation-workspace.component').then(
+            (m) => m.ConsultationWorkspaceComponent,
+          ),
       },
     ],
   },
@@ -27,8 +31,8 @@ export const VITALS_ROUTES: Routes = [
     children: [
       {
         path: '',
-        component: FeaturePlaceholderComponent,
-        data: { title: 'Vital signs', service: 'consultation' },
+        loadComponent: () =>
+          import('./vitals-page/vitals-page.component').then((m) => m.VitalsPageComponent),
       },
     ],
   },

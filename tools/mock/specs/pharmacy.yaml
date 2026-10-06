@@ -2,9 +2,7 @@ openapi: 3.0.3
 info:
   title: SGH pharmacy service (mock spec for the Angular app)
   description: >-
-    Grown phase by phase with the endpoints the Angular screens call. Examples use the ids and names of
-    Seed Data and Fixtures. Replaced by contracts/openapi/pharmacy.yaml when the contracts phase is done
-    (see tools/mock/README.md).
+    Mock specification for pharmacy service. Seeded prescriptions and drugs.
   version: 0.0.0
 servers:
   - url: http://localhost:8085
@@ -28,7 +26,71 @@ paths:
                 required: [status]
               example:
                 status: UP
+
+  /api/prescriptions/{id}:
+    get:
+      summary: Get prescription dispensing details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Prescription details with dispensing status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PharmacyPrescription'
+              example:
+                id: d4d4d4d4-0000-4000-8000-000000000001
+                consultationId: f7f7f7f7-0000-4000-8000-000000000002
+                patientId: a1a1a1a1-0000-4000-8000-000000000003
+                doctorId: b2b2b2b2-0000-4000-8000-000000000001
+                status: ISSUED
+                items:
+                  - drugName: "Paracetamol"
+                    dosage: "1000mg"
+                    frequency: "Every 8 hours as needed"
+                    duration: "5 days"
+                    index: 0
+                    dispensed: false
+                  - drugName: "Omeprazole"
+                    dosage: "20mg"
+                    frequency: "Once daily before breakfast"
+                    duration: "14 days"
+                    index: 1
+                    dispensed: false
+                createdAt: "2026-10-12T09:00:00Z"
+        "404":
+          description: Prescription not found
+
 components:
+  schemas:
+    PharmacyItem:
+      type: object
+      required: [drugName, dosage, frequency, duration, index, dispensed]
+      properties:
+        drugName: { type: string }
+        dosage: { type: string }
+        frequency: { type: string }
+        duration: { type: string }
+        index: { type: integer }
+        dispensed: { type: boolean }
+    PharmacyPrescription:
+      type: object
+      required: [id, consultationId, patientId, doctorId, status, items, createdAt]
+      properties:
+        id: { type: string }
+        consultationId: { type: string }
+        patientId: { type: string }
+        doctorId: { type: string }
+        status: { type: string, enum: [ISSUED, PARTIALLY_DISPENSED, DISPENSED] }
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PharmacyItem'
+        createdAt: { type: string }
   securitySchemes:
     bearerAuth:
       type: http

@@ -84,9 +84,9 @@ paths:
                     appointmentId: e5e5e5e5-0000-4000-8000-000000000003
                     status: DRAFT
                     subjective: "Chest discomfort since yesterday"
-                    objective: null
-                    assessment: null
-                    plan: null
+                    objective: "Regular heart rate, normal breath sounds"
+                    assessment: "Atypical chest pain, observe"
+                    plan: "Prescribed basic pain relief and routine blood tests"
                     signedAt: null
                     createdAt: "2026-10-12T08:35:00Z"
                     updatedAt: "2026-10-12T08:35:00Z"
@@ -122,13 +122,396 @@ paths:
                 doctorId: b2b2b2b2-0000-4000-8000-000000000001
                 appointmentId: e5e5e5e5-0000-4000-8000-000000000003
                 status: DRAFT
-                subjective: null
+                subjective: "Chest discomfort since yesterday"
                 objective: null
                 assessment: null
                 plan: null
                 signedAt: null
                 createdAt: "2026-10-12T08:35:00Z"
                 updatedAt: "2026-10-12T08:35:00Z"
+
+  /api/consultations/{id}:
+    get:
+      summary: Get consultation details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Consultation details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Consultation'
+              example:
+                id: f7f7f7f7-0000-4000-8000-000000000002
+                patientId: a1a1a1a1-0000-4000-8000-000000000003
+                patientSnapshot:
+                  fullName: Nizar Khelifi
+                  birthDate: "1978-11-02"
+                doctorId: b2b2b2b2-0000-4000-8000-000000000001
+                appointmentId: e5e5e5e5-0000-4000-8000-000000000003
+                status: DRAFT
+                subjective: "Chest discomfort since yesterday"
+                objective: "Regular heart rate, normal breath sounds"
+                assessment: "Atypical chest pain, observe"
+                plan: "Prescribed basic pain relief and routine blood tests"
+                signedAt: null
+                createdAt: "2026-10-12T08:35:00Z"
+                updatedAt: "2026-10-12T08:35:00Z"
+        "404":
+          description: Consultation not found
+    put:
+      summary: Save consultation draft notes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subjective: { type: string }
+                objective: { type: string }
+                assessment: { type: string }
+                plan: { type: string }
+      responses:
+        "200":
+          description: Notes updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Consultation'
+              example:
+                id: f7f7f7f7-0000-4000-8000-000000000002
+                patientId: a1a1a1a1-0000-4000-8000-000000000003
+                patientSnapshot:
+                  fullName: Nizar Khelifi
+                  birthDate: "1978-11-02"
+                doctorId: b2b2b2b2-0000-4000-8000-000000000001
+                appointmentId: e5e5e5e5-0000-4000-8000-000000000003
+                status: DRAFT
+                subjective: "Chest discomfort since yesterday"
+                objective: "Regular heart rate, normal breath sounds"
+                assessment: "Atypical chest pain, observe"
+                plan: "Prescribed basic pain relief and routine blood tests"
+                signedAt: null
+                createdAt: "2026-10-12T08:35:00Z"
+                updatedAt: "2026-10-12T09:10:00Z"
+        "409":
+          description: This consultation is already signed
+
+  /api/consultations/{id}/sign:
+    post:
+      summary: Sign consultation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Consultation signed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Consultation'
+              example:
+                id: f7f7f7f7-0000-4000-8000-000000000002
+                patientId: a1a1a1a1-0000-4000-8000-000000000003
+                patientSnapshot:
+                  fullName: Nizar Khelifi
+                  birthDate: "1978-11-02"
+                doctorId: b2b2b2b2-0000-4000-8000-000000000001
+                appointmentId: e5e5e5e5-0000-4000-8000-000000000003
+                status: SIGNED
+                subjective: "Chest discomfort since yesterday"
+                objective: "Regular heart rate, normal breath sounds"
+                assessment: "Atypical chest pain, observe"
+                plan: "Prescribed basic pain relief and routine blood tests"
+                signedAt: "2026-10-12T09:15:00Z"
+                createdAt: "2026-10-12T08:35:00Z"
+                updatedAt: "2026-10-12T09:15:00Z"
+        "409":
+          description: Already signed
+        "422":
+          description: Assessment and plan are required to sign
+
+  /api/vitals:
+    get:
+      summary: List vital signs
+      parameters:
+        - name: consultationId
+          in: query
+          required: false
+          schema: { type: string }
+        - name: patientId
+          in: query
+          required: false
+          schema: { type: string }
+        - name: page
+          in: query
+          required: false
+          schema: { type: integer, default: 0 }
+        - name: size
+          in: query
+          required: false
+          schema: { type: integer, default: 20 }
+      responses:
+        "200":
+          description: Paged vital signs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedVitalSigns'
+              example:
+                content:
+                  - id: 8a8a8a8a-0000-4000-8000-000000000001
+                    patientId: a1a1a1a1-0000-4000-8000-000000000003
+                    consultationId: f7f7f7f7-0000-4000-8000-000000000002
+                    recordedBy: b2b2b2b2-0000-4000-8000-000000000003
+                    temperature: 37.1
+                    heartRate: 74
+                    systolic: 122
+                    diastolic: 78
+                    spo2: 98
+                    weight: 76.5
+                    recordedAt: "2026-10-12T08:40:00Z"
+                  - id: 8a8a8a8a-0000-4000-8000-000000000002
+                    patientId: a1a1a1a1-0000-4000-8000-000000000003
+                    consultationId: null
+                    recordedBy: b2b2b2b2-0000-4000-8000-000000000003
+                    temperature: 36.8
+                    heartRate: 70
+                    systolic: 118
+                    diastolic: 75
+                    spo2: 99
+                    weight: 76.0
+                    recordedAt: "2026-09-15T10:15:00Z"
+                page: 0
+                size: 20
+                totalElements: 2
+                totalPages: 1
+    post:
+      summary: Record vital signs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [patientId]
+              properties:
+                patientId: { type: string }
+                consultationId: { type: string, nullable: true }
+                temperature: { type: number, nullable: true }
+                heartRate: { type: integer, nullable: true }
+                systolic: { type: integer, nullable: true }
+                diastolic: { type: integer, nullable: true }
+                spo2: { type: number, nullable: true }
+                weight: { type: number, nullable: true }
+      responses:
+        "201":
+          description: Vital signs recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VitalSigns'
+              example:
+                id: 8a8a8a8a-0000-4000-8000-000000000003
+                patientId: a1a1a1a1-0000-4000-8000-000000000003
+                consultationId: f7f7f7f7-0000-4000-8000-000000000002
+                recordedBy: b2b2b2b2-0000-4000-8000-000000000003
+                temperature: 37.0
+                heartRate: 72
+                systolic: 120
+                diastolic: 80
+                spo2: 98
+                weight: 76.5
+                recordedAt: "2026-10-12T09:05:00Z"
+
+  /api/consultations/{id}/prescriptions:
+    get:
+      summary: List prescriptions for consultation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Prescriptions array
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Prescription'
+              example:
+                - id: d4d4d4d4-0000-4000-8000-000000000001
+                  consultationId: f7f7f7f7-0000-4000-8000-000000000002
+                  patientId: a1a1a1a1-0000-4000-8000-000000000003
+                  doctorId: b2b2b2b2-0000-4000-8000-000000000001
+                  status: ISSUED
+                  items:
+                    - drugName: "Paracetamol"
+                      dosage: "1000mg"
+                      frequency: "Every 8 hours as needed"
+                      duration: "5 days"
+                    - drugName: "Omeprazole"
+                      dosage: "20mg"
+                      frequency: "Once daily before breakfast"
+                      duration: "14 days"
+                  createdAt: "2026-10-12T09:00:00Z"
+    post:
+      summary: Create prescription
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [items]
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/PrescriptionItem'
+      responses:
+        "201":
+          description: Prescription created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prescription'
+              example:
+                id: d4d4d4d4-0000-4000-8000-000000000002
+                consultationId: f7f7f7f7-0000-4000-8000-000000000002
+                patientId: a1a1a1a1-0000-4000-8000-000000000003
+                doctorId: b2b2b2b2-0000-4000-8000-000000000001
+                status: ISSUED
+                items:
+                  - drugName: "Amoxicillin"
+                    dosage: "500mg"
+                    frequency: "3 times daily"
+                    duration: "7 days"
+                createdAt: "2026-10-12T09:12:00Z"
+
+  /api/consultations/{id}/lab-orders:
+    get:
+      summary: List lab orders for consultation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Lab orders array
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LabOrder'
+              example:
+                - id: c3c3c3c3-0000-4000-8000-000000000001
+                  consultationId: f7f7f7f7-0000-4000-8000-000000000002
+                  patientId: a1a1a1a1-0000-4000-8000-000000000003
+                  doctorId: b2b2b2b2-0000-4000-8000-000000000001
+                  priority: ROUTINE
+                  status: VALIDATED
+                  tests:
+                    - code: "HGB"
+                      name: "Hemoglobin"
+                    - code: "WBC"
+                      name: "White blood cells"
+                  createdAt: "2026-10-12T08:50:00Z"
+    post:
+      summary: Create lab order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [priority, tests]
+              properties:
+                priority:
+                  type: string
+                  enum: [ROUTINE, URGENT]
+                tests:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/LabTestRef'
+      responses:
+        "201":
+          description: Lab order created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LabOrder'
+              example:
+                id: c3c3c3c3-0000-4000-8000-000000000002
+                consultationId: f7f7f7f7-0000-4000-8000-000000000002
+                patientId: a1a1a1a1-0000-4000-8000-000000000003
+                doctorId: b2b2b2b2-0000-4000-8000-000000000001
+                priority: ROUTINE
+                status: REQUESTED
+                tests:
+                  - code: "GLU"
+                    name: "Fasting glucose"
+                createdAt: "2026-10-12T09:14:00Z"
+
+  /api/consultations/{id}/lab-results:
+    get:
+      summary: List lab results for consultation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Lab results array
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LabResultCopy'
+              example:
+                - labRequestId: c3c3c3c3-0000-4000-8000-000000000001
+                  consultationId: f7f7f7f7-0000-4000-8000-000000000002
+                  patientId: a1a1a1a1-0000-4000-8000-000000000003
+                  results:
+                    - testCode: "HGB"
+                      value: 14.2
+                      unit: "g/dL"
+                      referenceRange: "12.0 - 17.5"
+                      flag: NORMAL
+                    - testCode: "WBC"
+                      value: 12.4
+                      unit: "10^3/µL"
+                      referenceRange: "4.5 - 11.0"
+                      flag: HIGH
+                  validatedAt: "2026-10-12T09:30:00Z"
 
 components:
   schemas:
@@ -166,6 +549,97 @@ components:
         size: { type: integer }
         totalElements: { type: integer }
         totalPages: { type: integer }
+    VitalSigns:
+      type: object
+      required: [id, patientId, recordedBy, recordedAt]
+      properties:
+        id: { type: string }
+        patientId: { type: string }
+        consultationId: { type: string, nullable: true }
+        recordedBy: { type: string }
+        temperature: { type: number, nullable: true }
+        heartRate: { type: integer, nullable: true }
+        systolic: { type: integer, nullable: true }
+        diastolic: { type: integer, nullable: true }
+        spo2: { type: number, nullable: true }
+        weight: { type: number, nullable: true }
+        recordedAt: { type: string }
+    PagedVitalSigns:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/VitalSigns'
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+    PrescriptionItem:
+      type: object
+      required: [drugName, dosage, frequency, duration]
+      properties:
+        drugName: { type: string }
+        dosage: { type: string }
+        frequency: { type: string }
+        duration: { type: string }
+    Prescription:
+      type: object
+      required: [id, consultationId, patientId, doctorId, status, items, createdAt]
+      properties:
+        id: { type: string }
+        consultationId: { type: string }
+        patientId: { type: string }
+        doctorId: { type: string }
+        status: { type: string, enum: [ISSUED] }
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PrescriptionItem'
+        createdAt: { type: string }
+    LabTestRef:
+      type: object
+      required: [code, name]
+      properties:
+        code: { type: string }
+        name: { type: string }
+    LabOrder:
+      type: object
+      required: [id, consultationId, patientId, doctorId, priority, status, tests, createdAt]
+      properties:
+        id: { type: string }
+        consultationId: { type: string }
+        patientId: { type: string }
+        doctorId: { type: string }
+        priority: { type: string, enum: [ROUTINE, URGENT] }
+        status: { type: string, enum: [REQUESTED, VALIDATED] }
+        tests:
+          type: array
+          items:
+            $ref: '#/components/schemas/LabTestRef'
+        createdAt: { type: string }
+    LabResultLine:
+      type: object
+      required: [testCode, value, unit, referenceRange, flag]
+      properties:
+        testCode: { type: string }
+        value: { type: number }
+        unit: { type: string }
+        referenceRange: { type: string }
+        flag: { type: string, enum: [NORMAL, HIGH, LOW, CRITICAL] }
+    LabResultCopy:
+      type: object
+      required: [labRequestId, consultationId, patientId, results, validatedAt]
+      properties:
+        labRequestId: { type: string }
+        consultationId: { type: string }
+        patientId: { type: string }
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/LabResultLine'
+        validatedAt: { type: string }
   securitySchemes:
     bearerAuth:
       type: http
