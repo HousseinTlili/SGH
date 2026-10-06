@@ -1,0 +1,49 @@
+<div class="data-table" [attr.aria-busy]="loading()">
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Loading data" />
+  }
+
+  @if (!loading() && rows().length === 0) {
+    <app-empty-state [title]="emptyTitle()" [message]="emptyMessage()" />
+  } @else {
+    <div class="scroll">
+      <table mat-table [dataSource]="rows()">
+        @for (column of columns(); track column.key) {
+          <ng-container [matColumnDef]="column.key">
+            <th mat-header-cell *matHeaderCellDef scope="col">{{ column.header }}</th>
+            <td mat-cell *matCellDef="let row">
+              @if (template(column); as tpl) {
+                <ng-container
+                  [ngTemplateOutlet]="tpl"
+                  [ngTemplateOutletContext]="{ $implicit: row }"
+                />
+              } @else {
+                {{ text(column, row) }}
+              }
+            </td>
+          </ng-container>
+        }
+
+        <tr mat-header-row *matHeaderRowDef="keys(); sticky: true"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: keys()"
+          tabindex="0"
+          (click)="rowClick.emit(row)"
+          (keydown.enter)="rowClick.emit(row)"
+        ></tr>
+      </table>
+    </div>
+  }
+
+  @if (total() > 0) {
+    <mat-paginator
+      [length]="total()"
+      [pageIndex]="page()"
+      [pageSize]="size()"
+      [pageSizeOptions]="pageSizeOptions"
+      (page)="onPage($event)"
+      aria-label="Select page"
+    />
+  }
+</div>

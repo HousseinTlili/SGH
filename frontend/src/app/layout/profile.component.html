@@ -1,0 +1,46 @@
+<app-page-header title="Profile" />
+
+@if (state() === 'loading') {
+  <app-loading-state label="Loading your profile..." />
+} @else {
+  <div class="sgh-card details">
+    <dl>
+      <dt>Username</dt>
+      <dd>{{ me()?.username ?? auth.user()?.username }}</dd>
+
+      <dt>Roles</dt>
+      <dd class="roles">
+        @for (role of me()?.roles ?? auth.roles(); track role) {
+          <span class="sgh-badge" data-tone="neutral">{{ role }}</span>
+        }
+      </dd>
+
+      @if (state() === 'ready') {
+        @if (me()?.staff; as staff) {
+          <dt>Name</dt>
+          <dd>{{ staff.fullName }}</dd>
+          <dt>Role</dt>
+          <dd>{{ staff.role }}</dd>
+          <dt>Specialty</dt>
+          <dd>{{ staff.specialty || 'None' }}</dd>
+          <dt>Department</dt>
+          <dd>{{ staff.department }}</dd>
+        } @else {
+          <dt>Patient id</dt>
+          <dd class="mono">{{ me()?.patientId }}</dd>
+        }
+      }
+    </dl>
+
+    @if (state() === 'unavailable') {
+      <div class="notice" role="status">
+        <mat-icon aria-hidden="true">cloud_off</mat-icon>
+        <span>
+          Your profile is unavailable right now. Your username and roles above come from your
+          sign-in.
+        </span>
+        <button mat-stroked-button type="button" (click)="load()">Retry</button>
+      </div>
+    }
+  </div>
+}

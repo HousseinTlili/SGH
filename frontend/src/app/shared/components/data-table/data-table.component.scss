@@ -1,0 +1,30 @@
+.data-table {
+  background: var(--sgh-surface);
+  border: 1px solid var(--sgh-border-subtle);
+  border-radius: var(--sgh-radius);
+  box-shadow: var(--sgh-shadow);
+  overflow: hidden;
+}
+
+.scroll {
+  max-height: 70vh;
+  overflow: auto;
+}
+
+table {
+  width: 100%;
+}
+
+th.mat-mdc-header-cell {
+  background: var(--sgh-surface-1);
+  color: var(--sgh-text-muted);
+  font-weight: 600;
+}
+
+tr.mat-mdc-row {
+  cursor: pointer;
+
+  &:hover {
+    background: var(--sgh-surface-1);
+  }
+}

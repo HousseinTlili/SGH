@@ -1,0 +1,15 @@
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import type { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import type { Me } from '../models/staff';
+
+@Injectable({ providedIn: 'root' })
+export class StaffApi {
+  private readonly http = inject(HttpClient);
+  private readonly base = `${environment.apiBaseUrl}/api`;
+
+  me(): Observable<Me> {
+    return this.http.get<Me>(`${this.base}/me`);
+  }
+}
