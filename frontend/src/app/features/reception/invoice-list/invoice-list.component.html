@@ -1,0 +1,73 @@
+<div *appServiceGate="'reception'">
+  <app-page-header title="Invoices" subtitle="Hospital billing, patient invoices, and payments">
+    @if (canCreate()) {
+      <button mat-flat-button color="primary" type="button" (click)="onCreate()">
+        <mat-icon>add</mat-icon>
+        New invoice
+      </button>
+    }
+  </app-page-header>
+
+  <!-- Filter Bar -->
+  <form [formGroup]="filterForm" class="filter-bar">
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Status</mat-label>
+      <mat-select formControlName="status">
+        <mat-option value="">All statuses</mat-option>
+        <mat-option value="PENDING">Pending</mat-option>
+        <mat-option value="PAID">Paid</mat-option>
+        <mat-option value="CANCELLED">Cancelled</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </form>
+
+  <!-- Table -->
+  <div class="table-container">
+    <table class="sgh-table" aria-label="Invoices table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Patient</th>
+          <th>Appointment</th>
+          <th>Total</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (loading()) {
+          <tr>
+            <td colspan="5" class="text-center sgh-muted">Loading invoices...</td>
+          </tr>
+        } @else if (invoices().length === 0) {
+          <tr>
+            <td colspan="5" class="text-center sgh-muted">No invoices found.</td>
+          </tr>
+        } @else {
+          @for (inv of invoices(); track inv.id) {
+            <tr class="clickable-row" (click)="onRowClick(inv)">
+              <td>{{ inv.createdAt | localDatetime }}</td>
+              <td>{{ patientNames()[inv.patientId] || 'Loading...' }}</td>
+              <td>
+                @if (inv.appointmentId) {
+                  <a
+                    [routerLink]="['/appointments', inv.appointmentId]"
+                    (click)="$event.stopPropagation()"
+                    class="link"
+                  >
+                    View appointment
+                  </a>
+                } @else {
+                  <span class="sgh-muted">—</span>
+                }
+              </td>
+              <td class="font-bold">{{ inv.total | money }}</td>
+              <td>
+                <app-status-badge [status]="inv.status" />
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

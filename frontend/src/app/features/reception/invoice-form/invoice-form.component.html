@@ -1,0 +1,152 @@
+<div *appServiceGate="'reception'">
+  <app-page-header
+    title="New invoice"
+    subtitle="Create a new billing invoice for patient consultations or procedures"
+  />
+
+  <mat-card class="form-card">
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+        <app-form-errors [control]="form" />
+
+        <!-- Patient Selection -->
+        <div class="form-section">
+          <h3>Patient & Consultation</h3>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Patient *</mat-label>
+            <input
+              matInput
+              formControlName="patientSearch"
+              [matAutocomplete]="autoPatient"
+              placeholder="Search patient name..."
+            />
+            <mat-autocomplete #autoPatient="matAutocomplete">
+              @for (p of patientResults(); track p.id) {
+                <mat-option
+                  [value]="p.firstName + ' ' + p.lastName"
+                  (onSelectionChange)="onSelectPatient(p)"
+                >
+                  <strong>{{ p.firstName }} {{ p.lastName }}</strong>
+                  <span class="sgh-muted"> ({{ p.birthDate }})</span>
+                </mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+
+          <!-- Optional Appointment Link -->
+          @if (appointments().length > 0) {
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Linked Appointment (optional)</mat-label>
+              <mat-select formControlName="appointmentId">
+                <mat-option [value]="null">None</mat-option>
+                @for (appt of appointments(); track appt.id) {
+                  <mat-option [value]="appt.id">
+                    {{ appt.startAt | localDatetime }} - {{ appt.reason }} ({{ appt.status }})
+                  </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          }
+        </div>
+
+        <!-- Line Items Editor -->
+        <div class="form-section">
+          <div class="section-header">
+            <h3>Invoice Items (1 to 30)</h3>
+            <button
+              mat-stroked-button
+              color="primary"
+              type="button"
+              (click)="addLine()"
+              [disabled]="linesArray.length >= 30"
+            >
+              <mat-icon>add</mat-icon>
+              Add line
+            </button>
+          </div>
+
+          <div class="lines-list">
+            @for (line of linesArray.controls; track $index) {
+              <div [formGroup]="line" class="line-row">
+                <mat-form-field appearance="outline" class="desc-field">
+                  <mat-label>Description *</mat-label>
+                  <input
+                    matInput
+                    formControlName="description"
+                    placeholder="e.g. General consultation"
+                    maxlength="150"
+                    required
+                  />
+                  @if (errorMessage(line.controls.description); as msg) {
+                    <mat-error>{{ msg }}</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="qty-field">
+                  <mat-label>Qty *</mat-label>
+                  <input matInput type="number" formControlName="quantity" min="1" required />
+                  @if (errorMessage(line.controls.quantity); as msg) {
+                    <mat-error>{{ msg }}</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="price-field">
+                  <mat-label>Unit Price (TND) *</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    step="0.01"
+                    formControlName="unitPrice"
+                    min="0"
+                    required
+                  />
+                  @if (errorMessage(line.controls.unitPrice); as msg) {
+                    <mat-error>{{ msg }}</mat-error>
+                  }
+                </mat-form-field>
+
+                <div class="line-actions">
+                  <button
+                    mat-icon-button
+                    color="warn"
+                    type="button"
+                    (click)="removeLine($index)"
+                    [disabled]="linesArray.length <= 1"
+                    aria-label="Remove line"
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Live Total Display -->
+          <div class="live-total-box">
+            <span class="total-label">Calculated Total:</span>
+            <span class="total-amount">{{ liveTotal() | money }}</span>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button mat-button type="button" (click)="onCancel()" [disabled]="saving()">
+            Cancel
+          </button>
+          <button
+            mat-flat-button
+            color="primary"
+            type="submit"
+            [disabled]="form.invalid || saving()"
+          >
+            @if (saving()) {
+              Creating invoice...
+            } @else {
+              Create invoice
+            }
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -1,0 +1,115 @@
+.form-card {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.form-section {
+  margin-bottom: var(--sgh-space-5);
+  padding-bottom: var(--sgh-space-4);
+  border-bottom: 1px solid var(--sgh-border);
+
+  h3 {
+    margin-bottom: var(--sgh-space-3);
+    font-size: var(--sgh-font-size-md);
+    font-weight: 600;
+  }
+}
+
+.w-full {
+  width: 100%;
+}
+
+.two-col-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sgh-space-3);
+}
+
+.degraded-notice {
+  display: flex;
+  align-items: center;
+  gap: var(--sgh-space-2);
+  padding: var(--sgh-space-3);
+  margin-bottom: var(--sgh-space-3);
+  background: var(--sgh-tone-warning-bg);
+  color: var(--sgh-tone-warning-fg);
+  border: 1px solid var(--sgh-tone-warning-solid);
+  border-radius: var(--sgh-radius-sm);
+}
+
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: var(--sgh-space-2);
+  margin-top: var(--sgh-space-2);
+}
+
+.slot-button {
+  padding: var(--sgh-space-2) var(--sgh-space-3);
+  border: 1px solid var(--sgh-border);
+  border-radius: var(--sgh-radius-sm);
+  background: var(--sgh-surface);
+  color: var(--sgh-fg);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover:not(:disabled) {
+    border-color: var(--sgh-tone-primary-solid);
+    background: var(--sgh-tone-primary-bg);
+  }
+
+  &.selected {
+    border-color: var(--sgh-tone-primary-solid);
+    background: var(--sgh-tone-primary-solid);
+    color: var(--sgh-on-solid);
+  }
+
+  &.taken,
+  &:disabled {
+    background: var(--sgh-surface-alt, rgba(0, 0, 0, 0.04));
+    color: var(--sgh-fg-muted);
+    border-color: var(--sgh-border);
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
+.validation-warning {
+  color: var(--sgh-tone-danger-fg);
+  font-size: var(--sgh-font-size-sm);
+  margin-top: var(--sgh-space-2);
+}
+
+.duration-presets {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sgh-space-3);
+}
+
+.custom-duration {
+  width: 180px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sgh-space-3);
+  margin-top: var(--sgh-space-4);
+}
+
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  padding: var(--sgh-space-6);
+}
+
+@media (max-width: 600px) {
+  .two-col-grid {
+    grid-template-columns: 1fr;
+  }
+  .slot-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
