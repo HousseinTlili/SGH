@@ -1,0 +1,23 @@
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sgh-space-3);
+  margin-bottom: var(--sgh-space-4);
+}
+
+.search-field {
+  flex: 2;
+  min-width: 240px;
+}
+
+.filter-field {
+  flex: 1;
+  min-width: 180px;
+}
+
+.toggle-container {
+  display: flex;
+  align-items: center;
+  padding-bottom: var(--sgh-space-4);
+}

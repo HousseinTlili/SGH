@@ -1,6 +1,8 @@
 import type { Routes } from '@angular/router';
 import { roleGuard } from '../../core/auth/auth.guard';
-import { FeaturePlaceholderComponent } from '../../shared/components/feature-placeholder/feature-placeholder.component';
+import { StaffFormComponent } from './staff-form/staff-form.component';
+import { StaffListComponent } from './staff-list/staff-list.component';
+
 export const STAFF_ROUTES: Routes = [
   {
     path: '',
@@ -8,17 +10,17 @@ export const STAFF_ROUTES: Routes = [
     children: [
       {
         path: '',
-        component: FeaturePlaceholderComponent,
+        component: StaffListComponent,
         data: { title: 'Staff', service: 'staff' },
       },
       {
         path: 'new',
-        component: FeaturePlaceholderComponent,
+        component: StaffFormComponent,
         data: { title: 'New staff member', service: 'staff' },
       },
       {
         path: ':id/edit',
-        component: FeaturePlaceholderComponent,
+        component: StaffFormComponent,
         data: { title: 'Edit staff member', service: 'staff' },
       },
     ],

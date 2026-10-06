@@ -1,0 +1,148 @@
+<div *appServiceGate="'staff'">
+  <app-page-header
+    [title]="isEdit() ? 'Edit staff member' : 'New staff member'"
+    [subtitle]="
+      isEdit()
+        ? 'Update staff member profile and details'
+        : 'Register a new medical or administrative staff member'
+    "
+  >
+    @if (isEdit()) {
+      <button
+        mat-stroked-button
+        color="warn"
+        type="button"
+        (click)="onDeactivate()"
+        [disabled]="!currentStaff()?.active || saving()"
+      >
+        <mat-icon>person_off</mat-icon>
+        {{ currentStaff()?.active ? 'Deactivate' : 'Deactivated' }}
+      </button>
+    }
+  </app-page-header>
+
+  <mat-card class="form-card">
+    <mat-card-content>
+      @if (loading()) {
+        <div class="spinner-container">
+          <mat-spinner diameter="40" />
+        </div>
+      } @else {
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+          <app-form-errors [control]="form" />
+
+          <div class="form-grid">
+            <!-- First name -->
+            <mat-form-field appearance="outline">
+              <mat-label>First name *</mat-label>
+              <input matInput formControlName="firstName" maxlength="80" required />
+              @if (errorMessage('firstName'); as msg) {
+                <mat-error>{{ msg }}</mat-error>
+              }
+            </mat-form-field>
+
+            <!-- Last name -->
+            <mat-form-field appearance="outline">
+              <mat-label>Last name *</mat-label>
+              <input matInput formControlName="lastName" maxlength="80" required />
+              @if (errorMessage('lastName'); as msg) {
+                <mat-error>{{ msg }}</mat-error>
+              }
+            </mat-form-field>
+
+            <!-- Role -->
+            <mat-form-field appearance="outline">
+              <mat-label>Role *</mat-label>
+              <mat-select formControlName="role" required>
+                @for (r of roles; track r) {
+                  <mat-option [value]="r">{{ r }}</mat-option>
+                }
+              </mat-select>
+              @if (errorMessage('role'); as msg) {
+                <mat-error>{{ msg }}</mat-error>
+              }
+            </mat-form-field>
+
+            <!-- Specialty -->
+            <mat-form-field appearance="outline">
+              <mat-label>Specialty</mat-label>
+              <input
+                matInput
+                formControlName="specialty"
+                maxlength="80"
+                placeholder="e.g. Cardiology, Pediatrics..."
+              />
+              @if (errorMessage('specialty'); as msg) {
+                <mat-error>{{ msg }}</mat-error>
+              }
+            </mat-form-field>
+
+            <!-- Department -->
+            <mat-form-field appearance="outline">
+              <mat-label>Department *</mat-label>
+              <input
+                matInput
+                formControlName="department"
+                maxlength="80"
+                placeholder="e.g. Cardiology, Emergency, Front Desk..."
+                required
+              />
+              @if (errorMessage('department'); as msg) {
+                <mat-error>{{ msg }}</mat-error>
+              }
+            </mat-form-field>
+
+            <!-- Email -->
+            <mat-form-field appearance="outline">
+              <mat-label>Email *</mat-label>
+              <input
+                matInput
+                type="email"
+                formControlName="email"
+                maxlength="120"
+                placeholder="username@sgh.local"
+                required
+              />
+              @if (errorMessage('email'); as msg) {
+                <mat-error>{{ msg }}</mat-error>
+              }
+            </mat-form-field>
+
+            <!-- Keycloak User ID (span 2) -->
+            <mat-form-field appearance="outline" class="col-span-2">
+              <mat-label>Keycloak user ID (optional UUID)</mat-label>
+              <input
+                matInput
+                formControlName="keycloakUserId"
+                placeholder="e.g. 00000000-0000-0000-0000-000000000000"
+              />
+            </mat-form-field>
+          </div>
+
+          <div class="note-box">
+            <mat-icon>info</mat-icon>
+            <span>This manages the profile only. Login accounts come from Keycloak.</span>
+          </div>
+
+          <div class="form-actions">
+            <button mat-button type="button" (click)="onCancel()" [disabled]="saving()">
+              Cancel
+            </button>
+            <button
+              mat-flat-button
+              color="primary"
+              type="submit"
+              [disabled]="form.invalid || saving()"
+            >
+              @if (saving()) {
+                Saving...
+              } @else {
+                Save staff member
+              }
+            </button>
+          </div>
+        </form>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>
