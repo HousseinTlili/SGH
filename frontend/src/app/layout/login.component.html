@@ -1,185 +1,166 @@
-<main class="login-wrapper">
-  <div class="login-container">
-    <!-- Brand Info Panel (Left) -->
-    <aside class="info-panel" aria-label="Hospital information and portal features">
-      <div class="info-top">
-        <a routerLink="/landing" class="back-home-link">
+<main class="login-page">
+  <div class="auth-card">
+    <!-- Brand & Trust Column (Left) -->
+    <aside class="brand-side" aria-label="Hospital security and information">
+      <div class="brand-top">
+        <a routerLink="/landing" class="back-link">
           <mat-icon>arrow_back</mat-icon>
           <span>Return to Hospital Home</span>
         </a>
 
-        <div class="brand">
-          <div class="brand-badge" aria-hidden="true">
+        <div class="brand-header">
+          <div class="brand-emblem" aria-hidden="true">
             <mat-icon>local_hospital</mat-icon>
           </div>
-          <div class="brand-title">
+          <div class="brand-titles">
             <span class="hospital-name">St. Gabriel Hospital</span>
-            <span class="portal-badge">Integrated Clinical & Patient Portal</span>
+            <span class="portal-badge">Integrated Health Network</span>
           </div>
         </div>
       </div>
 
-      <div class="info-body">
-        <h2 class="welcome-heading">Unified Access to Your Care & Clinical Workstation</h2>
-        <p class="welcome-desc">
-          Sign in to view real-time patient charts, enter SOAP consultation notes, requisition
-          urgent lab tests, dispense medications, or access personal medical history securely.
+      <div class="brand-message">
+        <h2 class="message-title">Compassionate Care,<br />Connected in Real Time.</h2>
+        <p class="message-sub">
+          Welcome to your secure patient and clinical workspace. Review test results, consultation
+          SOAP notes, and active electronic prescriptions with end-to-end medical encryption.
         </p>
 
-        <div class="features-list">
-          <div class="feature-item">
-            <div class="feature-icon" aria-hidden="true">
+        <div class="trust-list">
+          <div class="trust-item">
+            <div class="trust-icon" aria-hidden="true">
               <mat-icon>security</mat-icon>
             </div>
             <div>
-              <strong>End-to-End Medical Privacy</strong>
-              <p>HIPAA & GDPR compliant segregated access across clinical roles.</p>
+              <strong>Role-Segregated Medical Privacy</strong>
+              <p>HIPAA & GDPR compliant clinical access control.</p>
             </div>
           </div>
 
-          <div class="feature-item">
-            <div class="feature-icon" aria-hidden="true">
+          <div class="trust-item">
+            <div class="trust-icon" aria-hidden="true">
               <mat-icon>sync_alt</mat-icon>
             </div>
             <div>
-              <strong>Instant Telemetry Synchronization</strong>
+              <strong>Instant Telemetry Sync</strong>
               <p>Zero-delay updates across consultation, lab, and pharmacy services.</p>
-            </div>
-          </div>
-
-          <div class="feature-item">
-            <div class="feature-icon" aria-hidden="true">
-              <mat-icon>contact_support</mat-icon>
-            </div>
-            <div>
-              <strong>Need Emergency Clinical Access?</strong>
-              <p>Contact Medical Desk: Ext 4040 / Reception +216 71 800 000</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="info-footer">
-        <span class="system-tag">St. Gabriel Hospital Information System • v2.0</span>
+      <div class="brand-bottom">
+        <span>Emergency Clinical Desk: Dial 198 / Ext 4040</span>
       </div>
     </aside>
 
-    <!-- Sign In Panel (Right) -->
-    <section class="form-panel" aria-labelledby="login-title">
-      <div class="form-header">
-        <div class="mobile-brand">
-          <mat-icon class="mobile-logo" aria-hidden="true">local_hospital</mat-icon>
+    <!-- Sign In & Persona Selection Column (Right) -->
+    <section class="form-side" aria-labelledby="login-title">
+      <div class="form-intro">
+        <div class="mobile-logo">
+          <mat-icon class="icon" aria-hidden="true">local_hospital</mat-icon>
           <span>St. Gabriel Hospital</span>
         </div>
 
         @if (mockAuth) {
-          <div class="header-titles">
-            <h1 id="login-title">Sign in (mock mode)</h1>
-            <p class="sgh-muted">
-              Choose a seeded role persona or enter credentials below to access that workspace.
-            </p>
-          </div>
+          <h1 id="login-title" class="form-title">Sign in (mock mode)</h1>
+          <p class="sgh-muted form-lead">
+            No backend and no Keycloak. Choose a seeded user to see that role's menu and start page.
+          </p>
         } @else {
-          <div class="header-titles">
-            <h1 id="login-title">Sign in</h1>
-            <p class="sgh-muted">
-              Keycloak sign-in is not connected yet. To explore the app now, run it in mock mode:
-            </p>
-            <p><code>npm run start:mock</code></p>
-          </div>
+          <h1 id="login-title" class="form-title">Sign in</h1>
+          <p class="form-lead">
+            Keycloak sign-in is not connected yet. To explore the app now, run it in mock mode:
+          </p>
+          <p><code>npm run start:mock</code></p>
         }
       </div>
 
       @if (mockAuth) {
-        <!-- Credentials Form -->
-        <form class="credentials-card" (submit)="onSubmitForm($event)">
-          <div class="card-caption">
-            <mat-icon class="caption-icon" aria-hidden="true">key</mat-icon>
-            <span>Standard Account Sign In</span>
+        <!-- Standard Account Sign In Card -->
+        <form class="account-card" (submit)="onSubmit($event)">
+          <div class="account-card-header">
+            <mat-icon class="lock-icon" aria-hidden="true">lock</mat-icon>
+            <span>Hospital Account Sign In</span>
           </div>
 
-          <div class="input-group">
-            <label for="username-input" class="input-label">Hospital Username or Patient ID</label>
-            <div class="input-wrapper">
-              <mat-icon class="field-icon" aria-hidden="true">person</mat-icon>
+          <div class="field-box">
+            <label for="username" class="field-label">Username or Patient ID</label>
+            <div class="input-shell">
+              <mat-icon class="shell-icon" aria-hidden="true">person</mat-icon>
               <input
-                id="username-input"
-                type="text"
-                class="text-input"
+                id="username"
                 name="username"
+                type="text"
+                class="field-input"
                 [(ngModel)]="usernameInput"
-                placeholder="e.g. doctor1, patient1, nurse1, lab1"
-                autocomplete="username"
+                placeholder="e.g. doctor1, patient1, nurse1"
                 required
               />
             </div>
           </div>
 
-          <div class="input-group">
-            <label for="password-input" class="input-label">Security Password</label>
-            <div class="input-wrapper">
-              <mat-icon class="field-icon" aria-hidden="true">lock</mat-icon>
+          <div class="field-box">
+            <label for="password" class="field-label">Security Password</label>
+            <div class="input-shell">
+              <mat-icon class="shell-icon" aria-hidden="true">vpn_key</mat-icon>
               <input
-                id="password-input"
-                [type]="showPassword() ? 'text' : 'password'"
-                class="text-input"
+                id="password"
                 name="password"
+                [type]="showPassword() ? 'text' : 'password'"
+                class="field-input"
                 [(ngModel)]="passwordInput"
                 placeholder="Enter password"
-                autocomplete="current-password"
               />
               <button
                 type="button"
-                class="visibility-btn"
-                (click)="togglePasswordVisibility()"
-                aria-label="Toggle password visibility"
+                class="eye-button"
+                (click)="toggleShowPassword()"
+                aria-label="Toggle password view"
               >
                 <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
               </button>
             </div>
           </div>
 
-          <button mat-flat-button class="submit-action" type="submit">
+          <button mat-flat-button class="login-action" type="submit">
             <mat-icon>login</mat-icon>
             <span>Sign In to Portal</span>
           </button>
         </form>
 
-        <!-- Persona Demo Grid Divider -->
-        <div class="persona-divider">
-          <span class="divider-line" aria-hidden="true"></span>
-          <span class="divider-text">OR SELECT A QUICK DEMO PERSONA</span>
-          <span class="divider-line" aria-hidden="true"></span>
+        <div class="or-separator">
+          <span class="sep-line" aria-hidden="true"></span>
+          <span class="sep-text">OR CHOOSE A QUICK DEMO PERSONA</span>
+          <span class="sep-line" aria-hidden="true"></span>
         </div>
 
         <!-- 8 Persona Buttons (Strict test requirement: button.user elements) -->
-        <div class="persona-section">
-          <ul class="users" aria-label="Available test personas">
-            @for (user of users; track user.username) {
-              <li>
-                <button
-                  type="button"
-                  class="user"
-                  (click)="signIn(user.username)"
-                  [attr.aria-label]="'Sign in as ' + user.fullName + ' (' + user.username + ')'"
-                >
-                  <div class="user-avatar" aria-hidden="true">
-                    <mat-icon>{{ getMeta(user.username).icon }}</mat-icon>
-                  </div>
-                  <span class="who">
-                    <strong>{{ user.fullName }}</strong>
-                    <span class="sgh-muted">{{ user.username }}</span>
-                    <span class="meta-title">{{ getMeta(user.username).title }}</span>
-                  </span>
-                  <div class="badge-col">
-                    <span class="sgh-badge" data-tone="neutral">{{ user.roles[0] }}</span>
-                    <span class="dept-caption">{{ getMeta(user.username).department }}</span>
-                  </div>
-                </button>
-              </li>
-            }
-          </ul>
-        </div>
+        <ul class="users" aria-label="Demo role personas">
+          @for (user of users; track user.username) {
+            <li>
+              <button
+                type="button"
+                class="user"
+                (click)="signIn(user.username)"
+                [attr.aria-label]="'Sign in as ' + user.fullName + ' (' + user.username + ')'"
+              >
+                <div class="user-avatar" aria-hidden="true">
+                  <mat-icon>{{ getDetails(user.username).icon }}</mat-icon>
+                </div>
+                <span class="who">
+                  <strong>{{ user.fullName }}</strong>
+                  <span class="sgh-muted">{{ user.username }}</span>
+                  <span class="role-desc">{{ getDetails(user.username).title }}</span>
+                </span>
+                <div class="badge-stack">
+                  <span class="sgh-badge" data-tone="neutral">{{ user.roles[0] }}</span>
+                  <span class="dept-text">{{ getDetails(user.username).department }}</span>
+                </div>
+              </button>
+            </li>
+          }
+        </ul>
       }
 
       <div class="form-footer">
@@ -189,7 +170,7 @@
         </button>
 
         <a routerLink="/status" class="status-link">
-          <mat-icon class="status-icon" aria-hidden="true">dns</mat-icon>
+          <mat-icon class="dns-icon" aria-hidden="true">dns</mat-icon>
           <span>System Status</span>
         </a>
       </div>

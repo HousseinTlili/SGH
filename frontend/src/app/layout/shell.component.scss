@@ -21,8 +21,8 @@
   gap: var(--sgh-space-2);
   color: var(--sgh-brand);
   font-size: var(--sgh-text-lg);
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-weight: 800;
+  letter-spacing: -0.01em;
   text-decoration: none;
 
   .mat-icon {
@@ -32,8 +32,8 @@
     width: 32px;
     height: 32px;
     border-radius: var(--sgh-radius-sm);
-    background: linear-gradient(135deg, var(--sgh-brand) 0%, #008779 100%);
-    color: var(--sgh-on-brand);
+    background: linear-gradient(135deg, #0284c7 0%, #059669 100%);
+    color: #ffffff;
     font-size: 20px;
   }
 }
@@ -76,6 +76,22 @@
   width: var(--sgh-sidenav-width);
   background: var(--sgh-surface);
   border-right: 1px solid var(--sgh-border-subtle);
+
+  mat-nav-list {
+    padding: var(--sgh-space-2);
+
+    a[mat-list-item] {
+      border-radius: var(--sgh-radius-sm);
+      margin-bottom: 2px;
+      transition: background 0.15s ease;
+
+      &[aria-current='page'] {
+        background: var(--sgh-brand-container);
+        color: var(--sgh-on-brand-container);
+        font-weight: 600;
+      }
+    }
+  }
 }
 
 .content {

@@ -1,25 +1,25 @@
 <div class="landing-page">
-  <!-- Top Navigation Bar -->
-  <header class="landing-header" role="banner">
-    <div class="header-container">
+  <!-- Minimalist Floating Header -->
+  <header class="header" role="banner">
+    <div class="header-inner">
       <div class="brand">
-        <div class="brand-logo" aria-hidden="true">
+        <div class="brand-emblem" aria-hidden="true">
           <mat-icon>local_hospital</mat-icon>
         </div>
         <div class="brand-text">
-          <span class="brand-name">St. Gabriel Hospital</span>
-          <span class="brand-sub">Smart Healthcare Network</span>
+          <span class="hospital-title">St. Gabriel Hospital</span>
+          <span class="hospital-sub">Connected Health Network</span>
         </div>
       </div>
 
-      <nav class="nav-links" aria-label="Hospital main navigation">
+      <nav class="nav" aria-label="Main navigation">
         <a href="#services" class="nav-link">Clinical Services</a>
         <a href="#telemetry" class="nav-link">Live Telemetry</a>
-        <a href="#experience" class="nav-link">Portal Roles</a>
-        <a href="#standards" class="nav-link">Accreditation</a>
-        <a routerLink="/status" class="nav-link status-pill">
-          <span class="pulse-dot" aria-hidden="true"></span>
-          System Status
+        <a href="#roles" class="nav-link">Portal Roles</a>
+        <a href="#accreditations" class="nav-link">Accreditations</a>
+        <a routerLink="/status" class="status-chip">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span>Systems Online</span>
         </a>
       </nav>
 
@@ -27,7 +27,7 @@
         <button
           mat-icon-button
           type="button"
-          class="theme-toggle"
+          class="theme-btn"
           [attr.aria-label]="
             theme.mode() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
           "
@@ -37,14 +37,14 @@
         </button>
 
         @if (auth.isAuthenticated()) {
-          <button mat-flat-button class="cta-button" type="button" (click)="goToPortal()">
+          <button mat-flat-button class="cta-pill" type="button" (click)="goToPortal()">
             <mat-icon>dashboard</mat-icon>
             <span>My Workspace ({{ auth.user()?.fullName }})</span>
           </button>
         } @else {
-          <a mat-flat-button class="cta-button" routerLink="/login">
-            <mat-icon>lock</mat-icon>
-            <span>Portal Sign In</span>
+          <a mat-flat-button class="cta-pill" routerLink="/login">
+            <mat-icon>account_circle</mat-icon>
+            <span>Sign In to Portal</span>
           </a>
         }
       </div>
@@ -53,79 +53,77 @@
 
   <main id="main-content">
     <!-- Hero Section -->
-    <section class="hero-section" aria-labelledby="hero-heading">
-      <div class="hero-container">
-        <div class="hero-content">
-          <div class="badge-pill">
-            <span class="pulse-emerald" aria-hidden="true"></span>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <div class="pill-tag">
+            <span class="emerald-dot" aria-hidden="true"></span>
             <span>Accredited Clinical Platform • 6 Connected Microservices</span>
           </div>
 
-          <h1 id="hero-heading" class="hero-title">
+          <h1 id="hero-title" class="hero-heading">
             Compassionate Care,<br />
-            <span class="gradient-text">Powered by Connected Medicine.</span>
+            <span class="hero-gradient">Powered by Connected Medicine.</span>
           </h1>
 
-          <p class="hero-subtitle">
-            Welcome to St. Gabriel Hospital's next-generation clinical ecosystem. Designed for
-            patients, physicians, nurses, and laboratory teams to collaborate in real-time with zero
-            friction, instant diagnostic telemetry, and end-to-end data security.
+          <p class="hero-lead">
+            Experience modern healthcare built around you. St. Gabriel Hospital unites physician
+            consultations, instant laboratory diagnostics, electronic prescriptions, and secure
+            patient records into one continuous care platform.
           </p>
 
-          <div class="hero-ctas">
+          <div class="hero-buttons">
             @if (auth.isAuthenticated()) {
-              <button mat-flat-button class="btn-primary" type="button" (click)="goToPortal()">
+              <button mat-flat-button class="btn-main" type="button" (click)="goToPortal()">
                 <mat-icon>open_in_browser</mat-icon>
                 <span>Enter Workspace</span>
               </button>
             } @else {
-              <a mat-flat-button class="btn-primary" routerLink="/login">
-                <mat-icon>account_circle</mat-icon>
-                <span>Patient & Staff Sign In</span>
+              <a mat-flat-button class="btn-main" routerLink="/login">
+                <mat-icon>arrow_forward</mat-icon>
+                <span>Access Patient Portal</span>
               </a>
             }
 
-            <a mat-stroked-button class="btn-secondary" href="#services">
+            <a mat-stroked-button class="btn-sub" href="#services">
               <mat-icon>medical_services</mat-icon>
               <span>Explore Clinical Services</span>
             </a>
 
-            <div class="emergency-badge" aria-label="24/7 Emergency Line">
-              <div class="emergency-icon" aria-hidden="true">
-                <mat-icon>phone_in_talk</mat-icon>
-              </div>
-              <div class="emergency-text">
-                <span class="emergency-label">24/7 Rapid Emergency</span>
-                <span class="emergency-phone">Dial 198 / +216 71 800 000</span>
+            <div class="emergency-chip" aria-label="Emergency line">
+              <mat-icon class="pulse-icon">phone_in_talk</mat-icon>
+              <div class="emergency-labels">
+                <span class="em-title">24/7 Rapid Emergency</span>
+                <span class="em-num">Dial 198 / +216 71 800 000</span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Live Telemetry Card (Hero Visual Element) -->
-        <div class="hero-visual" id="telemetry">
-          <div class="telemetry-card">
-            <div class="telemetry-header">
-              <div class="patient-snippet">
-                <div class="avatar-ring">
+        <!-- Hero Patient Vitals Telemetry Card -->
+        <div class="hero-preview" id="telemetry">
+          <div class="preview-card">
+            <div class="card-top">
+              <div class="patient-profile">
+                <div class="patient-avatar">
                   <mat-icon>person</mat-icon>
                 </div>
                 <div>
-                  <div class="telemetry-patient-name">Patient Live Stream</div>
-                  <div class="telemetry-sub">Bed 12-B • Cardiology Unit</div>
+                  <div class="patient-name">Patient Live Telemetry</div>
+                  <div class="patient-meta">Cardiology Care Unit • Bed 04-A</div>
                 </div>
               </div>
-              <span class="live-tag">
-                <span class="live-dot" aria-hidden="true"></span>
+              <span class="live-badge">
+                <span class="live-ping" aria-hidden="true"></span>
                 ACTIVE MONITOR
               </span>
             </div>
 
-            <!-- Animated ECG Waveform -->
-            <div class="ecg-container" aria-label="Simulated ECG Rhythm">
-              <svg class="ecg-wave" viewBox="0 0 500 80" preserveAspectRatio="none">
+            <!-- Waveform visual -->
+            <div class="waveform-box">
+              <svg class="ecg-line" viewBox="0 0 500 60" preserveAspectRatio="none">
                 <path
-                  d="M0,40 L60,40 L70,20 L80,60 L90,10 L100,70 L110,40 L180,40 L190,25 L200,55 L210,15 L220,65 L230,40 L300,40 L310,20 L320,60 L330,10 L340,70 L350,40 L420,40 L430,25 L440,55 L450,15 L460,65 L470,40 L500,40"
+                  d="M0,30 L80,30 L90,15 L100,45 L110,8 L120,52 L130,30 L220,30 L230,18 L240,42 L250,10 L260,50 L270,30 L360,30 L370,15 L380,45 L390,8 L400,52 L410,30 L500,30"
                   fill="none"
                   stroke="currentColor"
                   stroke-width="2.5"
@@ -135,54 +133,52 @@
               </svg>
             </div>
 
-            <!-- Vitals Grid -->
-            <div class="vitals-grid">
-              <div class="vital-box">
-                <div class="vital-label">
-                  <mat-icon class="vital-icon heart-icon">favorite</mat-icon>
+            <!-- Vitals metrics -->
+            <div class="vitals-row">
+              <div class="vital-tile">
+                <div class="tile-header">
+                  <mat-icon class="tile-icon red">favorite</mat-icon>
                   <span>Heart Rate</span>
                 </div>
-                <div class="vital-value">{{ heartRate() }} <span class="vital-unit">BPM</span></div>
-                <div class="vital-status normal">Normal Sinus</div>
+                <div class="tile-value">{{ heartRate() }} <small>bpm</small></div>
+                <div class="tile-status green">Normal Sinus</div>
               </div>
 
-              <div class="vital-box">
-                <div class="vital-label">
-                  <mat-icon class="vital-icon bp-icon">speed</mat-icon>
+              <div class="vital-tile">
+                <div class="tile-header">
+                  <mat-icon class="tile-icon blue">speed</mat-icon>
                   <span>Blood Pressure</span>
                 </div>
-                <div class="vital-value">
-                  {{ bloodPressure() }} <span class="vital-unit">mmHg</span>
-                </div>
-                <div class="vital-status normal">Optimal (MAP 90)</div>
+                <div class="tile-value">{{ bloodPressure() }} <small>mmHg</small></div>
+                <div class="tile-status green">Optimal (MAP 90)</div>
               </div>
 
-              <div class="vital-box">
-                <div class="vital-label">
-                  <mat-icon class="vital-icon o2-icon">air</mat-icon>
+              <div class="vital-tile">
+                <div class="tile-header">
+                  <mat-icon class="tile-icon teal">air</mat-icon>
                   <span>Oxygen Sat (SpO2)</span>
                 </div>
-                <div class="vital-value">{{ spo2() }}<span class="vital-unit">%</span></div>
-                <div class="vital-status normal">Room Air</div>
+                <div class="tile-value">{{ oxygen() }}<small>%</small></div>
+                <div class="tile-status green">Room Air</div>
               </div>
 
-              <div class="vital-box">
-                <div class="vital-label">
-                  <mat-icon class="vital-icon temp-icon">thermostat</mat-icon>
-                  <span>Core Temp</span>
+              <div class="vital-tile">
+                <div class="tile-header">
+                  <mat-icon class="tile-icon amber">thermostat</mat-icon>
+                  <span>Temperature</span>
                 </div>
-                <div class="vital-value">{{ temp() }} <span class="vital-unit">°C</span></div>
-                <div class="vital-status normal">Afebrile</div>
+                <div class="tile-value">{{ temp() }} <small>°C</small></div>
+                <div class="tile-status green">Afebrile</div>
               </div>
             </div>
 
-            <div class="telemetry-footer">
-              <div class="telemetry-sync">
+            <div class="card-footer">
+              <div class="sync-status">
                 <mat-icon class="sync-icon">sync</mat-icon>
                 <span>Synchronized with Consultation & Nursing Services</span>
               </div>
-              <span class="encryption-tag">
-                <mat-icon>verified_user</mat-icon>
+              <span class="security-chip">
+                <mat-icon>verified</mat-icon>
                 HL7/FHIR Validated
               </span>
             </div>
@@ -191,63 +187,69 @@
       </div>
     </section>
 
-    <!-- Hospital Metrics Ribbon -->
-    <section class="stats-ribbon" aria-label="Hospital System Metrics">
-      <div class="stats-container">
-        <div class="stat-item">
-          <div class="stat-number">6</div>
-          <div class="stat-label">Autonomous Microservices</div>
-          <div class="stat-desc">Patient, Reception, Consultation, Lab, Pharmacy & Staff</div>
+    <!-- Key Care Pillars -->
+    <section class="pillars" aria-label="Care Pillars">
+      <div class="pillars-inner">
+        <div class="pillar-card">
+          <div class="pillar-icon-box">
+            <mat-icon>biotech</mat-icon>
+          </div>
+          <h2 class="pillar-title">Immediate Diagnostic Laboratory Results</h2>
+          <p class="pillar-desc">
+            Direct electronic test requisitions with automated barcode tracking. Results are
+            validated by pathologists and appear in your portal immediately.
+          </p>
         </div>
-        <div class="stat-divider" aria-hidden="true"></div>
-        <div class="stat-item">
-          <div class="stat-number">99.98%</div>
-          <div class="stat-label">Clinical High Availability</div>
-          <div class="stat-desc">Zero single point of failure with fault-isolated fallbacks</div>
+
+        <div class="pillar-card">
+          <div class="pillar-icon-box">
+            <mat-icon>medication</mat-icon>
+          </div>
+          <h2 class="pillar-title">Connected Hospital Dispensary</h2>
+          <p class="pillar-desc">
+            Electronic prescriptions flow directly from the physician's SOAP workspace to our
+            pharmacy. Full safety validation with transparent dosage instructions.
+          </p>
         </div>
-        <div class="stat-divider" aria-hidden="true"></div>
-        <div class="stat-item">
-          <div class="stat-number">Instant</div>
-          <div class="stat-label">Diagnostic Telemetry</div>
-          <div class="stat-desc">Direct physician notifications upon lab result verification</div>
-        </div>
-        <div class="stat-divider" aria-hidden="true"></div>
-        <div class="stat-item">
-          <div class="stat-number">24 / 7</div>
-          <div class="stat-label">Patient Digital Access</div>
-          <div class="stat-desc">Encrypted home access to prescriptions and test records</div>
+
+        <div class="pillar-card">
+          <div class="pillar-icon-box">
+            <mat-icon>medical_services</mat-icon>
+          </div>
+          <h2 class="pillar-title">Continuous Clinical Consultations</h2>
+          <p class="pillar-desc">
+            Standardized SOAP documentation with ICD-10 diagnostic coding, vitals history tracking,
+            and shared medical records for synchronized team care.
+          </p>
         </div>
       </div>
     </section>
 
-    <!-- Clinical Services Showcase -->
-    <section class="services-section" id="services" aria-labelledby="services-heading">
-      <div class="section-container">
-        <div class="section-badge">Department Directory</div>
-        <h2 id="services-heading" class="section-title">
-          Unified Clinical Services Under One Roof
-        </h2>
-        <p class="section-subtitle">
-          Every hospital division is interconnected through resilient contracts, guaranteeing
-          complete clinical visibility from patient admission through laboratory testing and
-          pharmacy dispensing.
+    <!-- Clinical Services Grid -->
+    <section class="services" id="services" aria-labelledby="services-title">
+      <div class="section-wrap">
+        <div class="section-tag">Clinical Departments</div>
+        <h2 id="services-title" class="section-heading">Integrated Care Modules Under One Roof</h2>
+        <p class="section-subheading">
+          Every hospital division operates with high availability and resilient contracts, ensuring
+          complete clinical visibility from admissions to diagnostics.
         </p>
 
-        <div class="departments-grid">
+        <div class="services-grid">
           @for (dept of departments; track dept.code) {
-            <article class="dept-card">
-              <div class="dept-header">
-                <div class="dept-icon-wrapper" aria-hidden="true">
+            <article class="service-box">
+              <div class="service-header">
+                <div class="service-icon" aria-hidden="true">
                   <mat-icon>{{ dept.icon }}</mat-icon>
                 </div>
-                <span class="dept-tag">{{ dept.tag }}</span>
+                <span class="service-code">{{ dept.code }}</span>
               </div>
-              <h3 class="dept-title">{{ dept.title }}</h3>
-              <p class="dept-desc">{{ dept.description }}</p>
-              <ul class="dept-features">
+              <h3 class="service-name">{{ dept.title }}</h3>
+              <p class="service-summary">{{ dept.summary }}</p>
+              <ul class="service-features">
                 @for (feat of dept.features; track feat) {
                   <li>
-                    <mat-icon class="check-icon" aria-hidden="true">check</mat-icon>
+                    <mat-icon class="bullet-check" aria-hidden="true">check_circle</mat-icon>
                     <span>{{ feat }}</span>
                   </li>
                 }
@@ -258,43 +260,42 @@
       </div>
     </section>
 
-    <!-- Role Experience Showcase ("Try SGH as...") -->
-    <section class="experience-section" id="experience" aria-labelledby="experience-heading">
-      <div class="section-container">
-        <div class="section-badge">Interactive Role Gateways</div>
-        <h2 id="experience-heading" class="section-title">
+    <!-- Role Gateways -->
+    <section class="roles-section" id="roles" aria-labelledby="roles-title">
+      <div class="section-wrap">
+        <div class="section-tag">Interactive Role Gateways</div>
+        <h2 id="roles-title" class="section-heading">
           Experience SGH Tailored to Every Healthcare Role
         </h2>
-        <p class="section-subtitle">
-          Whether you are a patient accessing your care records or a cardiologist documenting
-          complex SOAP notes, our portal provides purpose-built interfaces with strict role-based
-          access.
+        <p class="section-subheading">
+          Explore purpose-built workstations designed for patients, specialists, triage nurses,
+          laboratory techs, and administrative staff.
         </p>
 
-        <div class="personas-grid">
+        <div class="roles-grid">
           @for (persona of quickPersonas; track persona.username) {
-            <div class="persona-card">
-              <div class="persona-top">
-                <div class="persona-avatar" aria-hidden="true">
+            <div class="role-card">
+              <div class="role-card-top">
+                <div class="role-avatar" aria-hidden="true">
                   <mat-icon>{{ persona.icon }}</mat-icon>
                 </div>
-                <div class="persona-info">
-                  <h3 class="persona-name">{{ persona.name }}</h3>
-                  <div class="persona-role-row">
-                    <span class="role-badge">{{ persona.role }}</span>
-                    <span class="specialty-text">{{ persona.specialty }}</span>
+                <div>
+                  <h3 class="role-name">{{ persona.fullName }}</h3>
+                  <div class="role-badges">
+                    <span class="role-chip">{{ persona.roleLabel }}</span>
+                    <span class="role-sub">{{ persona.title }}</span>
                   </div>
                 </div>
               </div>
-              <p class="persona-desc">{{ persona.highlight }}</p>
+              <p class="role-desc">{{ persona.description }}</p>
 
               <button
                 mat-stroked-button
                 type="button"
-                class="persona-cta"
+                class="role-launch-btn"
                 (click)="quickSignIn(persona.username)"
               >
-                <span>Launch as {{ persona.role }}</span>
+                <span>Launch as {{ persona.roleLabel }}</span>
                 <mat-icon>arrow_forward</mat-icon>
               </button>
             </div>
@@ -303,43 +304,31 @@
       </div>
     </section>
 
-    <!-- Hospital Standards & Accreditations -->
-    <section class="standards-section" id="standards" aria-labelledby="standards-heading">
-      <div class="section-container">
-        <div class="standards-card">
-          <div class="standards-content">
-            <h2 id="standards-heading" class="standards-title">
-              Highest Standards in Patient Safety & Clinical Excellence
+    <!-- Accreditations & Standards -->
+    <section class="accreditations" id="accreditations" aria-labelledby="acc-title">
+      <div class="section-wrap">
+        <div class="acc-card">
+          <div class="acc-text">
+            <h2 id="acc-title" class="acc-heading">
+              World-Class Patient Safety & Security Standards
             </h2>
-            <p class="standards-sub">
-              St. Gabriel Hospital is built upon strict clinical protocols and rigorous data privacy
-              architectures. Patient information is safeguarded through role-segregated
-              authorization, immutable audit logs, and healthcare standards compliance.
+            <p class="acc-lead">
+              Saint Gabriel Hospital operates under strict international medical protocols. Every
+              patient record is protected by role-segregated authorization, automated audit logs,
+              and bank-grade encryption.
             </p>
-
-            <div class="badges-row">
-              <div class="standard-badge">
-                <mat-icon>verified</mat-icon>
-                <span>JCI Quality Standard</span>
-              </div>
-              <div class="standard-badge">
-                <mat-icon>shield</mat-icon>
-                <span>HIPAA & GDPR Compliant</span>
-              </div>
-              <div class="standard-badge">
-                <mat-icon>integration_instructions</mat-icon>
-                <span>HL7 / FHIR Interoperable</span>
-              </div>
-              <div class="standard-badge">
-                <mat-icon>accessibility_new</mat-icon>
-                <span>WCAG 2.1 AA Accessible</span>
-              </div>
+            <div class="acc-badges">
+              <span class="badge-item"><mat-icon>verified</mat-icon> JCI Quality Standards</span>
+              <span class="badge-item"><mat-icon>shield</mat-icon> HIPAA & GDPR Compliant</span>
+              <span class="badge-item"><mat-icon>sync</mat-icon> HL7 / FHIR Interoperable</span>
+              <span class="badge-item"
+                ><mat-icon>accessibility</mat-icon> WCAG 2.1 AA Accessible</span
+              >
             </div>
           </div>
-
-          <div class="standards-action">
-            <a mat-flat-button class="cta-large" routerLink="/login">
-              <mat-icon>security</mat-icon>
+          <div class="acc-cta">
+            <a mat-flat-button class="acc-button" routerLink="/login">
+              <mat-icon>lock</mat-icon>
               <span>Access Secure Portal</span>
             </a>
           </div>
@@ -349,42 +338,42 @@
   </main>
 
   <!-- Hospital Footer -->
-  <footer class="landing-footer" role="contentinfo">
-    <div class="footer-container">
-      <div class="footer-col brand-col">
+  <footer class="footer" role="contentinfo">
+    <div class="footer-inner">
+      <div class="footer-column brand-column">
         <div class="brand">
-          <div class="brand-logo" aria-hidden="true">
+          <div class="brand-emblem" aria-hidden="true">
             <mat-icon>local_hospital</mat-icon>
           </div>
           <div class="brand-text">
-            <span class="brand-name">St. Gabriel Hospital</span>
-            <span class="brand-sub">Healthcare Management System</span>
+            <span class="hospital-title">St. Gabriel Hospital</span>
+            <span class="hospital-sub">Healthcare Management System</span>
           </div>
         </div>
         <p class="footer-desc">
           Integrated multi-specialty healthcare platform delivering continuous medical telemetry,
           digital prescriptions, diagnostic pathology, and compassionate care.
         </p>
-        <div class="address-line">
+        <div class="footer-address">
           <mat-icon>location_on</mat-icon>
           <span>Avenue Habib Bourguiba, Tunis, Tunisia</span>
         </div>
       </div>
 
-      <div class="footer-col">
-        <h4 class="footer-heading">Clinical Modules</h4>
-        <ul class="footer-links">
+      <div class="footer-column">
+        <h4 class="col-title">Clinical Modules</h4>
+        <ul class="col-links">
           <li><a routerLink="/login">Consultations & SOAP</a></li>
-          <li><a routerLink="/login">Diagnostic Pathology & Lab</a></li>
+          <li><a routerLink="/login">Diagnostic Laboratory</a></li>
           <li><a routerLink="/login">Dispensary & Pharmacy</a></li>
           <li><a routerLink="/login">Nursing Station & Vitals</a></li>
           <li><a routerLink="/login">Appointments & Billing</a></li>
         </ul>
       </div>
 
-      <div class="footer-col">
-        <h4 class="footer-heading">Patient Care</h4>
-        <ul class="footer-links">
+      <div class="footer-column">
+        <h4 class="col-title">Patient Portal</h4>
+        <ul class="col-links">
           <li><a routerLink="/login">Patient Health Portal</a></li>
           <li><a routerLink="/login">Lab Test Results</a></li>
           <li><a routerLink="/login">Prescription Refills</a></li>
@@ -392,24 +381,24 @@
         </ul>
       </div>
 
-      <div class="footer-col">
-        <h4 class="footer-heading">Emergency & Contact</h4>
-        <div class="contact-box">
-          <div class="contact-item">
-            <mat-icon class="red-icon">emergency</mat-icon>
+      <div class="footer-column">
+        <h4 class="col-title">24/7 Assistance</h4>
+        <div class="contact-card">
+          <div class="contact-row">
+            <mat-icon class="red">emergency</mat-icon>
             <div>
               <strong>Emergency Triage</strong>
               <span>198 (Toll Free 24/7)</span>
             </div>
           </div>
-          <div class="contact-item">
-            <mat-icon>call</mat-icon>
+          <div class="contact-row">
+            <mat-icon class="blue">call</mat-icon>
             <div>
               <strong>Reception Desk</strong>
               <span>+216 71 800 000</span>
             </div>
           </div>
-          <div class="contact-item">
+          <div class="contact-row">
             <mat-icon>email</mat-icon>
             <div>
               <strong>Inquiries</strong>
@@ -420,10 +409,10 @@
       </div>
     </div>
 
-    <div class="footer-bottom">
-      <div class="footer-bottom-container">
+    <div class="footer-bar">
+      <div class="bar-inner">
         <span>&copy; 2026 St. Gabriel Hospital System. All rights reserved.</span>
-        <div class="footer-legal">
+        <div class="bar-links">
           <span>Medical Confidentiality Guarantee</span>
           <span>•</span>
           <a routerLink="/status">Infrastructure Status</a>
