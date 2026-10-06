@@ -13,6 +13,7 @@ export interface Staff {
   createdAt: string;
   updatedAt: string;
 }
+export type StaffInput = Omit<Staff, 'id' | 'active' | 'createdAt' | 'updatedAt'>;
 export interface StaffPublic {
   id: string;
   fullName: string;

@@ -1,0 +1,58 @@
+<div *appServiceGate="'staff'">
+  <app-page-header
+    title="Staff directory"
+    subtitle="Manage hospital medical and administrative staff members"
+  >
+    <button mat-flat-button color="primary" type="button" (click)="onCreate()">
+      <mat-icon>person_add</mat-icon>
+      New staff member
+    </button>
+  </app-page-header>
+
+  <!-- Filter Bar -->
+  <form [formGroup]="filterForm" class="filter-bar">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search staff</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input
+        matInput
+        formControlName="search"
+        placeholder="Search by name, email..."
+        aria-label="Search staff members"
+      />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Role</mat-label>
+      <mat-select formControlName="role">
+        <mat-option value="">All roles</mat-option>
+        @for (r of roles; track r) {
+          <mat-option [value]="r">{{ r }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Department</mat-label>
+      <input matInput formControlName="department" placeholder="e.g. Cardiology" />
+    </mat-form-field>
+
+    <div class="toggle-container">
+      <mat-slide-toggle formControlName="activeOnly">Active only</mat-slide-toggle>
+    </div>
+  </form>
+
+  <!-- Staff Table -->
+  <app-data-table
+    [columns]="columns"
+    [rows]="staffList()"
+    [total]="total()"
+    [page]="page()"
+    [size]="size()"
+    [loading]="loading()"
+    emptyTitle="No staff members found"
+    emptyMessage="Try adjusting your filters or search term"
+    (pageChange)="onPageChange($event)"
+    (rowClick)="onRowClick($event)"
+  />
+</div>

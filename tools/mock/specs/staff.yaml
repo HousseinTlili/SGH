@@ -224,8 +224,328 @@ paths:
                 message: Staff not found
                 path: /api/staff/unknown
                 correlationId: c1c1c1c1
+
+  /api/staff:
+    get:
+      summary: List staff members (paged)
+      parameters:
+        - name: role
+          in: query
+          required: false
+          schema: { type: string }
+        - name: department
+          in: query
+          required: false
+          schema: { type: string }
+        - name: active
+          in: query
+          required: false
+          schema: { type: boolean }
+        - name: search
+          in: query
+          required: false
+          schema: { type: string }
+        - name: page
+          in: query
+          required: false
+          schema: { type: integer, default: 0 }
+        - name: size
+          in: query
+          required: false
+          schema: { type: integer, default: 20 }
+      responses:
+        "200":
+          description: Paged list of staff members
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedStaff'
+              example:
+                content:
+                  - id: b2b2b2b2-0000-4000-8000-000000000001
+                    firstName: Amel
+                    lastName: Trabelsi
+                    role: DOCTOR
+                    specialty: Cardiology
+                    department: Cardiology
+                    email: doctor1@sgh.local
+                    active: true
+                    keycloakUserId: null
+                    createdAt: "2026-10-01T08:00:00Z"
+                    updatedAt: "2026-10-01T08:00:00Z"
+                  - id: b2b2b2b2-0000-4000-8000-000000000002
+                    firstName: Karim
+                    lastName: Jlassi
+                    role: DOCTOR
+                    specialty: General practice
+                    department: General Medicine
+                    email: doctor2@sgh.local
+                    active: true
+                    keycloakUserId: null
+                    createdAt: "2026-10-01T08:00:00Z"
+                    updatedAt: "2026-10-01T08:00:00Z"
+                  - id: b2b2b2b2-0000-4000-8000-000000000003
+                    firstName: Sonia
+                    lastName: Gharbi
+                    role: NURSE
+                    specialty: null
+                    department: Nursing
+                    email: nurse1@sgh.local
+                    active: true
+                    keycloakUserId: null
+                    createdAt: "2026-10-01T08:00:00Z"
+                    updatedAt: "2026-10-01T08:00:00Z"
+                  - id: b2b2b2b2-0000-4000-8000-000000000004
+                    firstName: Walid
+                    lastName: Mansouri
+                    role: LAB_TECHNICIAN
+                    specialty: null
+                    department: Laboratory
+                    email: lab1@sgh.local
+                    active: true
+                    keycloakUserId: null
+                    createdAt: "2026-10-01T08:00:00Z"
+                    updatedAt: "2026-10-01T08:00:00Z"
+                  - id: b2b2b2b2-0000-4000-8000-000000000005
+                    firstName: Ines
+                    lastName: Chaabane
+                    role: PHARMACIST
+                    specialty: null
+                    department: Pharmacy
+                    email: pharmacist1@sgh.local
+                    active: true
+                    keycloakUserId: null
+                    createdAt: "2026-10-01T08:00:00Z"
+                    updatedAt: "2026-10-01T08:00:00Z"
+                  - id: b2b2b2b2-0000-4000-8000-000000000006
+                    firstName: Rim
+                    lastName: Bouazizi
+                    role: RECEPTIONIST
+                    specialty: null
+                    department: Front Desk
+                    email: reception1@sgh.local
+                    active: true
+                    keycloakUserId: null
+                    createdAt: "2026-10-01T08:00:00Z"
+                    updatedAt: "2026-10-01T08:00:00Z"
+                  - id: b2b2b2b2-0000-4000-8000-000000000007
+                    firstName: Sami
+                    lastName: Hamdi
+                    role: ADMIN
+                    specialty: null
+                    department: IT
+                    email: admin1@sgh.local
+                    active: true
+                    keycloakUserId: null
+                    createdAt: "2026-10-01T08:00:00Z"
+                    updatedAt: "2026-10-01T08:00:00Z"
+                page: 0
+                size: 20
+                totalElements: 7
+                totalPages: 1
+    post:
+      summary: Create staff profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StaffInput'
+            example:
+              firstName: Amel
+              lastName: Trabelsi
+              role: DOCTOR
+              specialty: Cardiology
+              department: Cardiology
+              email: doctor1@sgh.local
+              keycloakUserId: null
+      responses:
+        "201":
+          description: Staff profile created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Staff'
+              example:
+                id: b2b2b2b2-0000-4000-8000-000000000001
+                firstName: Amel
+                lastName: Trabelsi
+                role: DOCTOR
+                specialty: Cardiology
+                department: Cardiology
+                email: doctor1@sgh.local
+                active: true
+                keycloakUserId: null
+                createdAt: "2026-10-12T09:00:00Z"
+                updatedAt: "2026-10-12T09:00:00Z"
+        "409":
+          description: Email already used
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                timestamp: "2026-10-12T09:00:00Z"
+                status: 409
+                error: Conflict
+                message: This e-mail is already used
+                path: /api/staff
+                correlationId: c-409
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/staff/{id}:
+    get:
+      summary: Get staff member details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Staff member found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Staff'
+              example:
+                id: b2b2b2b2-0000-4000-8000-000000000001
+                firstName: Amel
+                lastName: Trabelsi
+                role: DOCTOR
+                specialty: Cardiology
+                department: Cardiology
+                email: doctor1@sgh.local
+                active: true
+                keycloakUserId: null
+                createdAt: "2026-10-01T08:00:00Z"
+                updatedAt: "2026-10-01T08:00:00Z"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+    put:
+      summary: Update staff member
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StaffInput'
+      responses:
+        "200":
+          description: Staff member updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Staff'
+              example:
+                id: b2b2b2b2-0000-4000-8000-000000000001
+                firstName: Amel
+                lastName: Trabelsi
+                role: DOCTOR
+                specialty: Cardiology
+                department: Cardiology
+                email: doctor1@sgh.local
+                active: true
+                keycloakUserId: null
+                createdAt: "2026-10-01T08:00:00Z"
+                updatedAt: "2026-10-12T10:00:00Z"
+        "409":
+          description: Email already used
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                timestamp: "2026-10-12T09:00:00Z"
+                status: 409
+                error: Conflict
+                message: This e-mail is already used
+                path: /api/staff/b2b2b2b2-0000-4000-8000-000000000001
+                correlationId: c-409
+
+  /api/staff/{id}/deactivate:
+    post:
+      summary: Deactivate staff member
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Staff deactivated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Staff'
+              example:
+                id: b2b2b2b2-0000-4000-8000-000000000001
+                firstName: Amel
+                lastName: Trabelsi
+                role: DOCTOR
+                specialty: Cardiology
+                department: Cardiology
+                email: doctor1@sgh.local
+                active: false
+                keycloakUserId: null
+                createdAt: "2026-10-01T08:00:00Z"
+                updatedAt: "2026-10-12T11:00:00Z"
+        "409":
+          description: Conflict (already deactivated)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                timestamp: "2026-10-12T09:00:00Z"
+                status: 409
+                error: Conflict
+                message: Staff member is already deactivated
+                path: /api/staff/b2b2b2b2-0000-4000-8000-000000000001/deactivate
+                correlationId: c-409
+
 components:
   schemas:
+    Staff:
+      type: object
+      required: [id, firstName, lastName, role, department, email, active, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        keycloakUserId: { type: string, nullable: true }
+        firstName: { type: string }
+        lastName: { type: string }
+        role: { type: string, enum: [DOCTOR, NURSE, LAB_TECHNICIAN, PHARMACIST, RECEPTIONIST, ADMIN] }
+        specialty: { type: string, nullable: true }
+        department: { type: string }
+        email: { type: string }
+        active: { type: boolean }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+    StaffInput:
+      type: object
+      required: [firstName, lastName, role, department, email]
+      properties:
+        keycloakUserId: { type: string, nullable: true }
+        firstName: { type: string }
+        lastName: { type: string }
+        role: { type: string, enum: [DOCTOR, NURSE, LAB_TECHNICIAN, PHARMACIST, RECEPTIONIST, ADMIN] }
+        specialty: { type: string, nullable: true }
+        department: { type: string }
+        email: { type: string }
     StaffPublic:
       type: object
       required: [id, fullName, role]
@@ -234,6 +554,37 @@ components:
         fullName: { type: string }
         role: { type: string }
         specialty: { type: string, nullable: true }
+    PagedStaff:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Staff'
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+    ApiError:
+      type: object
+      required: [status, error, message, path]
+      properties:
+        timestamp: { type: string }
+        status: { type: integer }
+        error: { type: string }
+        message: { type: string }
+        path: { type: string }
+        correlationId: { type: string }
+        service: { type: string }
+        details:
+          type: array
+          items:
+            type: object
+            required: [field, problem]
+            properties:
+              field: { type: string }
+              problem: { type: string }
   securitySchemes:
     bearerAuth:
       type: http
