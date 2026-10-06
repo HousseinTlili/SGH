@@ -145,7 +145,95 @@ paths:
                     roles: [PATIENT]
                     staff: null
                     patientId: a1a1a1a1-0000-4000-8000-000000000001
+  /api/staff/directory:
+    get:
+      summary: Public staff directory
+      parameters:
+        - name: role
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of staff members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StaffPublic'
+              example:
+                - id: b2b2b2b2-0000-4000-8000-000000000001
+                  fullName: Amel Trabelsi
+                  role: DOCTOR
+                  specialty: Cardiology
+                - id: b2b2b2b2-0000-4000-8000-000000000002
+                  fullName: Karim Jlassi
+                  role: DOCTOR
+                  specialty: General practice
+                - id: b2b2b2b2-0000-4000-8000-000000000003
+                  fullName: Sonia Gharbi
+                  role: NURSE
+                  specialty: null
+                - id: b2b2b2b2-0000-4000-8000-000000000004
+                  fullName: Walid Mansouri
+                  role: LAB_TECHNICIAN
+                  specialty: null
+                - id: b2b2b2b2-0000-4000-8000-000000000005
+                  fullName: Ines Chaabane
+                  role: PHARMACIST
+                  specialty: null
+                - id: b2b2b2b2-0000-4000-8000-000000000006
+                  fullName: Rim Bouazizi
+                  role: RECEPTIONIST
+                  specialty: null
+                - id: b2b2b2b2-0000-4000-8000-000000000007
+                  fullName: Sami Hamdi
+                  role: ADMIN
+                  specialty: null
+  /api/staff/{id}/public:
+    get:
+      summary: Public profile of a staff member
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Staff public profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StaffPublic'
+              example:
+                id: b2b2b2b2-0000-4000-8000-000000000001
+                fullName: Amel Trabelsi
+                role: DOCTOR
+                specialty: Cardiology
+        "404":
+          description: Not found
+          content:
+            application/json:
+              example:
+                timestamp: "2026-10-12T10:00:00Z"
+                status: 404
+                error: Not Found
+                message: Staff not found
+                path: /api/staff/unknown
+                correlationId: c1c1c1c1
 components:
+  schemas:
+    StaffPublic:
+      type: object
+      required: [id, fullName, role]
+      properties:
+        id: { type: string }
+        fullName: { type: string }
+        role: { type: string }
+        specialty: { type: string, nullable: true }
   securitySchemes:
     bearerAuth:
       type: http

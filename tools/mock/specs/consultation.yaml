@@ -2,9 +2,7 @@ openapi: 3.0.3
 info:
   title: SGH consultation service (mock spec for the Angular app)
   description: >-
-    Grown phase by phase with the endpoints the Angular screens call. Examples use the ids and names of
-    Seed Data and Fixtures. Replaced by contracts/openapi/consultation.yaml when the contracts phase is done
-    (see tools/mock/README.md).
+    Mock specification for consultation service. Seeded consultations C1..C2.
   version: 0.0.0
 servers:
   - url: http://localhost:8083
@@ -28,7 +26,146 @@ paths:
                 required: [status]
               example:
                 status: UP
+
+  /api/consultations:
+    get:
+      summary: List consultations
+      parameters:
+        - name: patientId
+          in: query
+          required: false
+          schema: { type: string }
+        - name: doctorId
+          in: query
+          required: false
+          schema: { type: string }
+        - name: status
+          in: query
+          required: false
+          schema: { type: string }
+        - name: page
+          in: query
+          required: false
+          schema: { type: integer, default: 0 }
+        - name: size
+          in: query
+          required: false
+          schema: { type: integer, default: 20 }
+      responses:
+        "200":
+          description: List of consultations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedConsultations'
+              example:
+                content:
+                  - id: f7f7f7f7-0000-4000-8000-000000000001
+                    patientId: a1a1a1a1-0000-4000-8000-000000000005
+                    patientSnapshot:
+                      fullName: Hatem Dridi
+                      birthDate: "1965-05-18"
+                    doctorId: b2b2b2b2-0000-4000-8000-000000000002
+                    appointmentId: e5e5e5e5-0000-4000-8000-000000000004
+                    status: SIGNED
+                    subjective: "Persistent cough for two weeks"
+                    objective: "Temperature 37.2, lungs clear on auscultation"
+                    assessment: "Likely viral bronchitis"
+                    plan: "Rest, fluids, review if no improvement after one week"
+                    signedAt: "2026-10-10T12:00:00Z"
+                    createdAt: "2026-10-10T11:00:00Z"
+                    updatedAt: "2026-10-10T12:00:00Z"
+                  - id: f7f7f7f7-0000-4000-8000-000000000002
+                    patientId: a1a1a1a1-0000-4000-8000-000000000003
+                    patientSnapshot:
+                      fullName: Nizar Khelifi
+                      birthDate: "1978-11-02"
+                    doctorId: b2b2b2b2-0000-4000-8000-000000000001
+                    appointmentId: e5e5e5e5-0000-4000-8000-000000000003
+                    status: DRAFT
+                    subjective: "Chest discomfort since yesterday"
+                    objective: null
+                    assessment: null
+                    plan: null
+                    signedAt: null
+                    createdAt: "2026-10-12T08:35:00Z"
+                    updatedAt: "2026-10-12T08:35:00Z"
+                page: 0
+                size: 20
+                totalElements: 2
+                totalPages: 1
+    post:
+      summary: Start a consultation draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [patientId]
+              properties:
+                patientId: { type: string }
+                appointmentId: { type: string, nullable: true }
+      responses:
+        "201":
+          description: Consultation draft created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Consultation'
+              example:
+                id: f7f7f7f7-0000-4000-8000-000000000002
+                patientId: a1a1a1a1-0000-4000-8000-000000000003
+                patientSnapshot:
+                  fullName: Nizar Khelifi
+                  birthDate: "1978-11-02"
+                doctorId: b2b2b2b2-0000-4000-8000-000000000001
+                appointmentId: e5e5e5e5-0000-4000-8000-000000000003
+                status: DRAFT
+                subjective: null
+                objective: null
+                assessment: null
+                plan: null
+                signedAt: null
+                createdAt: "2026-10-12T08:35:00Z"
+                updatedAt: "2026-10-12T08:35:00Z"
+
 components:
+  schemas:
+    Consultation:
+      type: object
+      required: [id, patientId, doctorId, status, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        patientId: { type: string }
+        patientSnapshot:
+          type: object
+          nullable: true
+          properties:
+            fullName: { type: string }
+            birthDate: { type: string }
+        doctorId: { type: string }
+        appointmentId: { type: string, nullable: true }
+        status: { type: string, enum: [DRAFT, SIGNED] }
+        subjective: { type: string, nullable: true }
+        objective: { type: string, nullable: true }
+        assessment: { type: string, nullable: true }
+        plan: { type: string, nullable: true }
+        signedAt: { type: string, nullable: true }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+    PagedConsultations:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Consultation'
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
   securitySchemes:
     bearerAuth:
       type: http

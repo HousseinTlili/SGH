@@ -1,6 +1,11 @@
 import type { Routes } from '@angular/router';
 import { roleGuard } from '../../core/auth/auth.guard';
-import { FeaturePlaceholderComponent } from '../../shared/components/feature-placeholder/feature-placeholder.component';
+import { AppointmentFormComponent } from './appointment-form/appointment-form.component';
+import { AppointmentListComponent } from './appointment-list/appointment-list.component';
+import { InvoiceDetailComponent } from './invoice-detail/invoice-detail.component';
+import { InvoiceFormComponent } from './invoice-form/invoice-form.component';
+import { InvoiceListComponent } from './invoice-list/invoice-list.component';
+
 export const APPOINTMENT_ROUTES: Routes = [
   {
     path: '',
@@ -8,17 +13,18 @@ export const APPOINTMENT_ROUTES: Routes = [
     children: [
       {
         path: '',
-        component: FeaturePlaceholderComponent,
+        component: AppointmentListComponent,
         data: { title: 'Appointments', service: 'reception' },
       },
       {
         path: 'new',
-        component: FeaturePlaceholderComponent,
+        component: AppointmentFormComponent,
+        canActivate: [roleGuard('RECEPTIONIST')],
         data: { title: 'New appointment', service: 'reception' },
       },
       {
         path: ':id',
-        component: FeaturePlaceholderComponent,
+        component: AppointmentFormComponent,
         data: { title: 'Appointment', service: 'reception' },
       },
     ],
@@ -32,17 +38,18 @@ export const INVOICE_ROUTES: Routes = [
     children: [
       {
         path: '',
-        component: FeaturePlaceholderComponent,
+        component: InvoiceListComponent,
         data: { title: 'Invoices', service: 'reception' },
       },
       {
         path: 'new',
-        component: FeaturePlaceholderComponent,
+        component: InvoiceFormComponent,
+        canActivate: [roleGuard('RECEPTIONIST')],
         data: { title: 'New invoice', service: 'reception' },
       },
       {
         path: ':id',
-        component: FeaturePlaceholderComponent,
+        component: InvoiceDetailComponent,
         data: { title: 'Invoice', service: 'reception' },
       },
     ],

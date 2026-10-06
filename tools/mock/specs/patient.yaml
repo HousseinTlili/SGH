@@ -2,9 +2,7 @@ openapi: 3.0.3
 info:
   title: SGH patient service (mock spec for the Angular app)
   description: >-
-    Grown phase by phase with the endpoints the Angular screens call. Examples use the ids and names of
-    Seed Data and Fixtures. Replaced by contracts/openapi/patient.yaml when the contracts phase is done
-    (see tools/mock/README.md).
+    Mock specification for patient service. Seeded patients P1..P8.
   version: 0.0.0
 servers:
   - url: http://localhost:8081
@@ -28,7 +26,473 @@ paths:
                 required: [status]
               example:
                 status: UP
+
+  /api/patients:
+    get:
+      summary: List patients (paged)
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema: { type: string }
+        - name: page
+          in: query
+          required: false
+          schema: { type: integer, default: 0 }
+        - name: size
+          in: query
+          required: false
+          schema: { type: integer, default: 20 }
+      responses:
+        "200":
+          description: Paged list of patients
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedPatients'
+              example:
+                content:
+                  - id: a1a1a1a1-0000-4000-8000-000000000001
+                    firstName: Youssef
+                    lastName: Ben Salah
+                    birthDate: "1985-03-14"
+                    gender: MALE
+                    phone: "+21620111001"
+                    email: youssef.bensalah@example.com
+                    address: "Tunis, Tunisia"
+                    bloodType: "A+"
+                    allergies: "Penicillin"
+                    insuranceProvider: CNAM
+                    insuranceNumber: "10001"
+                    createdAt: "2026-10-01T08:00:00Z"
+                    updatedAt: "2026-10-01T08:00:00Z"
+                  - id: a1a1a1a1-0000-4000-8000-000000000002
+                    firstName: Amira
+                    lastName: Mejri
+                    birthDate: "1992-07-22"
+                    gender: FEMALE
+                    phone: "+21620111002"
+                    email: amira.mejri@example.com
+                    address: "Tunis, Tunisia"
+                    bloodType: "O+"
+                    allergies: null
+                    insuranceProvider: CNAM
+                    insuranceNumber: "10002"
+                    createdAt: "2026-10-01T08:30:00Z"
+                    updatedAt: "2026-10-01T08:30:00Z"
+                  - id: a1a1a1a1-0000-4000-8000-000000000003
+                    firstName: Nizar
+                    lastName: Khelifi
+                    birthDate: "1978-11-02"
+                    gender: MALE
+                    phone: "+21620111003"
+                    email: nizar.khelifi@example.com
+                    address: "Tunis, Tunisia"
+                    bloodType: "B+"
+                    allergies: null
+                    insuranceProvider: CNAM
+                    insuranceNumber: "10003"
+                    createdAt: "2026-10-01T09:00:00Z"
+                    updatedAt: "2026-10-01T09:00:00Z"
+                page: 0
+                size: 20
+                totalElements: 8
+                totalPages: 1
+    post:
+      summary: Register a new patient
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatientInput'
+            example:
+              firstName: Youssef
+              lastName: Ben Salah
+              birthDate: "1985-03-14"
+              gender: MALE
+              phone: "+21620111001"
+              email: youssef.bensalah@example.com
+              address: "Tunis, Tunisia"
+              bloodType: "A+"
+              allergies: "Penicillin"
+              insuranceProvider: CNAM
+              insuranceNumber: "10001"
+      responses:
+        "201":
+          description: Patient created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Patient'
+              example:
+                id: a1a1a1a1-0000-4000-8000-000000000001
+                firstName: Youssef
+                lastName: Ben Salah
+                birthDate: "1985-03-14"
+                gender: MALE
+                phone: "+21620111001"
+                email: youssef.bensalah@example.com
+                address: "Tunis, Tunisia"
+                bloodType: "A+"
+                allergies: "Penicillin"
+                insuranceProvider: CNAM
+                insuranceNumber: "10001"
+                createdAt: "2026-10-12T09:00:00Z"
+                updatedAt: "2026-10-12T09:00:00Z"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                timestamp: "2026-10-12T09:00:00Z"
+                status: 409
+                error: Conflict
+                message: A patient with the same name and birth date already exists
+                path: /api/patients
+                correlationId: c-409
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                timestamp: "2026-10-12T09:00:00Z"
+                status: 422
+                error: Unprocessable Entity
+                message: Validation failed
+                path: /api/patients
+                correlationId: c-422
+                details:
+                  - field: birthDate
+                    problem: Must not be in the future
+
+  /api/patients/{id}:
+    get:
+      summary: Get patient details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Patient found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Patient'
+              example:
+                id: a1a1a1a1-0000-4000-8000-000000000001
+                firstName: Youssef
+                lastName: Ben Salah
+                birthDate: "1985-03-14"
+                gender: MALE
+                phone: "+21620111001"
+                email: youssef.bensalah@example.com
+                address: "Tunis, Tunisia"
+                bloodType: "A+"
+                allergies: "Penicillin"
+                insuranceProvider: CNAM
+                insuranceNumber: "10001"
+                createdAt: "2026-10-01T08:00:00Z"
+                updatedAt: "2026-10-01T08:00:00Z"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                timestamp: "2026-10-12T09:00:00Z"
+                status: 404
+                error: Not Found
+                message: Patient not found
+                path: /api/patients/not-found
+                correlationId: c-404
+    put:
+      summary: Update patient
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatientInput'
+      responses:
+        "200":
+          description: Patient updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Patient'
+              example:
+                id: a1a1a1a1-0000-4000-8000-000000000001
+                firstName: Youssef
+                lastName: Ben Salah
+                birthDate: "1985-03-14"
+                gender: MALE
+                phone: "+21620111001"
+                email: youssef.bensalah@example.com
+                address: "Tunis, Tunisia"
+                bloodType: "A+"
+                allergies: "Penicillin"
+                insuranceProvider: CNAM
+                insuranceNumber: "10001"
+                createdAt: "2026-10-01T08:00:00Z"
+                updatedAt: "2026-10-12T09:00:00Z"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                timestamp: "2026-10-12T09:00:00Z"
+                status: 409
+                error: Conflict
+                message: A patient with the same name and birth date already exists
+                path: /api/patients/a1a1a1a1-0000-4000-8000-000000000001
+                correlationId: c-409
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                timestamp: "2026-10-12T09:00:00Z"
+                status: 422
+                error: Unprocessable Entity
+                message: Validation failed
+                path: /api/patients/a1a1a1a1-0000-4000-8000-000000000001
+                correlationId: c-422
+                details:
+                  - field: phone
+                    problem: Invalid phone format
+    delete:
+      summary: Delete patient
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "204":
+          description: Patient deleted
+        "404":
+          description: Not found
+
+  /api/patients/{id}/summary:
+    get:
+      summary: Get patient summary
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Patient summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientSummary'
+              example:
+                id: a1a1a1a1-0000-4000-8000-000000000001
+                fullName: Youssef Ben Salah
+                birthDate: "1985-03-14"
+
+  /api/patients/{id}/medical-file:
+    get:
+      summary: Get patient medical file entries
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: type
+          in: query
+          required: false
+          schema: { type: string }
+        - name: page
+          in: query
+          required: false
+          schema: { type: integer, default: 0 }
+        - name: size
+          in: query
+          required: false
+          schema: { type: integer, default: 20 }
+      responses:
+        "200":
+          description: Paged medical file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedMedicalFile'
+              example:
+                content:
+                  - id: m1m1m1m1-0000-4000-8000-000000000001
+                    patientId: a1a1a1a1-0000-4000-8000-000000000001
+                    type: NOTE
+                    summary: "Patient reported mild seasonal allergies. Advised to stay hydrated."
+                    sourceService: consultation
+                    referenceId: null
+                    createdAt: "2026-10-10T14:30:00Z"
+                  - id: m1m1m1m1-0000-4000-8000-000000000002
+                    patientId: a1a1a1a1-0000-4000-8000-000000000001
+                    type: CONSULTATION
+                    summary: "Cardiology follow-up. Blood pressure controlled."
+                    sourceService: consultation
+                    referenceId: f7f7f7f7-0000-4000-8000-000000000002
+                    createdAt: "2026-10-05T10:00:00Z"
+                  - id: m1m1m1m1-0000-4000-8000-000000000003
+                    patientId: a1a1a1a1-0000-4000-8000-000000000001
+                    type: LAB
+                    summary: "Lipid panel and CBC validated."
+                    sourceService: lab
+                    referenceId: f9f9f9f9-0000-4000-8000-000000000001
+                    createdAt: "2026-10-02T11:15:00Z"
+                page: 0
+                size: 20
+                totalElements: 3
+                totalPages: 1
+    post:
+      summary: Add medical file note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [summary]
+              properties:
+                summary: { type: string }
+            example:
+              summary: "Patient reports feeling well after completing antibiotic course."
+      responses:
+        "201":
+          description: Note added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MedicalFileEntry'
+              example:
+                id: m1m1m1m1-0000-4000-8000-000000000004
+                patientId: a1a1a1a1-0000-4000-8000-000000000001
+                type: NOTE
+                summary: "Patient reports feeling well after completing antibiotic course."
+                sourceService: consultation
+                createdAt: "2026-10-12T16:00:00Z"
+
 components:
+  schemas:
+    Patient:
+      type: object
+      required: [id, firstName, lastName, birthDate, gender, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        birthDate: { type: string }
+        gender: { type: string, enum: [MALE, FEMALE, OTHER] }
+        phone: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        address: { type: string, nullable: true }
+        bloodType: { type: string, nullable: true }
+        allergies: { type: string, nullable: true }
+        insuranceProvider: { type: string, nullable: true }
+        insuranceNumber: { type: string, nullable: true }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+    PatientInput:
+      type: object
+      required: [firstName, lastName, birthDate, gender]
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+        birthDate: { type: string }
+        gender: { type: string, enum: [MALE, FEMALE, OTHER] }
+        phone: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        address: { type: string, nullable: true }
+        bloodType: { type: string, nullable: true }
+        allergies: { type: string, nullable: true }
+        insuranceProvider: { type: string, nullable: true }
+        insuranceNumber: { type: string, nullable: true }
+    PatientSummary:
+      type: object
+      required: [id, fullName, birthDate]
+      properties:
+        id: { type: string }
+        fullName: { type: string }
+        birthDate: { type: string }
+    MedicalFileEntry:
+      type: object
+      required: [id, patientId, type, summary, sourceService, createdAt]
+      properties:
+        id: { type: string }
+        patientId: { type: string }
+        type: { type: string, enum: [CONSULTATION, LAB, PRESCRIPTION, NOTE] }
+        summary: { type: string }
+        sourceService: { type: string }
+        referenceId: { type: string, nullable: true }
+        createdAt: { type: string }
+    PagedPatients:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Patient'
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+    PagedMedicalFile:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/MedicalFileEntry'
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+    ApiError:
+      type: object
+      required: [status, error, message, path]
+      properties:
+        timestamp: { type: string }
+        status: { type: integer }
+        error: { type: string }
+        message: { type: string }
+        path: { type: string }
+        correlationId: { type: string }
+        service: { type: string }
+        details:
+          type: array
+          items:
+            type: object
+            required: [field, problem]
+            properties:
+              field: { type: string }
+              problem: { type: string }
   securitySchemes:
     bearerAuth:
       type: http

@@ -1,0 +1,103 @@
+<div *appServiceGate="'reception'">
+  @if (loading()) {
+    <div class="spinner-container">
+      <mat-spinner diameter="40" />
+    </div>
+  } @else if (invoice(); as inv) {
+    <app-page-header
+      [title]="'Invoice #' + inv.id.slice(0, 8)"
+      [subtitle]="'Issued on ' + (inv.createdAt | localDatetime)"
+    >
+      <div class="header-actions">
+        @if (canPay()) {
+          <button mat-flat-button color="primary" type="button" (click)="onPay()">
+            <mat-icon>payment</mat-icon>
+            Mark as paid
+          </button>
+        }
+        @if (canCancel()) {
+          <button mat-stroked-button color="warn" type="button" (click)="onCancelInvoice()">
+            <mat-icon>cancel</mat-icon>
+            Cancel invoice
+          </button>
+        }
+      </div>
+    </app-page-header>
+
+    <div class="detail-grid">
+      <!-- Invoice Information Card -->
+      <mat-card class="info-card">
+        <mat-card-content>
+          <div class="meta-row">
+            <div>
+              <span class="label">Patient:</span>
+              <strong>{{ patientName() || 'Loading...' }}</strong>
+            </div>
+            <div>
+              <span class="label">Status:</span>
+              <app-status-badge [status]="inv.status" />
+            </div>
+          </div>
+
+          @if (inv.appointmentId) {
+            <div class="meta-row mt-2">
+              <div>
+                <span class="label">Linked Appointment:</span>
+                <a [routerLink]="['/appointments', inv.appointmentId]" class="link">
+                  View Appointment
+                </a>
+              </div>
+            </div>
+          }
+
+          @if (inv.status === 'PAID') {
+            <div class="meta-row mt-2 payment-banner">
+              <mat-icon>check_circle</mat-icon>
+              <span>
+                Paid via <strong>{{ inv.paymentMethod || 'CASH' }}</strong> on
+                {{ inv.paidAt | localDatetime }}
+              </span>
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Items Table Card -->
+      <mat-card class="items-card">
+        <mat-card-header>
+          <mat-card-title>Billed items</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <table class="sgh-table" aria-label="Billed items table">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th class="num-col">Qty</th>
+                <th class="num-col">Unit Price</th>
+                <th class="num-col">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (line of inv.lines; track $index) {
+                <tr>
+                  <td>{{ line.description }}</td>
+                  <td class="num-col">{{ line.quantity }}</td>
+                  <td class="num-col">{{ line.unitPrice | money }}</td>
+                  <td class="num-col font-medium">
+                    {{ line.quantity * line.unitPrice | money }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+            <tfoot>
+              <tr class="total-row">
+                <td colspan="3" class="total-label">Invoice Total:</td>
+                <td class="num-col total-amount">{{ inv.total | money }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
+</div>

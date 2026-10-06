@@ -2,9 +2,7 @@ openapi: 3.0.3
 info:
   title: SGH reception service (mock spec for the Angular app)
   description: >-
-    Grown phase by phase with the endpoints the Angular screens call. Examples use the ids and names of
-    Seed Data and Fixtures. Replaced by contracts/openapi/reception.yaml when the contracts phase is done
-    (see tools/mock/README.md).
+    Mock specification for reception service. Seeded appointments A1..A5 and invoices INV1..INV2.
   version: 0.0.0
 servers:
   - url: http://localhost:8082
@@ -28,7 +26,762 @@ paths:
                 required: [status]
               example:
                 status: UP
+
+  /api/appointments:
+    get:
+      summary: List appointments (paged)
+      parameters:
+        - name: doctorId
+          in: query
+          required: false
+          schema: { type: string }
+        - name: patientId
+          in: query
+          required: false
+          schema: { type: string }
+        - name: date
+          in: query
+          required: false
+          schema: { type: string }
+        - name: status
+          in: query
+          required: false
+          schema: { type: string }
+        - name: page
+          in: query
+          required: false
+          schema: { type: integer, default: 0 }
+        - name: size
+          in: query
+          required: false
+          schema: { type: integer, default: 20 }
+      responses:
+        "200":
+          description: Paged list of appointments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedAppointments'
+              example:
+                content:
+                  - id: e5e5e5e5-0000-4000-8000-000000000001
+                    patientId: a1a1a1a1-0000-4000-8000-000000000001
+                    patientVerified: true
+                    doctorId: b2b2b2b2-0000-4000-8000-000000000001
+                    startAt: "2026-10-13T09:00:00Z"
+                    endAt: "2026-10-13T09:30:00Z"
+                    reason: "Cardiology follow-up"
+                    status: SCHEDULED
+                    cancelReason: null
+                    createdAt: "2026-10-10T08:00:00Z"
+                    updatedAt: "2026-10-10T08:00:00Z"
+                  - id: e5e5e5e5-0000-4000-8000-000000000002
+                    patientId: a1a1a1a1-0000-4000-8000-000000000002
+                    patientVerified: true
+                    doctorId: b2b2b2b2-0000-4000-8000-000000000002
+                    startAt: "2026-10-13T10:00:00Z"
+                    endAt: "2026-10-13T10:30:00Z"
+                    reason: "General check-up"
+                    status: SCHEDULED
+                    cancelReason: null
+                    createdAt: "2026-10-10T08:30:00Z"
+                    updatedAt: "2026-10-10T08:30:00Z"
+                  - id: e5e5e5e5-0000-4000-8000-000000000003
+                    patientId: a1a1a1a1-0000-4000-8000-000000000003
+                    patientVerified: true
+                    doctorId: b2b2b2b2-0000-4000-8000-000000000001
+                    startAt: "2026-10-12T08:30:00Z"
+                    endAt: "2026-10-12T09:00:00Z"
+                    reason: "Chest discomfort"
+                    status: CHECKED_IN
+                    cancelReason: null
+                    createdAt: "2026-10-12T08:00:00Z"
+                    updatedAt: "2026-10-12T08:25:00Z"
+                  - id: e5e5e5e5-0000-4000-8000-000000000004
+                    patientId: a1a1a1a1-0000-4000-8000-000000000005
+                    patientVerified: true
+                    doctorId: b2b2b2b2-0000-4000-8000-000000000002
+                    startAt: "2026-10-10T11:00:00Z"
+                    endAt: "2026-10-10T11:30:00Z"
+                    reason: "Persistent cough"
+                    status: COMPLETED
+                    cancelReason: null
+                    createdAt: "2026-10-09T09:00:00Z"
+                    updatedAt: "2026-10-10T11:30:00Z"
+                  - id: e5e5e5e5-0000-4000-8000-000000000005
+                    patientId: a1a1a1a1-0000-4000-8000-000000000004
+                    patientVerified: false
+                    doctorId: b2b2b2b2-0000-4000-8000-000000000002
+                    startAt: "2026-10-14T14:00:00Z"
+                    endAt: "2026-10-14T14:30:00Z"
+                    reason: "Routine visit"
+                    status: SCHEDULED
+                    cancelReason: null
+                    createdAt: "2026-10-11T10:00:00Z"
+                    updatedAt: "2026-10-11T10:00:00Z"
+                page: 0
+                size: 20
+                totalElements: 5
+                totalPages: 1
+    post:
+      summary: Book an appointment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentInput'
+            example:
+              patientId: a1a1a1a1-0000-4000-8000-000000000001
+              doctorId: b2b2b2b2-0000-4000-8000-000000000001
+              startAt: "2026-10-13T09:00:00Z"
+              endAt: "2026-10-13T09:30:00Z"
+              reason: "Cardiology follow-up"
+      responses:
+        "201":
+          description: Appointment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+              example:
+                id: e5e5e5e5-0000-4000-8000-000000000001
+                patientId: a1a1a1a1-0000-4000-8000-000000000001
+                patientVerified: true
+                doctorId: b2b2b2b2-0000-4000-8000-000000000001
+                startAt: "2026-10-13T09:00:00Z"
+                endAt: "2026-10-13T09:30:00Z"
+                reason: "Cardiology follow-up"
+                status: SCHEDULED
+                cancelReason: null
+                createdAt: "2026-10-12T09:00:00Z"
+                updatedAt: "2026-10-12T09:00:00Z"
+        "409":
+          description: Slot conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                timestamp: "2026-10-12T09:00:00Z"
+                status: 409
+                error: Conflict
+                message: This doctor already has an appointment at that time
+                path: /api/appointments
+                correlationId: c-409
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                timestamp: "2026-10-12T09:00:00Z"
+                status: 422
+                error: Unprocessable Entity
+                message: Validation failed
+                path: /api/appointments
+                correlationId: c-422
+                details:
+                  - field: patientId
+                    problem: Patient not found
+
+  /api/appointments/{id}:
+    get:
+      summary: Get appointment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Appointment details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+              example:
+                id: e5e5e5e5-0000-4000-8000-000000000001
+                patientId: a1a1a1a1-0000-4000-8000-000000000001
+                patientVerified: true
+                doctorId: b2b2b2b2-0000-4000-8000-000000000001
+                startAt: "2026-10-13T09:00:00Z"
+                endAt: "2026-10-13T09:30:00Z"
+                reason: "Cardiology follow-up"
+                status: SCHEDULED
+                cancelReason: null
+                createdAt: "2026-10-10T08:00:00Z"
+                updatedAt: "2026-10-10T08:00:00Z"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+    put:
+      summary: Update appointment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentInput'
+      responses:
+        "200":
+          description: Appointment updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+              example:
+                id: e5e5e5e5-0000-4000-8000-000000000001
+                patientId: a1a1a1a1-0000-4000-8000-000000000001
+                patientVerified: true
+                doctorId: b2b2b2b2-0000-4000-8000-000000000001
+                startAt: "2026-10-13T09:00:00Z"
+                endAt: "2026-10-13T09:30:00Z"
+                reason: "Cardiology follow-up"
+                status: SCHEDULED
+                cancelReason: null
+                createdAt: "2026-10-10T08:00:00Z"
+                updatedAt: "2026-10-12T10:00:00Z"
+        "409":
+          description: Slot conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/appointments/{id}/check-in:
+    post:
+      summary: Check in patient
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Checked in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+              example:
+                id: e5e5e5e5-0000-4000-8000-000000000001
+                patientId: a1a1a1a1-0000-4000-8000-000000000001
+                patientVerified: true
+                doctorId: b2b2b2b2-0000-4000-8000-000000000001
+                startAt: "2026-10-13T09:00:00Z"
+                endAt: "2026-10-13T09:30:00Z"
+                reason: "Cardiology follow-up"
+                status: CHECKED_IN
+                cancelReason: null
+                createdAt: "2026-10-10T08:00:00Z"
+                updatedAt: "2026-10-12T09:00:00Z"
+        "409":
+          description: Invalid transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/appointments/{id}/complete:
+    post:
+      summary: Mark appointment complete
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+              example:
+                id: e5e5e5e5-0000-4000-8000-000000000003
+                patientId: a1a1a1a1-0000-4000-8000-000000000003
+                patientVerified: true
+                doctorId: b2b2b2b2-0000-4000-8000-000000000001
+                startAt: "2026-10-12T08:30:00Z"
+                endAt: "2026-10-12T09:00:00Z"
+                reason: "Chest discomfort"
+                status: COMPLETED
+                cancelReason: null
+                createdAt: "2026-10-12T08:00:00Z"
+                updatedAt: "2026-10-12T09:00:00Z"
+        "409":
+          description: Invalid transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/appointments/{id}/cancel:
+    post:
+      summary: Cancel appointment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string, nullable: true }
+      responses:
+        "200":
+          description: Cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+              example:
+                id: e5e5e5e5-0000-4000-8000-000000000001
+                patientId: a1a1a1a1-0000-4000-8000-000000000001
+                patientVerified: true
+                doctorId: b2b2b2b2-0000-4000-8000-000000000001
+                startAt: "2026-10-13T09:00:00Z"
+                endAt: "2026-10-13T09:30:00Z"
+                reason: "Cardiology follow-up"
+                status: CANCELLED
+                cancelReason: "Patient called to cancel"
+                createdAt: "2026-10-10T08:00:00Z"
+                updatedAt: "2026-10-12T09:00:00Z"
+        "409":
+          description: Invalid transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/appointments/availability:
+    get:
+      summary: Doctor availability slots
+      parameters:
+        - name: doctorId
+          in: query
+          required: true
+          schema: { type: string }
+        - name: date
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Slots for date
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Availability'
+              example:
+                doctorId: b2b2b2b2-0000-4000-8000-000000000001
+                date: "2026-10-13"
+                slots:
+                  - startAt: "2026-10-13T08:00:00Z"
+                    endAt: "2026-10-13T08:30:00Z"
+                    available: true
+                  - startAt: "2026-10-13T08:30:00Z"
+                    endAt: "2026-10-13T09:00:00Z"
+                    available: true
+                  - startAt: "2026-10-13T09:00:00Z"
+                    endAt: "2026-10-13T09:30:00Z"
+                    available: false
+                  - startAt: "2026-10-13T09:30:00Z"
+                    endAt: "2026-10-13T10:00:00Z"
+                    available: true
+                  - startAt: "2026-10-13T10:00:00Z"
+                    endAt: "2026-10-13T10:30:00Z"
+                    available: true
+                  - startAt: "2026-10-13T10:30:00Z"
+                    endAt: "2026-10-13T11:00:00Z"
+                    available: true
+                  - startAt: "2026-10-13T11:00:00Z"
+                    endAt: "2026-10-13T11:30:00Z"
+                    available: true
+                  - startAt: "2026-10-13T11:30:00Z"
+                    endAt: "2026-10-13T12:00:00Z"
+                    available: true
+                  - startAt: "2026-10-13T12:00:00Z"
+                    endAt: "2026-10-13T12:30:00Z"
+                    available: true
+                  - startAt: "2026-10-13T12:30:00Z"
+                    endAt: "2026-10-13T13:00:00Z"
+                    available: true
+                  - startAt: "2026-10-13T13:00:00Z"
+                    endAt: "2026-10-13T13:30:00Z"
+                    available: true
+                  - startAt: "2026-10-13T13:30:00Z"
+                    endAt: "2026-10-13T14:00:00Z"
+                    available: true
+                  - startAt: "2026-10-13T14:00:00Z"
+                    endAt: "2026-10-13T14:30:00Z"
+                    available: true
+                  - startAt: "2026-10-13T14:30:00Z"
+                    endAt: "2026-10-13T15:00:00Z"
+                    available: true
+                  - startAt: "2026-10-13T15:00:00Z"
+                    endAt: "2026-10-13T15:30:00Z"
+                    available: true
+                  - startAt: "2026-10-13T15:30:00Z"
+                    endAt: "2026-10-13T16:00:00Z"
+                    available: true
+                  - startAt: "2026-10-13T16:00:00Z"
+                    endAt: "2026-10-13T16:30:00Z"
+                    available: true
+                  - startAt: "2026-10-13T16:30:00Z"
+                    endAt: "2026-10-13T17:00:00Z"
+                    available: true
+
+  /api/invoices:
+    get:
+      summary: List invoices (paged)
+      parameters:
+        - name: patientId
+          in: query
+          required: false
+          schema: { type: string }
+        - name: status
+          in: query
+          required: false
+          schema: { type: string }
+        - name: page
+          in: query
+          required: false
+          schema: { type: integer, default: 0 }
+        - name: size
+          in: query
+          required: false
+          schema: { type: integer, default: 20 }
+      responses:
+        "200":
+          description: Paged invoices
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedInvoices'
+              example:
+                content:
+                  - id: e6e6e6e6-0000-4000-8000-000000000001
+                    patientId: a1a1a1a1-0000-4000-8000-000000000005
+                    appointmentId: e5e5e5e5-0000-4000-8000-000000000004
+                    lines:
+                      - description: "General consultation"
+                        quantity: 1
+                        unitPrice: 50.00
+                      - description: "Blood tests (HGB, WBC)"
+                        quantity: 1
+                        unitPrice: 30.00
+                    total: 80.00
+                    currency: "TND"
+                    status: PAID
+                    paymentMethod: CASH
+                    paidAt: "2026-10-10T12:00:00Z"
+                    createdAt: "2026-10-10T11:45:00Z"
+                  - id: e6e6e6e6-0000-4000-8000-000000000002
+                    patientId: a1a1a1a1-0000-4000-8000-000000000003
+                    appointmentId: e5e5e5e5-0000-4000-8000-000000000003
+                    lines:
+                      - description: "Cardiology consultation"
+                        quantity: 1
+                        unitPrice: 70.00
+                    total: 70.00
+                    currency: "TND"
+                    status: PENDING
+                    paymentMethod: null
+                    paidAt: null
+                    createdAt: "2026-10-12T09:15:00Z"
+                page: 0
+                size: 20
+                totalElements: 2
+                totalPages: 1
+    post:
+      summary: Create invoice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [patientId, lines]
+              properties:
+                patientId: { type: string }
+                appointmentId: { type: string, nullable: true }
+                lines:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/InvoiceLine'
+      responses:
+        "201":
+          description: Invoice created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+              example:
+                id: e6e6e6e6-0000-4000-8000-000000000002
+                patientId: a1a1a1a1-0000-4000-8000-000000000003
+                appointmentId: e5e5e5e5-0000-4000-8000-000000000003
+                lines:
+                  - description: "Cardiology consultation"
+                    quantity: 1
+                    unitPrice: 70.00
+                total: 70.00
+                currency: "TND"
+                status: PENDING
+                paymentMethod: null
+                paidAt: null
+                createdAt: "2026-10-12T09:15:00Z"
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/invoices/{id}:
+    get:
+      summary: Get invoice
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Invoice details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+              example:
+                id: e6e6e6e6-0000-4000-8000-000000000001
+                patientId: a1a1a1a1-0000-4000-8000-000000000005
+                appointmentId: e5e5e5e5-0000-4000-8000-000000000004
+                lines:
+                  - description: "General consultation"
+                    quantity: 1
+                    unitPrice: 50.00
+                  - description: "Blood tests (HGB, WBC)"
+                    quantity: 1
+                    unitPrice: 30.00
+                total: 80.00
+                currency: "TND"
+                status: PAID
+                paymentMethod: CASH
+                paidAt: "2026-10-10T12:00:00Z"
+                createdAt: "2026-10-10T11:45:00Z"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/invoices/{id}/pay:
+    post:
+      summary: Mark invoice paid
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [method]
+              properties:
+                method: { type: string, enum: [CASH, CARD] }
+      responses:
+        "200":
+          description: Invoice marked paid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+              example:
+                id: e6e6e6e6-0000-4000-8000-000000000002
+                patientId: a1a1a1a1-0000-4000-8000-000000000003
+                appointmentId: e5e5e5e5-0000-4000-8000-000000000003
+                lines:
+                  - description: "Cardiology consultation"
+                    quantity: 1
+                    unitPrice: 70.00
+                total: 70.00
+                currency: "TND"
+                status: PAID
+                paymentMethod: CASH
+                paidAt: "2026-10-12T10:00:00Z"
+                createdAt: "2026-10-12T09:15:00Z"
+        "409":
+          description: Invalid transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/invoices/{id}/cancel:
+    post:
+      summary: Cancel invoice
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Invoice cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+              example:
+                id: e6e6e6e6-0000-4000-8000-000000000002
+                patientId: a1a1a1a1-0000-4000-8000-000000000003
+                appointmentId: e5e5e5e5-0000-4000-8000-000000000003
+                lines:
+                  - description: "Cardiology consultation"
+                    quantity: 1
+                    unitPrice: 70.00
+                total: 70.00
+                currency: "TND"
+                status: CANCELLED
+                paymentMethod: null
+                paidAt: null
+                createdAt: "2026-10-12T09:15:00Z"
+        "409":
+          description: Invalid transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
 components:
+  schemas:
+    Appointment:
+      type: object
+      required: [id, patientId, patientVerified, doctorId, startAt, endAt, reason, status, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        patientId: { type: string }
+        patientVerified: { type: boolean }
+        doctorId: { type: string }
+        startAt: { type: string }
+        endAt: { type: string }
+        reason: { type: string }
+        status: { type: string, enum: [SCHEDULED, CHECKED_IN, COMPLETED, CANCELLED] }
+        cancelReason: { type: string, nullable: true }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+    AppointmentInput:
+      type: object
+      required: [patientId, doctorId, startAt, endAt, reason]
+      properties:
+        patientId: { type: string }
+        doctorId: { type: string }
+        startAt: { type: string }
+        endAt: { type: string }
+        reason: { type: string }
+    Slot:
+      type: object
+      required: [startAt, endAt, available]
+      properties:
+        startAt: { type: string }
+        endAt: { type: string }
+        available: { type: boolean }
+    Availability:
+      type: object
+      required: [doctorId, date, slots]
+      properties:
+        doctorId: { type: string }
+        date: { type: string }
+        slots:
+          type: array
+          items:
+            $ref: '#/components/schemas/Slot'
+    InvoiceLine:
+      type: object
+      required: [description, quantity, unitPrice]
+      properties:
+        description: { type: string }
+        quantity: { type: integer }
+        unitPrice: { type: number }
+    Invoice:
+      type: object
+      required: [id, patientId, lines, total, currency, status, createdAt]
+      properties:
+        id: { type: string }
+        patientId: { type: string }
+        appointmentId: { type: string, nullable: true }
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvoiceLine'
+        total: { type: number }
+        currency: { type: string, enum: [TND] }
+        status: { type: string, enum: [PENDING, PAID, CANCELLED] }
+        paymentMethod: { type: string, nullable: true, enum: [CASH, CARD] }
+        paidAt: { type: string, nullable: true }
+        createdAt: { type: string }
+    PagedAppointments:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Appointment'
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+    PagedInvoices:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Invoice'
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+    ApiError:
+      type: object
+      required: [status, error, message, path]
+      properties:
+        timestamp: { type: string }
+        status: { type: integer }
+        error: { type: string }
+        message: { type: string }
+        path: { type: string }
+        correlationId: { type: string }
+        service: { type: string }
+        details:
+          type: array
+          items:
+            type: object
+            required: [field, problem]
+            properties:
+              field: { type: string }
+              problem: { type: string }
   securitySchemes:
     bearerAuth:
       type: http

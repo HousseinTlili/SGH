@@ -1,0 +1,214 @@
+<div *appServiceGate="'reception'">
+  <app-page-header
+    [title]="isEdit() ? 'Edit appointment' : 'New appointment'"
+    [subtitle]="
+      isEdit()
+        ? 'Update existing appointment schedule and details'
+        : 'Book a consultation slot with a doctor'
+    "
+  />
+
+  <mat-card class="form-card">
+    <mat-card-content>
+      @if (loading()) {
+        <div class="spinner-container">
+          <mat-spinner diameter="40" />
+        </div>
+      } @else {
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+          <app-form-errors [control]="form" />
+
+          <!-- Step 1: Patient Selection -->
+          <div class="form-section">
+            <h3>1. Patient</h3>
+            @if (patientServiceUp()) {
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Search patient name *</mat-label>
+                <input
+                  matInput
+                  formControlName="patientSearch"
+                  [matAutocomplete]="autoPatient"
+                  placeholder="Type patient name or phone..."
+                />
+                <mat-autocomplete #autoPatient="matAutocomplete">
+                  @for (p of patientResults(); track p.id) {
+                    <mat-option
+                      [value]="p.firstName + ' ' + p.lastName"
+                      (onSelectionChange)="onSelectPatient(p)"
+                    >
+                      <strong>{{ p.firstName }} {{ p.lastName }}</strong>
+                      <span class="sgh-muted">
+                        (born {{ p.birthDate }}{{ p.phone ? ', ' + p.phone : '' }})</span
+                      >
+                    </mat-option>
+                  }
+                </mat-autocomplete>
+                @if (errorMessage('patientId'); as msg) {
+                  <mat-error>{{ msg }}</mat-error>
+                }
+              </mat-form-field>
+            } @else {
+              <!-- Patient service degraded fallback -->
+              <div class="degraded-notice" role="alert">
+                <mat-icon>cloud_off</mat-icon>
+                <span
+                  >Patient service is down: the patient will be verified later. Paste the patient ID
+                  below.</span
+                >
+              </div>
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Patient ID (UUID) *</mat-label>
+                <input
+                  matInput
+                  formControlName="patientId"
+                  placeholder="e.g. a1a1a1a1-0000-4000-8000-000000000001"
+                  required
+                  (input)="onPatientPasteOrIdChange(form.controls.patientId.value)"
+                />
+                @if (errorMessage('patientId'); as msg) {
+                  <mat-error>{{ msg }}</mat-error>
+                }
+              </mat-form-field>
+            }
+          </div>
+
+          <!-- Step 2: Doctor and Date Selection -->
+          <div class="form-section">
+            <h3>2. Doctor & Date</h3>
+            <div class="two-col-grid">
+              <mat-form-field appearance="outline">
+                <mat-label>Doctor *</mat-label>
+                <mat-select formControlName="doctorId" required>
+                  @for (doc of doctors(); track doc.id) {
+                    <mat-option [value]="doc.id">
+                      Dr. {{ doc.fullName }}{{ doc.specialty ? ' (' + doc.specialty + ')' : '' }}
+                    </mat-option>
+                  }
+                </mat-select>
+                @if (errorMessage('doctorId'); as msg) {
+                  <mat-error>{{ msg }}</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Date *</mat-label>
+                <input matInput type="date" formControlName="date" [min]="minDate" required />
+                @if (errorMessage('date'); as msg) {
+                  <mat-error>{{ msg }}</mat-error>
+                }
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- Step 3: Availability Slot Grid -->
+          <div class="form-section">
+            <h3>3. Time Slot</h3>
+            @if (slotsLoading()) {
+              <div class="spinner-container">
+                <mat-spinner diameter="32" />
+              </div>
+            } @else if (slots().length === 0) {
+              <p class="sgh-muted">Select a doctor and date to view available time slots.</p>
+            } @else {
+              <div class="slot-grid" role="radiogroup" aria-label="Available appointment slots">
+                @for (slot of slots(); track slot.startAt) {
+                  <button
+                    type="button"
+                    class="slot-button"
+                    [class.selected]="selectedSlotStart() === slot.startAt"
+                    [class.taken]="!slot.available && selectedSlotStart() !== slot.startAt"
+                    [disabled]="!slot.available && selectedSlotStart() !== slot.startAt"
+                    (click)="onSelectSlot(slot)"
+                  >
+                    {{ formatSlotTime(slot.startAt) }}
+                  </button>
+                }
+              </div>
+              @if (!selectedSlotStart()) {
+                <p class="validation-warning">Please select an available time slot above.</p>
+              }
+            }
+          </div>
+
+          <!-- Step 4: Duration -->
+          <div class="form-section">
+            <h3>4. Duration</h3>
+            <div class="duration-presets">
+              <button
+                mat-stroked-button
+                type="button"
+                [color]="form.controls.duration.value === 30 ? 'primary' : ''"
+                (click)="setPresetDuration(30)"
+              >
+                30 min
+              </button>
+              <button
+                mat-stroked-button
+                type="button"
+                [color]="form.controls.duration.value === 45 ? 'primary' : ''"
+                (click)="setPresetDuration(45)"
+              >
+                45 min
+              </button>
+              <button
+                mat-stroked-button
+                type="button"
+                [color]="form.controls.duration.value === 60 ? 'primary' : ''"
+                (click)="setPresetDuration(60)"
+              >
+                60 min
+              </button>
+
+              <mat-form-field appearance="outline" class="custom-duration">
+                <mat-label>Custom (10-120 min)</mat-label>
+                <input matInput type="number" formControlName="duration" min="10" max="120" />
+                @if (errorMessage('duration'); as msg) {
+                  <mat-error>{{ msg }}</mat-error>
+                }
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- Step 5: Reason -->
+          <div class="form-section">
+            <h3>5. Reason for visit</h3>
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Reason *</mat-label>
+              <textarea
+                matInput
+                rows="2"
+                formControlName="reason"
+                maxlength="255"
+                placeholder="Reason for consultation..."
+                required
+              ></textarea>
+              <mat-hint align="end">{{ form.controls.reason.value.length }}/255</mat-hint>
+              @if (errorMessage('reason'); as msg) {
+                <mat-error>{{ msg }}</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="form-actions">
+            <button mat-button type="button" (click)="onCancel()" [disabled]="saving()">
+              Cancel
+            </button>
+            <button
+              mat-flat-button
+              color="primary"
+              type="submit"
+              [disabled]="form.invalid || !selectedSlotStart() || saving()"
+            >
+              @if (saving()) {
+                Saving...
+              } @else {
+                Save appointment
+              }
+            </button>
+          </div>
+        </form>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

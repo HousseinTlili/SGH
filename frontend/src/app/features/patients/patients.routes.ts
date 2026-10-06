@@ -1,6 +1,9 @@
 import type { Routes } from '@angular/router';
 import { roleGuard } from '../../core/auth/auth.guard';
-import { FeaturePlaceholderComponent } from '../../shared/components/feature-placeholder/feature-placeholder.component';
+import { PatientDetailComponent } from './patient-detail/patient-detail.component';
+import { PatientFormComponent } from './patient-form/patient-form.component';
+import { PatientListComponent } from './patient-list/patient-list.component';
+
 export const PATIENT_ROUTES: Routes = [
   {
     path: '',
@@ -8,22 +11,24 @@ export const PATIENT_ROUTES: Routes = [
     children: [
       {
         path: '',
-        component: FeaturePlaceholderComponent,
+        component: PatientListComponent,
         data: { title: 'Patients', service: 'patient' },
       },
       {
         path: 'new',
-        component: FeaturePlaceholderComponent,
+        component: PatientFormComponent,
+        canActivate: [roleGuard('RECEPTIONIST')],
         data: { title: 'New patient', service: 'patient' },
       },
       {
         path: ':id/edit',
-        component: FeaturePlaceholderComponent,
+        component: PatientFormComponent,
+        canActivate: [roleGuard('RECEPTIONIST')],
         data: { title: 'Edit patient', service: 'patient' },
       },
       {
         path: ':id',
-        component: FeaturePlaceholderComponent,
+        component: PatientDetailComponent,
         data: { title: 'Patient', service: 'patient' },
       },
     ],

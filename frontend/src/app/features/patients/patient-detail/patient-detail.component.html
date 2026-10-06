@@ -1,0 +1,260 @@
+<div *appServiceGate="'patient'">
+  @if (loading()) {
+    <div class="spinner-container">
+      <mat-spinner diameter="40" />
+    </div>
+  } @else if (patient(); as p) {
+    <app-page-header
+      [title]="p.firstName + ' ' + p.lastName"
+      [subtitle]="
+        'Born ' +
+        p.birthDate +
+        (age() !== null ? ' (' + age() + ' years old)' : '') +
+        ' • ' +
+        p.gender
+      "
+    >
+      @if (canEdit()) {
+        <button mat-stroked-button type="button" (click)="onEdit()">
+          <mat-icon>edit</mat-icon>
+          Edit
+        </button>
+      }
+      @if (canCreateAppointment()) {
+        <button mat-stroked-button color="primary" type="button" (click)="onNewAppointment()">
+          <mat-icon>event</mat-icon>
+          New appointment
+        </button>
+      }
+      @if (canStartConsultation()) {
+        <button mat-flat-button color="primary" type="button" (click)="onNewConsultation()">
+          <mat-icon>medical_services</mat-icon>
+          New consultation
+        </button>
+      }
+      @if (canDelete()) {
+        <button mat-stroked-button color="warn" type="button" (click)="onDelete()">
+          <mat-icon>delete</mat-icon>
+          Delete
+        </button>
+      }
+    </app-page-header>
+
+    <!-- Header Highlights: Blood Type and Allergies -->
+    <div class="highlights-bar">
+      @if (p.bloodType) {
+        <div class="chip-item">
+          <span class="label">Blood Type:</span>
+          <span class="sgh-badge sgh-badge--info">{{ p.bloodType }}</span>
+        </div>
+      }
+      @if (p.allergies) {
+        <div class="allergy-warning" role="alert">
+          <mat-icon aria-hidden="true">warning</mat-icon>
+          <span><strong>Allergies:</strong> {{ p.allergies }}</span>
+        </div>
+      }
+    </div>
+
+    <!-- Tabs -->
+    <mat-tab-group animationDuration="0ms" class="detail-tabs">
+      <!-- 1. Overview Tab -->
+      <mat-tab label="Overview">
+        <div class="tab-content">
+          <div class="info-grid">
+            <div class="info-card">
+              <h3>Contact Details</h3>
+              <dl>
+                <dt>Phone</dt>
+                <dd>{{ p.phone || '—' }}</dd>
+                <dt>Email</dt>
+                <dd>{{ p.email || '—' }}</dd>
+                <dt>Address</dt>
+                <dd>{{ p.address || '—' }}</dd>
+              </dl>
+            </div>
+
+            <div class="info-card">
+              <h3>Insurance & Administration</h3>
+              <dl>
+                <dt>Insurance Provider</dt>
+                <dd>{{ p.insuranceProvider || '—' }}</dd>
+                <dt>Insurance Number</dt>
+                <dd>{{ p.insuranceNumber || '—' }}</dd>
+                <dt>Registered Date</dt>
+                <dd>{{ p.createdAt | localDatetime }}</dd>
+                <dt>Last Updated</dt>
+                <dd>{{ p.updatedAt | localDatetime }}</dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- 2. Medical File Tab -->
+      @if (canViewMedFile()) {
+        <mat-tab label="Medical file">
+          <div class="tab-content">
+            @if (canAddNote()) {
+              <mat-card class="note-card">
+                <mat-card-header>
+                  <mat-card-title>Add clinical note</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <form [formGroup]="noteForm" (ngSubmit)="onAddNote()">
+                    <mat-form-field appearance="outline" class="w-full">
+                      <mat-label>Summary *</mat-label>
+                      <textarea
+                        matInput
+                        rows="3"
+                        formControlName="summary"
+                        maxlength="1000"
+                        placeholder="Clinical observations, consultation notes, or instructions..."
+                        required
+                      ></textarea>
+                      <mat-hint align="end">
+                        {{ noteForm.controls.summary.value.length }}/1000
+                      </mat-hint>
+                    </mat-form-field>
+                    <div class="note-actions">
+                      <button
+                        mat-flat-button
+                        color="primary"
+                        type="submit"
+                        [disabled]="noteForm.invalid || addingNote()"
+                      >
+                        {{ addingNote() ? 'Adding...' : 'Add note' }}
+                      </button>
+                    </div>
+                  </form>
+                </mat-card-content>
+              </mat-card>
+            }
+
+            <div class="medical-file-list">
+              @if (medFileLoading()) {
+                <div class="spinner-container">
+                  <mat-spinner diameter="32" />
+                </div>
+              } @else if (medicalFiles().length === 0) {
+                <p class="sgh-muted empty-text">No medical file entries recorded yet.</p>
+              } @else {
+                <div class="timeline">
+                  @for (entry of medicalFiles(); track entry.id) {
+                    <div class="timeline-item">
+                      <div class="timeline-icon" [attr.data-type]="entry.type">
+                        <mat-icon>
+                          @switch (entry.type) {
+                            @case ('CONSULTATION') {
+                              medical_services
+                            }
+                            @case ('LAB') {
+                              science
+                            }
+                            @case ('PRESCRIPTION') {
+                              medication
+                            }
+                            @default {
+                              description
+                            }
+                          }
+                        </mat-icon>
+                      </div>
+                      <div class="timeline-body">
+                        <div class="timeline-header">
+                          <span class="type-badge">{{ entry.type }}</span>
+                          <span class="source-service sgh-muted"
+                            >via {{ entry.sourceService }}</span
+                          >
+                          <span class="date sgh-muted">{{ entry.createdAt | localDatetime }}</span>
+                        </div>
+                        <p class="summary">{{ entry.summary }}</p>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </mat-tab>
+      }
+
+      <!-- 3. Appointments Tab -->
+      @if (canViewAppointments()) {
+        <mat-tab label="Appointments">
+          <div class="tab-content">
+            @if (!statusService.isUp('reception') || apptError()) {
+              <app-service-unavailable service="reception" (retry)="loadAppointments()" />
+            } @else if (apptLoading()) {
+              <div class="spinner-container">
+                <mat-spinner diameter="32" />
+              </div>
+            } @else if (appointments().length === 0) {
+              <p class="sgh-muted empty-text">No appointments found for this patient.</p>
+            } @else {
+              <div class="card-list">
+                @for (appt of appointments(); track appt.id) {
+                  <mat-card class="appt-card" [routerLink]="['/appointments', appt.id]">
+                    <mat-card-content>
+                      <div class="appt-row">
+                        <div class="time-block">
+                          <strong>{{ appt.startAt | localDatetime }}</strong>
+                          <span class="sgh-muted">to {{ appt.endAt | localDatetime }}</span>
+                        </div>
+                        <div class="reason-block">
+                          <span>{{ appt.reason }}</span>
+                        </div>
+                        <div class="badge-block">
+                          <app-status-badge [status]="appt.status" />
+                        </div>
+                      </div>
+                    </mat-card-content>
+                  </mat-card>
+                }
+              </div>
+            }
+          </div>
+        </mat-tab>
+      }
+
+      <!-- 4. Consultations Tab -->
+      @if (canViewConsultations()) {
+        <mat-tab label="Consultations">
+          <div class="tab-content">
+            @if (!statusService.isUp('consultation') || consultError()) {
+              <app-service-unavailable service="consultation" (retry)="loadConsultations()" />
+            } @else if (consultLoading()) {
+              <div class="spinner-container">
+                <mat-spinner diameter="32" />
+              </div>
+            } @else if (consultations().length === 0) {
+              <p class="sgh-muted empty-text">No consultations recorded for this patient.</p>
+            } @else {
+              <div class="card-list">
+                @for (consult of consultations(); track consult.id) {
+                  <mat-card class="consult-card" [routerLink]="['/consultations', consult.id]">
+                    <mat-card-content>
+                      <div class="appt-row">
+                        <div class="time-block">
+                          <strong>{{ consult.createdAt | localDatetime }}</strong>
+                        </div>
+                        <div class="reason-block">
+                          <span>{{
+                            consult.assessment || consult.subjective || 'Consultation in progress'
+                          }}</span>
+                        </div>
+                        <div class="badge-block">
+                          <app-status-badge [status]="consult.status" />
+                        </div>
+                      </div>
+                    </mat-card-content>
+                  </mat-card>
+                }
+              </div>
+            }
+          </div>
+        </mat-tab>
+      }
+    </mat-tab-group>
+  }
+</div>
