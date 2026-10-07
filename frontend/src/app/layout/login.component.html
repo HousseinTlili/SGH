@@ -1,207 +1,203 @@
 <main class="login-page">
-  <!-- Top Portal Navigation Bar -->
-  <header class="login-header">
-    <div class="header-inner">
-      <a routerLink="/landing" class="back-link">
-        <mat-icon>arrow_back</mat-icon>
-        <span>Return to Hospital Home</span>
+  <!-- Minimalist Top Navigation -->
+  <header class="top-bar">
+    <a routerLink="/landing" class="back-link">
+      <mat-icon>arrow_back</mat-icon>
+      <span>Return to Hospital Home</span>
+    </a>
+
+    <div class="top-tools">
+      <button
+        mat-icon-button
+        type="button"
+        class="theme-btn"
+        [attr.aria-label]="theme.mode() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
+        (click)="theme.toggle()"
+      >
+        <mat-icon>{{ theme.mode() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
+      </button>
+
+      <a routerLink="/status" class="status-pill">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span>Systems Online</span>
       </a>
-
-      <div class="header-brand">
-        <div class="brand-emblem" aria-hidden="true">
-          <mat-icon>local_hospital</mat-icon>
-        </div>
-        <div class="brand-text">
-          <span class="hospital-name">St. Gabriel Hospital</span>
-          <span class="portal-tag">Clinical &amp; Patient Portal</span>
-        </div>
-      </div>
-
-      <div class="header-tools">
-        <button
-          mat-icon-button
-          type="button"
-          class="tool-btn"
-          [attr.aria-label]="
-            theme.mode() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
-          "
-          (click)="theme.toggle()"
-        >
-          <mat-icon>{{ theme.mode() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
-        </button>
-
-        <a routerLink="/status" class="status-pill">
-          <span class="status-dot" aria-hidden="true"></span>
-          <span>Systems Online</span>
-        </a>
-      </div>
     </div>
   </header>
 
-  <div class="portal-container">
-    @if (mockAuth && auth.isAuthenticated()) {
-      <div class="active-session-bar">
-        <div class="session-user">
-          <div class="session-avatar">
-            <mat-icon>account_circle</mat-icon>
-          </div>
-          <div class="session-meta">
-            <span class="session-greeting">Active Session</span>
-            <span class="session-name">
-              Signed in as <strong>{{ auth.user()?.fullName }}</strong> (<code>{{
-                auth.user()?.username
-              }}</code
-              >)
-            </span>
-          </div>
-        </div>
-        <button mat-flat-button class="enter-btn" type="button" (click)="goToWorkspace()">
-          <span>Enter Workspace</span>
-          <mat-icon>arrow_forward</mat-icon>
-        </button>
+  <!-- Centered Login Stage -->
+  <div class="login-stage">
+    <!-- Brand Emblem Header -->
+    <div class="brand-hero">
+      <div class="brand-emblem" aria-hidden="true">
+        <mat-icon>local_hospital</mat-icon>
       </div>
-    }
+      <h1 class="brand-title">St. Gabriel Hospital</h1>
+      <p class="brand-subtitle">Connected Clinical &amp; Patient Portal</p>
+    </div>
 
-    <!-- Main Dual Panel -->
-    <div class="portal-grid" [class.single-panel]="!mockAuth">
-      <!-- Credentials / Account Sign In Column -->
-      <section class="auth-panel" aria-labelledby="login-title">
-        <div class="panel-header">
-          <div class="lock-chip">
-            <mat-icon>lock</mat-icon>
-            <span>Authorized Access</span>
+    <!-- Main Auth Card -->
+    <div class="auth-card">
+      @if (mockAuth && auth.isAuthenticated()) {
+        <div class="active-session-banner">
+          <div class="session-user">
+            <mat-icon class="session-icon" aria-hidden="true">verified_user</mat-icon>
+            <div class="session-info">
+              <span class="session-label">Active Session</span>
+              <span class="session-name">
+                Signed in as <strong>{{ auth.user()?.fullName }}</strong> (<code>{{
+                  auth.user()?.username
+                }}</code
+                >)
+              </span>
+            </div>
           </div>
-          @if (mockAuth) {
-            <h1 id="login-title" class="panel-title">Sign in (mock mode)</h1>
-            <p class="panel-desc">
-              Enter your hospital credentials or select a 1-click persona to explore any of the 7
-              clinical roles.
-            </p>
-          } @else {
-            <h1 id="login-title" class="panel-title">Sign in</h1>
-            <p class="panel-desc">
-              Keycloak sign-in is not connected yet. To explore the app now, run it in mock mode:
-            </p>
-            <p class="code-banner"><code>npm run start:mock</code></p>
-          }
+          <button mat-flat-button class="enter-btn" type="button" (click)="goToWorkspace()">
+            <span>Enter Workspace</span>
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
         </div>
+      }
 
+      <div class="card-intro">
         @if (mockAuth) {
-          <form class="signin-form" (submit)="onSubmit($event)">
-            <div class="form-group">
-              <label for="username" class="form-label">Username or Patient ID</label>
-              <div class="input-wrap">
-                <mat-icon class="input-icon" aria-hidden="true">person</mat-icon>
-                <input
-                  id="username"
-                  name="username"
-                  type="text"
-                  class="text-input"
-                  [(ngModel)]="usernameInput"
-                  placeholder="e.g. doctor1, patient1, nurse1"
-                  required
-                />
+          <h2 id="login-title" class="card-title">Sign in (mock mode)</h2>
+          <p class="card-desc">
+            Access consultations, patient vitals, pathology orders, and dispensary records.
+          </p>
+        } @else {
+          <h2 id="login-title" class="card-title">Sign in</h2>
+          <p class="card-desc">
+            Keycloak sign-in is not connected yet. To explore the app now, run it in mock mode:
+          </p>
+          <p class="code-box"><code>npm run start:mock</code></p>
+        }
+      </div>
+
+      @if (mockAuth) {
+        <!-- Quick Demo Role Dropdown Menu -->
+        <div class="role-selector-wrap" [class.is-open]="roleMenuOpen()">
+          <span class="selector-label">Demo Quick Access</span>
+          <button
+            type="button"
+            class="selector-trigger"
+            (click)="toggleRoleMenu()"
+            [attr.aria-expanded]="roleMenuOpen()"
+            aria-haspopup="true"
+          >
+            <div class="trigger-left">
+              <div class="trigger-icon" aria-hidden="true">
+                <mat-icon>bolt</mat-icon>
+              </div>
+              <div class="trigger-text">
+                <span class="trigger-heading">Select a Role to Sign In</span>
+                <span class="trigger-sub">8 seeded personas available</span>
               </div>
             </div>
+            <mat-icon class="trigger-chevron" aria-hidden="true">
+              {{ roleMenuOpen() ? 'expand_less' : 'expand_more' }}
+            </mat-icon>
+          </button>
 
-            <div class="form-group">
-              <label for="password" class="form-label">Security Password</label>
-              <div class="input-wrap">
-                <mat-icon class="input-icon" aria-hidden="true">vpn_key</mat-icon>
-                <input
-                  id="password"
-                  name="password"
-                  [type]="showPassword() ? 'text' : 'password'"
-                  class="text-input"
-                  [(ngModel)]="passwordInput"
-                  placeholder="Enter security password"
-                />
+          <!-- Dropdown Options Menu (The 8 button.user elements) -->
+          <div class="selector-dropdown" [class.open]="roleMenuOpen()" role="menu">
+            <div class="dropdown-header">
+              <span>Choose a persona to launch immediately:</span>
+            </div>
+            <div class="dropdown-items">
+              @for (user of users; track user.username) {
                 <button
                   type="button"
-                  class="toggle-pwd-btn"
-                  (click)="toggleShowPassword()"
-                  [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+                  class="user dropdown-item"
+                  (click)="selectRole(user.username)"
+                  [attr.aria-label]="'Sign in as ' + user.fullName + ' (' + user.username + ')'"
+                  role="menuitem"
                 >
-                  <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                  <div class="item-avatar" aria-hidden="true">
+                    <mat-icon>{{ getDetails(user.username).icon }}</mat-icon>
+                  </div>
+                  <div class="item-content">
+                    <div class="item-top">
+                      <strong class="item-name">{{ user.fullName }}</strong>
+                      <span class="item-role-chip">{{ user.roles[0] }}</span>
+                    </div>
+                    <div class="item-bottom">
+                      <span class="item-title">{{ getDetails(user.username).title }}</span>
+                      <span class="item-username">&#64;{{ user.username }}</span>
+                    </div>
+                  </div>
                 </button>
-              </div>
-            </div>
-
-            <button mat-flat-button class="submit-btn" type="submit">
-              <mat-icon>login</mat-icon>
-              <span>Sign In to Portal</span>
-            </button>
-          </form>
-        }
-
-        <div class="assurance-footer">
-          <div class="assurance-item">
-            <mat-icon class="assure-icon">shield</mat-icon>
-            <div>
-              <strong>HIPAA &amp; GDPR Compliant</strong>
-              <span>Role-segregated audit logging</span>
-            </div>
-          </div>
-          <div class="assurance-item">
-            <mat-icon class="assure-icon em">emergency</mat-icon>
-            <div>
-              <strong>24/7 Clinical Emergency</strong>
-              <span>Dial 198 / +216 71 800 000</span>
+              }
             </div>
           </div>
         </div>
-      </section>
 
-      <!-- 1-Click Persona Quick Access Column (Only in Mock Auth) -->
-      @if (mockAuth) {
-        <section class="personas-panel" aria-labelledby="personas-title">
-          <div class="panel-header">
-            <div class="quick-chip">
-              <mat-icon>bolt</mat-icon>
-              <span>Instant Persona Access</span>
+        <div class="card-divider">
+          <span class="divider-line" aria-hidden="true"></span>
+          <span class="divider-text">OR SIGN IN WITH CREDENTIALS</span>
+          <span class="divider-line" aria-hidden="true"></span>
+        </div>
+
+        <!-- Credentials Form -->
+        <form class="signin-form" (submit)="onSubmit($event)">
+          <div class="field-block">
+            <label for="username" class="field-label">Username or Patient ID</label>
+            <div class="input-wrap">
+              <mat-icon class="input-icon" aria-hidden="true">person</mat-icon>
+              <input
+                id="username"
+                name="username"
+                type="text"
+                class="field-input"
+                [(ngModel)]="usernameInput"
+                placeholder="e.g. doctor1, patient1, nurse1"
+                required
+              />
             </div>
-            <h2 id="personas-title" class="panel-title">Explore by Role</h2>
-            <p class="panel-desc">
-              Launch into purpose-built workstations for patients, doctors, triage nurses, and
-              pathology labs:
-            </p>
           </div>
 
-          <!-- 8 Persona Buttons (Strict test requirement: button.user elements) -->
-          <div class="personas-grid" role="region" aria-label="Demo role personas">
-            @for (user of users; track user.username) {
+          <div class="field-block">
+            <label for="password" class="field-label">Security Password</label>
+            <div class="input-wrap">
+              <mat-icon class="input-icon" aria-hidden="true">lock</mat-icon>
+              <input
+                id="password"
+                name="password"
+                [type]="showPassword() ? 'text' : 'password'"
+                class="field-input"
+                [(ngModel)]="passwordInput"
+                placeholder="Enter password"
+              />
               <button
                 type="button"
-                class="user"
-                (click)="signIn(user.username)"
-                [attr.aria-label]="'Sign in as ' + user.fullName + ' (' + user.username + ')'"
+                class="toggle-eye"
+                (click)="toggleShowPassword()"
+                [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
               >
-                <div class="user-avatar" aria-hidden="true">
-                  <mat-icon>{{ getDetails(user.username).icon }}</mat-icon>
-                </div>
-                <div class="user-info">
-                  <div class="user-name-row">
-                    <strong class="user-fullname">{{ user.fullName }}</strong>
-                    <span class="user-handle">{{ user.username }}</span>
-                  </div>
-                  <div class="user-role-row">
-                    <span class="user-title">{{ getDetails(user.username).title }}</span>
-                    <span class="role-tag">{{ user.roles[0] }}</span>
-                  </div>
-                </div>
+                <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
               </button>
-            }
+            </div>
           </div>
 
-          <div class="personas-footer">
-            <mat-icon>info</mat-icon>
-            <span
-              >Clicking any persona authenticates immediately with pre-seeded medical
-              telemetry.</span
-            >
-          </div>
-        </section>
+          <button mat-flat-button class="signin-cta" type="submit">
+            <mat-icon>login</mat-icon>
+            <span>Sign In to Portal</span>
+          </button>
+        </form>
       }
+
+      <!-- Reassurance Footer -->
+      <div class="card-footer">
+        <div class="reassurance-row">
+          <div class="reassurance-item">
+            <mat-icon class="reassurance-icon">shield</mat-icon>
+            <span>HIPAA &amp; GDPR Validated</span>
+          </div>
+          <div class="reassurance-item">
+            <mat-icon class="reassurance-icon">emergency</mat-icon>
+            <span>24/7 Hotline: <strong>198</strong></span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </main>

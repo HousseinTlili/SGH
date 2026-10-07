@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -77,6 +77,27 @@ export class LoginComponent {
   protected usernameInput = 'doctor1';
   protected passwordInput = '••••••••••••';
   protected showPassword = signal(false);
+  protected roleMenuOpen = signal(false);
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.roleMenuOpen()) {
+      this.closeRoleMenu();
+    }
+  }
+
+  toggleRoleMenu(): void {
+    this.roleMenuOpen.update((open) => !open);
+  }
+
+  closeRoleMenu(): void {
+    this.roleMenuOpen.set(false);
+  }
+
+  selectRole(username: string): void {
+    this.closeRoleMenu();
+    this.signIn(username);
+  }
 
   goToWorkspace(): void {
     const target = landingPathFor(this.auth.roles());
