@@ -33,3 +33,12 @@ export interface DispenseLine {
   drugId: string;
   quantity: number;
 }
+
+/** One dispensing event of a prescription (GET /api/prescriptions/{id}/dispensings). */
+export interface Dispensing {
+  id: string;
+  prescriptionId: string;
+  pharmacistId: string;
+  lines: DispenseLine[];
+  dispensedAt: string;
+}

@@ -1,6 +1,7 @@
 import type { Routes } from '@angular/router';
 import { roleGuard } from '../../core/auth/auth.guard';
 import { FeaturePlaceholderComponent } from '../../shared/components/feature-placeholder/feature-placeholder.component';
+
 export const LAB_ROUTES: Routes = [
   {
     path: '',
@@ -13,13 +14,15 @@ export const LAB_ROUTES: Routes = [
       },
       {
         path: 'requests/:id',
-        component: FeaturePlaceholderComponent,
-        data: { title: 'Lab request', service: 'lab' },
+        loadComponent: () =>
+          import('./lab-request-detail/lab-request-detail.component').then(
+            (m) => m.LabRequestDetailComponent,
+          ),
       },
       {
         path: 'results',
-        component: FeaturePlaceholderComponent,
-        data: { title: 'Lab results', service: 'lab' },
+        loadComponent: () =>
+          import('./lab-results/lab-results.component').then((m) => m.LabResultsComponent),
       },
     ],
   },

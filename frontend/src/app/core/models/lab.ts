@@ -1,4 +1,4 @@
-import type { LabResultLine, LabTestRef } from './consultation';
+import type { LabFlag, LabResultLine, LabTestRef } from './consultation';
 
 export type LabStatus = 'REQUESTED' | 'IN_PROGRESS' | 'RESULT_ENTERED' | 'VALIDATED';
 export interface LabRequest {
@@ -22,4 +22,16 @@ export interface LabTest {
   refHigh: number;
   criticalLow?: number | null;
   criticalHigh?: number | null;
+}
+
+/** One validated result as listed by GET /api/lab-results (not nested in a request). */
+export interface LabResultRow {
+  labRequestId: string;
+  patientId: string;
+  testCode: string;
+  value: number;
+  unit: string;
+  referenceRange: string;
+  flag: LabFlag;
+  validatedAt: string;
 }
