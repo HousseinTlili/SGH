@@ -372,9 +372,14 @@
   font-weight: 700 !important;
   font-size: 0.9rem !important;
   box-shadow: 0 2px 8px rgba(2, 132, 199, 0.2);
+  transition: all 0.15s ease;
 
   &:hover {
     background: #0369a1 !important;
+  }
+
+  &:active {
+    transform: scale(0.98);
   }
 }
 
@@ -432,6 +437,10 @@
     border-color: #0284c7;
     background: var(--sgh-brand-container);
     transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: scale(0.98);
   }
 }
 

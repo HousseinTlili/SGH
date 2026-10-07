@@ -100,87 +100,104 @@
           </div>
         </div>
 
-        <!-- Hero Patient Vitals Telemetry Card -->
+        <!-- Hero Patient Vitals Telemetry Card & Care Photography -->
         <div class="hero-preview" id="telemetry">
-          <div class="preview-card">
-            <div class="card-top">
-              <div class="patient-profile">
-                <div class="patient-avatar">
-                  <mat-icon>person</mat-icon>
-                </div>
-                <div>
-                  <div class="patient-name">Patient Live Telemetry</div>
-                  <div class="patient-meta">Cardiology Care Unit • Bed 04-A</div>
-                </div>
-              </div>
-              <span class="live-badge">
-                <span class="live-ping" aria-hidden="true"></span>
-                ACTIVE MONITOR
-              </span>
-            </div>
-
-            <!-- Waveform visual -->
-            <div class="waveform-box">
-              <svg class="ecg-line" viewBox="0 0 500 60" preserveAspectRatio="none">
-                <path
-                  d="M0,30 L80,30 L90,15 L100,45 L110,8 L120,52 L130,30 L220,30 L230,18 L240,42 L250,10 L260,50 L270,30 L360,30 L370,15 L380,45 L390,8 L400,52 L410,30 L500,30"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-            </div>
-
-            <!-- Vitals metrics -->
-            <div class="vitals-row">
-              <div class="vital-tile">
-                <div class="tile-header">
-                  <mat-icon class="tile-icon red">favorite</mat-icon>
-                  <span>Heart Rate</span>
-                </div>
-                <div class="tile-value">{{ heartRate() }} <small>bpm</small></div>
-                <div class="tile-status green">Normal Sinus</div>
-              </div>
-
-              <div class="vital-tile">
-                <div class="tile-header">
-                  <mat-icon class="tile-icon blue">speed</mat-icon>
-                  <span>Blood Pressure</span>
-                </div>
-                <div class="tile-value">{{ bloodPressure() }} <small>mmHg</small></div>
-                <div class="tile-status green">Optimal (MAP 90)</div>
-              </div>
-
-              <div class="vital-tile">
-                <div class="tile-header">
-                  <mat-icon class="tile-icon teal">air</mat-icon>
-                  <span>Oxygen Sat (SpO2)</span>
-                </div>
-                <div class="tile-value">{{ oxygen() }}<small>%</small></div>
-                <div class="tile-status green">Room Air</div>
-              </div>
-
-              <div class="vital-tile">
-                <div class="tile-header">
-                  <mat-icon class="tile-icon amber">thermostat</mat-icon>
-                  <span>Temperature</span>
-                </div>
-                <div class="tile-value">{{ temp() }} <small>°C</small></div>
-                <div class="tile-status green">Afebrile</div>
+          <div class="hero-visual-stack">
+            <div class="hero-image-frame">
+              <img
+                src="/images/hero-care.jpg"
+                alt="Compassionate physician consulting with patient at St. Gabriel Hospital"
+                class="hero-photo"
+                loading="eager"
+                width="560"
+                height="340"
+              />
+              <div class="hero-photo-badge">
+                <span class="live-dot" aria-hidden="true"></span>
+                <span>Active Clinical Session &bull; Cardiology Pavilion</span>
               </div>
             </div>
 
-            <div class="card-footer">
-              <div class="sync-status">
-                <mat-icon class="sync-icon">sync</mat-icon>
-                <span>Synchronized with Consultation & Nursing Services</span>
+            <div class="preview-card">
+              <div class="card-top">
+                <div class="patient-profile">
+                  <div class="patient-avatar">
+                    <mat-icon>person</mat-icon>
+                  </div>
+                  <div>
+                    <div class="patient-name">Patient Live Telemetry</div>
+                    <div class="patient-meta">Cardiology Care Unit &bull; Bed 04-A</div>
+                  </div>
+                </div>
+                <span class="live-badge">
+                  <span class="live-ping" aria-hidden="true"></span>
+                  ACTIVE MONITOR
+                </span>
               </div>
-              <span class="security-chip">
-                <mat-icon>verified</mat-icon>
-                HL7/FHIR Validated
-              </span>
+
+              <!-- Waveform visual -->
+              <div class="waveform-box">
+                <svg class="ecg-line" viewBox="0 0 500 60" preserveAspectRatio="none">
+                  <path
+                    d="M0,30 L80,30 L90,15 L100,45 L110,8 L120,52 L130,30 L220,30 L230,18 L240,42 L250,10 L260,50 L270,30 L360,30 L370,15 L380,45 L390,8 L400,52 L410,30 L500,30"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </div>
+
+              <!-- Vitals metrics -->
+              <div class="vitals-row">
+                <div class="vital-tile">
+                  <div class="tile-header">
+                    <mat-icon class="tile-icon red">favorite</mat-icon>
+                    <span>Heart Rate</span>
+                  </div>
+                  <div class="tile-value">{{ heartRate() }} <small>bpm</small></div>
+                  <div class="tile-status green">Normal Sinus</div>
+                </div>
+
+                <div class="vital-tile">
+                  <div class="tile-header">
+                    <mat-icon class="tile-icon blue">speed</mat-icon>
+                    <span>Blood Pressure</span>
+                  </div>
+                  <div class="tile-value">{{ bloodPressure() }} <small>mmHg</small></div>
+                  <div class="tile-status green">Optimal (MAP 90)</div>
+                </div>
+
+                <div class="vital-tile">
+                  <div class="tile-header">
+                    <mat-icon class="tile-icon teal">air</mat-icon>
+                    <span>Oxygen Sat (SpO2)</span>
+                  </div>
+                  <div class="tile-value">{{ oxygen() }}<small>%</small></div>
+                  <div class="tile-status green">Room Air</div>
+                </div>
+
+                <div class="vital-tile">
+                  <div class="tile-header">
+                    <mat-icon class="tile-icon amber">thermostat</mat-icon>
+                    <span>Temperature</span>
+                  </div>
+                  <div class="tile-value">{{ temp() }} <small>&deg;C</small></div>
+                  <div class="tile-status green">Afebrile</div>
+                </div>
+              </div>
+
+              <div class="card-footer">
+                <div class="sync-status">
+                  <mat-icon class="sync-icon">sync</mat-icon>
+                  <span>Synchronized with Consultation &amp; Nursing Services</span>
+                </div>
+                <span class="security-chip">
+                  <mat-icon>verified</mat-icon>
+                  HL7/FHIR Validated
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -237,7 +254,24 @@
 
         <div class="services-grid">
           @for (dept of departments; track dept.code) {
-            <article class="service-box">
+            <article class="service-box" [class.featured-box]="dept.code === 'PATHOLOGY'">
+              @if (dept.code === 'PATHOLOGY') {
+                <div class="service-photo-wrap">
+                  <img
+                    src="/images/lab-diagnostics.jpg"
+                    alt="Clinical technologist in pathology diagnostics laboratory"
+                    class="service-photo"
+                    loading="lazy"
+                    width="480"
+                    height="200"
+                  />
+                  <div class="service-photo-overlay">
+                    <span class="lab-live-tag">
+                      <mat-icon>biotech</mat-icon> Automated Pathology Analyzers &bull; 24/7 STAT
+                    </span>
+                  </div>
+                </div>
+              }
               <div class="service-header">
                 <div class="service-icon" aria-hidden="true">
                   <mat-icon>{{ dept.icon }}</mat-icon>
