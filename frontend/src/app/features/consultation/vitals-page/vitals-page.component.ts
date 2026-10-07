@@ -182,28 +182,41 @@ import { VitalSignsFormComponent } from '../vital-signs-form/vital-signs-form.co
   `,
   styles: `
     .search-section {
-      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding: 16px 20px;
+      background: var(--sgh-surface);
+      border: 1px solid var(--sgh-border-subtle);
+      border-radius: var(--sgh-radius);
+      box-shadow: var(--sgh-shadow-sm);
     }
     .patient-search-field {
       width: 100%;
-      max-width: 500px;
+      max-width: 520px;
     }
     .patient-banner {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
-      border-radius: var(--sgh-radius-md, 8px);
+      gap: 14px;
+      padding: 16px 20px;
+      border-radius: var(--sgh-radius);
       background: var(--sgh-brand-container);
       color: var(--sgh-on-brand-container);
+      border: 1px solid var(--sgh-border-subtle);
+      box-shadow: var(--sgh-shadow-sm);
       margin-bottom: 24px;
     }
     .patient-icon {
       color: var(--sgh-brand);
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
     }
     .birth-date {
       opacity: 0.9;
-      font-size: 0.875rem;
+      font-size: 0.88rem;
     }
     .vitals-layout {
       display: flex;
@@ -213,21 +226,29 @@ import { VitalSignsFormComponent } from '../vital-signs-form/vital-signs-form.co
     .vitals-card {
       background: var(--sgh-surface);
       border: 1px solid var(--sgh-border-subtle);
-      border-radius: var(--sgh-radius-md, 8px);
-      padding: 20px;
+      border-radius: var(--sgh-radius);
+      padding: 24px;
+      box-shadow: var(--sgh-shadow-sm);
     }
     .vitals-card h3 {
       margin: 0 0 16px 0;
-      font-size: 1.125rem;
+      font-size: var(--sgh-text-lg);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--sgh-text);
     }
     .history-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
     }
     .history-header h3 {
       margin: 0;
+      font-size: var(--sgh-text-lg);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--sgh-text);
     }
   `,
 })

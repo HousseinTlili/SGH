@@ -92,19 +92,20 @@ export interface LabOrderDialogData {
       display: flex;
       flex-direction: column;
       gap: 16px;
-      min-width: 450px;
+      min-width: 480px;
+      padding-top: 8px;
     }
     .lab-form {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 16px;
     }
     .sgh-alert-warning {
       display: flex;
       align-items: flex-start;
       gap: 12px;
       padding: 12px 16px;
-      border-radius: var(--sgh-radius-md, 8px);
+      border-radius: var(--sgh-radius-sm);
       background: var(--sgh-tone-warning-bg);
       color: var(--sgh-tone-warning-fg);
       border: 1px solid var(--sgh-tone-warning-solid);
@@ -117,11 +118,12 @@ export interface LabOrderDialogData {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 8px 12px;
+      padding: 10px 14px;
       border: 1px solid var(--sgh-tone-danger-solid);
-      border-radius: var(--sgh-radius-sm, 4px);
+      border-radius: var(--sgh-radius-sm);
       background: var(--sgh-tone-danger-bg);
       color: var(--sgh-tone-danger-fg);
+      font-size: 0.88rem;
     }
   `,
 })

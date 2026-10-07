@@ -1,8 +1,14 @@
 .filter-bar {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: var(--sgh-space-3);
-  margin-bottom: var(--sgh-space-4);
+  margin-bottom: var(--sgh-space-5);
+  padding: var(--sgh-space-4);
+  background: var(--sgh-surface);
+  border: 1px solid var(--sgh-border-subtle);
+  border-radius: var(--sgh-radius);
+  box-shadow: var(--sgh-shadow-sm);
 }
 
 .filter-field {
@@ -12,8 +18,9 @@
 .table-container {
   overflow-x: auto;
   background: var(--sgh-surface);
-  border: 1px solid var(--sgh-border);
+  border: 1px solid var(--sgh-border-subtle);
   border-radius: var(--sgh-radius);
+  box-shadow: var(--sgh-shadow-sm);
 }
 
 .sgh-table {
@@ -24,13 +31,16 @@
   th,
   td {
     padding: var(--sgh-space-3) var(--sgh-space-4);
-    border-bottom: 1px solid var(--sgh-border);
+    border-bottom: 1px solid var(--sgh-border-subtle);
   }
 
   th {
-    font-weight: 600;
-    color: var(--sgh-fg-muted);
-    background: var(--sgh-surface-alt, rgba(0, 0, 0, 0.02));
+    font-size: var(--sgh-text-sm);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--sgh-text-muted);
+    background: var(--sgh-surface-1);
   }
 }
 
@@ -39,23 +49,32 @@
   transition: background-color 0.15s ease;
 
   &:hover {
-    background-color: var(--sgh-surface-hover, rgba(0, 0, 0, 0.04));
+    background-color: var(--sgh-surface-1);
   }
 }
 
 .time-cell {
   display: flex;
   flex-direction: column;
+  gap: 2px;
+
+  span:first-child {
+    font-weight: 600;
+    color: var(--sgh-text);
+  }
 }
 
 .time-end {
-  font-size: var(--sgh-font-size-xs);
+  font-size: var(--sgh-text-sm);
+  color: var(--sgh-text-muted);
 }
 
 .patient-cell {
   display: flex;
   align-items: center;
   gap: var(--sgh-space-2);
+  font-weight: 600;
+  color: var(--sgh-text);
 }
 
 .unverified-icon {
