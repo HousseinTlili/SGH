@@ -24,7 +24,7 @@ import { VITALS_RANGES, vitalsFormValidator } from '../consultation-rules';
     <form [formGroup]="form" (ngSubmit)="onSubmit()" class="vitals-form">
       <div class="vitals-grid">
         <mat-form-field appearance="outline">
-          <mat-label>Temperature ({{ ranges.temperature.unit }})</mat-label>
+          <mat-label>Temperature</mat-label>
           <input
             matInput
             type="number"
@@ -39,7 +39,7 @@ import { VITALS_RANGES, vitalsFormValidator } from '../consultation-rules';
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Heart rate ({{ ranges.heartRate.unit }})</mat-label>
+          <mat-label>Heart rate</mat-label>
           <input
             matInput
             type="number"
@@ -54,7 +54,7 @@ import { VITALS_RANGES, vitalsFormValidator } from '../consultation-rules';
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Systolic BP ({{ ranges.systolic.unit }})</mat-label>
+          <mat-label>Systolic BP</mat-label>
           <input
             matInput
             type="number"
@@ -69,7 +69,7 @@ import { VITALS_RANGES, vitalsFormValidator } from '../consultation-rules';
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Diastolic BP ({{ ranges.diastolic.unit }})</mat-label>
+          <mat-label>Diastolic BP</mat-label>
           <input
             matInput
             type="number"
@@ -84,7 +84,7 @@ import { VITALS_RANGES, vitalsFormValidator } from '../consultation-rules';
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>SpO2 ({{ ranges.spo2.unit }})</mat-label>
+          <mat-label>SpO2</mat-label>
           <input
             matInput
             type="number"
@@ -99,7 +99,7 @@ import { VITALS_RANGES, vitalsFormValidator } from '../consultation-rules';
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Weight ({{ ranges.weight.unit }})</mat-label>
+          <mat-label>Weight</mat-label>
           <input
             matInput
             type="number"
