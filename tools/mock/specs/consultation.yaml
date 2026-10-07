@@ -504,12 +504,12 @@ paths:
                     - testCode: "HGB"
                       value: 14.2
                       unit: "g/dL"
-                      referenceRange: "12.0 - 17.5"
+                      referenceRange: "12.0-17.0"
                       flag: NORMAL
                     - testCode: "WBC"
                       value: 12.4
-                      unit: "10^3/µL"
-                      referenceRange: "4.5 - 11.0"
+                      unit: "10^9/L"
+                      referenceRange: "4.0-11.0"
                       flag: HIGH
                   validatedAt: "2026-10-12T09:30:00Z"
 

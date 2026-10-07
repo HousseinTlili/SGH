@@ -1,6 +1,7 @@
 import type { Routes } from '@angular/router';
 import { roleGuard } from '../../core/auth/auth.guard';
 import { FeaturePlaceholderComponent } from '../../shared/components/feature-placeholder/feature-placeholder.component';
+
 export const PHARMACY_ROUTES: Routes = [
   {
     path: '',
@@ -8,13 +9,17 @@ export const PHARMACY_ROUTES: Routes = [
     children: [
       {
         path: 'prescriptions',
-        component: FeaturePlaceholderComponent,
-        data: { title: 'Prescriptions', service: 'pharmacy' },
+        loadComponent: () =>
+          import('./prescription-queue/prescription-queue.component').then(
+            (m) => m.PrescriptionQueueComponent,
+          ),
       },
       {
         path: 'prescriptions/:id',
-        component: FeaturePlaceholderComponent,
-        data: { title: 'Prescription', service: 'pharmacy' },
+        loadComponent: () =>
+          import('./prescription-detail/prescription-detail.component').then(
+            (m) => m.PrescriptionDetailComponent,
+          ),
       },
       {
         path: 'drugs',
