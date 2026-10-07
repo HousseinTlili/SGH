@@ -1,8 +1,16 @@
 .search-bar {
-  margin-bottom: var(--sgh-space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--sgh-space-3);
+  margin-bottom: var(--sgh-space-5);
+  padding: var(--sgh-space-4);
+  background: var(--sgh-surface);
+  border: 1px solid var(--sgh-border-subtle);
+  border-radius: var(--sgh-radius);
+  box-shadow: var(--sgh-shadow-sm);
 }
 
 .search-field {
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
 }

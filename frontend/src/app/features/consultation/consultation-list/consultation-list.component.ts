@@ -115,7 +115,13 @@ import { LocalDatetimePipe } from '../../../shared/pipes/local-datetime.pipe';
           </mat-select>
         </mat-form-field>
 
-        <button mat-icon-button type="button" (click)="loadConsultations()" aria-label="Refresh">
+        <button
+          mat-icon-button
+          type="button"
+          class="refresh-btn"
+          (click)="loadConsultations()"
+          aria-label="Refresh"
+        >
           <mat-icon>refresh</mat-icon>
         </button>
       </div>
@@ -175,24 +181,47 @@ import { LocalDatetimePipe } from '../../../shared/pipes/local-datetime.pipe';
       flex-wrap: wrap;
       align-items: center;
       gap: 16px;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
+      padding: 16px 20px;
+      background: var(--sgh-surface);
+      border: 1px solid var(--sgh-border-subtle);
+      border-radius: var(--sgh-radius);
+      box-shadow: var(--sgh-shadow-sm);
     }
     .status-field {
-      width: 160px;
+      width: 170px;
     }
     .patient-field {
       flex: 1;
-      min-width: 220px;
+      min-width: 240px;
     }
     .doctor-field {
-      width: 220px;
+      width: 230px;
+    }
+    .refresh-btn {
+      color: var(--sgh-text-muted);
+      border: 1px solid var(--sgh-border-subtle);
+      border-radius: var(--sgh-radius-sm);
+      transition: all 0.2s ease;
+      &:hover {
+        color: var(--sgh-brand);
+        background: var(--sgh-surface-1);
+        border-color: var(--sgh-border);
+      }
+    }
+    .sgh-table-container {
+      background: var(--sgh-surface);
+      border: 1px solid var(--sgh-border-subtle);
+      border-radius: var(--sgh-radius);
+      box-shadow: var(--sgh-shadow-sm);
+      overflow: hidden;
     }
     .clickable-row {
       cursor: pointer;
       transition: background-color 0.15s ease;
     }
     .clickable-row:hover {
-      background-color: var(--sgh-surface-2);
+      background-color: var(--sgh-surface-1);
     }
   `,
 })

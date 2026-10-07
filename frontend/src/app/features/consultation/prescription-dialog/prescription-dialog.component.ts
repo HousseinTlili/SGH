@@ -139,9 +139,10 @@ interface ItemFormGroup {
     .prescription-dialog-content {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      min-width: 600px;
-      max-width: 800px;
+      gap: 16px;
+      min-width: 620px;
+      max-width: 840px;
+      padding-top: 8px;
     }
     .items-list {
       display: flex;
@@ -151,12 +152,21 @@ interface ItemFormGroup {
     .item-row {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+      padding: 8px 12px;
+      background: var(--sgh-surface-1);
+      border: 1px solid var(--sgh-border-subtle);
+      border-radius: var(--sgh-radius-sm);
+      transition: border-color 0.15s ease;
+      &:focus-within {
+        border-color: var(--sgh-brand);
+      }
     }
     .row-number {
-      font-weight: 600;
+      font-weight: 700;
+      font-size: 0.85rem;
       width: 28px;
-      color: var(--sgh-text-muted);
+      color: var(--sgh-brand);
     }
     .col-drug {
       flex: 2;
@@ -165,23 +175,24 @@ interface ItemFormGroup {
       flex: 1.2;
     }
     .col-freq {
-      flex: 1.5;
+      flex: 1.4;
     }
     .col-dur {
       flex: 1.2;
     }
     .add-row-action {
-      margin-top: 8px;
+      margin-top: 12px;
     }
     .sgh-form-error {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 8px 12px;
+      padding: 10px 14px;
       border: 1px solid var(--sgh-tone-danger-solid);
       border-radius: var(--sgh-radius-sm, 4px);
       background: var(--sgh-tone-danger-bg);
       color: var(--sgh-tone-danger-fg);
+      font-size: 0.88rem;
     }
   `,
 })

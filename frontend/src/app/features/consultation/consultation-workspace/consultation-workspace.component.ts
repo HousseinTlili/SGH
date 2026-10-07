@@ -535,9 +535,10 @@ interface FlattenedLabResult {
     .workspace-header {
       background: var(--sgh-surface);
       border: 1px solid var(--sgh-border-subtle);
-      border-radius: var(--sgh-radius-md, 8px);
-      padding: 20px;
+      border-radius: var(--sgh-radius);
+      padding: 24px;
       margin-bottom: 24px;
+      box-shadow: var(--sgh-shadow-sm);
     }
     .breadcrumb {
       margin-bottom: 12px;
@@ -545,10 +546,12 @@ interface FlattenedLabResult {
     .back-link {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
       color: var(--sgh-text-muted);
       text-decoration: none;
-      font-size: 0.875rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: color 0.15s ease;
     }
     .back-link:hover {
       color: var(--sgh-brand);
@@ -556,36 +559,47 @@ interface FlattenedLabResult {
     .patient-title-row {
       display: flex;
       align-items: center;
-      gap: 16px;
-      margin-bottom: 8px;
+      gap: 14px;
+      margin-bottom: 10px;
     }
     .patient-name {
       margin: 0;
-      font-size: 1.5rem;
-      font-weight: 700;
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--sgh-text);
     }
     .signed-info {
-      font-size: 0.875rem;
-      color: var(--sgh-text-muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--sgh-tone-success-fg);
+      background: var(--sgh-tone-success-bg);
+      padding: 3px 10px;
+      border-radius: var(--sgh-radius-pill);
+      border: 1px solid var(--sgh-tone-success-solid);
     }
     .patient-meta {
       display: flex;
       flex-wrap: wrap;
       gap: 20px;
-      font-size: 0.9375rem;
+      font-size: 0.88rem;
+      color: var(--sgh-text-muted);
+      margin-bottom: 10px;
+    }
+    .patient-meta strong {
       color: var(--sgh-text);
-      margin-bottom: 8px;
     }
     .patient-allergies {
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 8px 12px;
-      border-radius: var(--sgh-radius-sm, 4px);
+      padding: 6px 14px;
+      border-radius: var(--sgh-radius-sm);
       background: var(--sgh-tone-danger-bg);
+      border: 1px solid var(--sgh-tone-danger-solid);
       color: var(--sgh-tone-danger-fg);
-      font-size: 0.875rem;
-      margin-top: 8px;
+      font-size: 0.82rem;
+      margin-top: 6px;
     }
     .allergies-icon {
       font-size: 18px;
@@ -593,7 +607,7 @@ interface FlattenedLabResult {
       height: 18px;
     }
     .tab-pane {
-      padding: 20px 0;
+      padding: 24px 0;
       display: flex;
       flex-direction: column;
       gap: 24px;
@@ -601,7 +615,7 @@ interface FlattenedLabResult {
     .soap-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      gap: 20px;
     }
     @media (max-width: 768px) {
       .soap-grid {
@@ -615,7 +629,7 @@ interface FlattenedLabResult {
       display: flex;
       justify-content: flex-end;
       gap: 12px;
-      margin-top: 8px;
+      margin-top: 12px;
     }
     .sign-action-wrapper {
       display: inline-block;
@@ -623,29 +637,32 @@ interface FlattenedLabResult {
     .soap-readonly-view {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 20px;
     }
     .signed-banner,
     .info-banner {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 10px 14px;
-      border-radius: var(--sgh-radius-sm, 4px);
-      font-size: 0.875rem;
+      gap: 10px;
+      padding: 12px 18px;
+      border-radius: var(--sgh-radius-sm);
+      font-size: 0.88rem;
+      font-weight: 500;
     }
     .signed-banner {
       background: var(--sgh-tone-success-bg);
       color: var(--sgh-tone-success-fg);
+      border: 1px solid var(--sgh-tone-success-solid);
     }
     .info-banner {
-      background: var(--sgh-tone-neutral-bg);
-      color: var(--sgh-tone-neutral-fg);
+      background: var(--sgh-surface-1);
+      color: var(--sgh-text-muted);
+      border: 1px solid var(--sgh-border-subtle);
     }
     .soap-readonly-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      gap: 20px;
     }
     @media (max-width: 768px) {
       .soap-readonly-grid {
@@ -655,32 +672,46 @@ interface FlattenedLabResult {
     .soap-card {
       background: var(--sgh-surface);
       border: 1px solid var(--sgh-border-subtle);
-      border-radius: var(--sgh-radius-sm, 4px);
-      padding: 16px;
+      border-radius: var(--sgh-radius);
+      padding: 20px;
+      box-shadow: var(--sgh-shadow-sm);
+      transition: all 0.15s ease;
+    }
+    .soap-card:hover {
+      border-color: var(--sgh-brand);
+      box-shadow: var(--sgh-shadow-md);
     }
     .soap-card h3 {
-      margin: 0 0 8px 0;
-      font-size: 1rem;
+      margin: 0 0 10px 0;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
       color: var(--sgh-brand);
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
     .soap-card p {
       margin: 0;
       white-space: pre-wrap;
       color: var(--sgh-text);
-      line-height: 1.5;
+      line-height: 1.6;
+      font-size: 0.92rem;
     }
     .section-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
     }
     .section-header h3 {
       margin: 0;
-      font-size: 1.125rem;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--sgh-text);
     }
     .results-header {
-      margin-top: 16px;
+      margin-top: 24px;
     }
     .prescriptions-stack {
       display: flex;
@@ -690,14 +721,15 @@ interface FlattenedLabResult {
     .prescription-card {
       background: var(--sgh-surface);
       border: 1px solid var(--sgh-border-subtle);
-      border-radius: var(--sgh-radius-md, 8px);
-      padding: 16px;
+      border-radius: var(--sgh-radius);
+      padding: 20px;
+      box-shadow: var(--sgh-shadow-sm);
     }
     .prescription-card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
     .critical-row {
       background-color: var(--sgh-tone-danger-bg) !important;
@@ -707,19 +739,19 @@ interface FlattenedLabResult {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 8px 12px;
-      border-radius: var(--sgh-radius-sm, 4px);
+      padding: 10px 14px;
+      border-radius: var(--sgh-radius-sm);
       background: var(--sgh-tone-warning-bg);
       color: var(--sgh-tone-warning-fg);
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
     .sgh-form-error {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 8px 12px;
+      padding: 10px 14px;
       border: 1px solid var(--sgh-tone-danger-solid);
-      border-radius: var(--sgh-radius-sm, 4px);
+      border-radius: var(--sgh-radius-sm);
       background: var(--sgh-tone-danger-bg);
       color: var(--sgh-tone-danger-fg);
     }
