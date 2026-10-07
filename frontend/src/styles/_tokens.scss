@@ -11,54 +11,54 @@
 :root {
   color-scheme: light;
 
-  // brand (modern clinical sapphire & emerald)
-  --sgh-brand: #0284c7;
-  --sgh-brand-hover: #0369a1;
+  // brand (luxury precision clinical sapphire & living emerald)
+  --sgh-brand: #2563eb;
+  --sgh-brand-hover: #1d4ed8;
   --sgh-on-brand: #ffffff;
   --sgh-on-solid: #ffffff; // text/icons on a solid tone colour
-  --sgh-brand-container: #e0f2fe;
-  --sgh-on-brand-container: #034f78;
+  --sgh-brand-container: #eff6ff;
+  --sgh-on-brand-container: #1e40af;
 
-  // surfaces and text (clean, calming healthcare whites & slates)
-  --sgh-bg: #f8fafc;
+  // surfaces and text (calming healthcare alabasters & refined slates)
+  --sgh-bg: #fafbfd;
   --sgh-surface: #ffffff;
-  --sgh-surface-1: #f1f5f9;
-  --sgh-surface-2: #e2e8f0;
-  --sgh-surface-3: #cbd5e1;
+  --sgh-surface-1: #f4f6fa;
+  --sgh-surface-2: #e9eef5;
+  --sgh-surface-3: #dbe2ed;
   --sgh-surface-4: #94a3b8;
   --sgh-text: #0f172a;
   --sgh-text-muted: #64748b;
   --sgh-border: #cbd5e1;
-  --sgh-border-subtle: #e2e8f0;
+  --sgh-border-subtle: #e6ecf4;
   --sgh-inverse-surface: #0f172a;
-  --sgh-inverse-text: #f8fafc;
+  --sgh-inverse-text: #fafbfd;
   --sgh-scrim: #000000;
 
-  // focus ring (always visible on keyboard focus)
-  --sgh-focus: #0284c7;
-  --sgh-focus-width: 3px;
+  // focus ring
+  --sgh-focus: #2563eb;
+  --sgh-focus-width: 2px;
 
-  // meaning: each tone is a background, a text colour and a solid accent
-  --sgh-tone-info-bg: #e0f2fe;
-  --sgh-tone-info-fg: #034f78;
-  --sgh-tone-info-solid: #0284c7;
-  --sgh-tone-success-bg: #dcfce7;
-  --sgh-tone-success-fg: #14532d;
-  --sgh-tone-success-solid: #16a34a;
-  --sgh-tone-warning-bg: #fef3c7;
-  --sgh-tone-warning-fg: #78350f;
+  // meaning: tones
+  --sgh-tone-info-bg: #eff6ff;
+  --sgh-tone-info-fg: #1e40af;
+  --sgh-tone-info-solid: #2563eb;
+  --sgh-tone-success-bg: #ecfdf5;
+  --sgh-tone-success-fg: #065f46;
+  --sgh-tone-success-solid: #059669;
+  --sgh-tone-warning-bg: #fffbeb;
+  --sgh-tone-warning-fg: #92400e;
   --sgh-tone-warning-solid: #d97706;
-  --sgh-tone-danger-bg: #fee2e2;
-  --sgh-tone-danger-fg: #7f1d1d;
+  --sgh-tone-danger-bg: #fef2f2;
+  --sgh-tone-danger-fg: #991b1b;
   --sgh-tone-danger-solid: #dc2626;
   --sgh-tone-neutral-bg: #f1f5f9;
   --sgh-tone-neutral-fg: #334155;
   --sgh-tone-neutral-solid: #64748b;
-  --sgh-tone-accent-bg: #ede9fe;
-  --sgh-tone-accent-fg: #4c1d95;
+  --sgh-tone-accent-bg: #f5f3ff;
+  --sgh-tone-accent-fg: #5b21b6;
   --sgh-tone-accent-solid: #7c3aed;
 
-  // type (Plus Jakarta Sans for headings & Inter for body copy)
+  // typography
   --sgh-font: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
   --sgh-font-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
   --sgh-text-base: 0.95rem;
@@ -80,60 +80,60 @@
   --sgh-radius-lg: 18px;
   --sgh-radius-xl: 24px;
   --sgh-radius-pill: 9999px;
-  --sgh-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
-  --sgh-shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.03);
-  --sgh-shadow-lg: 0 12px 28px -6px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
-  --sgh-content-max: 1320px;
+  --sgh-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.03);
+  --sgh-shadow-md: 0 6px 16px -3px rgba(15, 23, 42, 0.06), 0 2px 6px -2px rgba(15, 23, 42, 0.03);
+  --sgh-shadow-lg: 0 20px 40px -10px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
+  --sgh-content-max: 1280px;
   --sgh-sidenav-width: 260px;
 }
 
 :root[data-theme='dark'] {
   color-scheme: dark;
 
-  --sgh-brand: #6aa6ff;
-  --sgh-brand-hover: #8dbaff;
-  --sgh-on-brand: #06234d;
-  --sgh-brand-container: #123a73;
-  --sgh-on-brand-container: #d3e4ff;
+  --sgh-brand: #3b82f6;
+  --sgh-brand-hover: #60a5fa;
+  --sgh-on-brand: #0b1120;
+  --sgh-brand-container: #1e293b;
+  --sgh-on-brand-container: #93c5fd;
 
-  --sgh-bg: #0e1621;
-  --sgh-surface: #151f2d;
-  --sgh-surface-1: #1a2636;
-  --sgh-surface-2: #1f2d40;
-  --sgh-surface-3: #25354b;
-  --sgh-surface-4: #2b3d56;
-  --sgh-text: #e6edf5;
-  --sgh-text-muted: #a9b7c8;
-  --sgh-border: #7f90a5;
-  --sgh-border-subtle: #33445a;
-  --sgh-inverse-surface: #e6edf5;
-  --sgh-inverse-text: #14202e;
+  --sgh-bg: #090d16;
+  --sgh-surface: #0f172a;
+  --sgh-surface-1: #172238;
+  --sgh-surface-2: #1e2d48;
+  --sgh-surface-3: #263857;
+  --sgh-surface-4: #334a6e;
+  --sgh-text: #f1f5f9;
+  --sgh-text-muted: #94a3b8;
+  --sgh-border: #334155;
+  --sgh-border-subtle: #1e293b;
+  --sgh-inverse-surface: #f1f5f9;
+  --sgh-inverse-text: #090d16;
   --sgh-scrim: #000000;
 
-  --sgh-focus: #8ab4ff;
+  --sgh-focus: #3b82f6;
 
-  --sgh-tone-info-bg: #12304f;
-  --sgh-tone-info-fg: #bcd9ff;
-  --sgh-tone-info-solid: #6aa6ff;
-  --sgh-tone-success-bg: #12361f;
-  --sgh-tone-success-fg: #a9e3bd;
-  --sgh-tone-success-solid: #4cc27a;
-  --sgh-tone-warning-bg: #3f2d08;
-  --sgh-tone-warning-fg: #ffd98a;
-  --sgh-tone-warning-solid: #f0a82b;
-  --sgh-tone-danger-bg: #4a1717;
-  --sgh-tone-danger-fg: #ffb4b4;
-  --sgh-tone-danger-solid: #ef5350;
-  --sgh-tone-neutral-bg: #263341;
-  --sgh-tone-neutral-fg: #c3cfdc;
-  --sgh-tone-neutral-solid: #8a9bb0;
-  --sgh-tone-accent-bg: #2e2250;
-  --sgh-tone-accent-fg: #d6c6ff;
-  --sgh-tone-accent-solid: #a98bf0;
+  --sgh-tone-info-bg: #172554;
+  --sgh-tone-info-fg: #93c5fd;
+  --sgh-tone-info-solid: #3b82f6;
+  --sgh-tone-success-bg: #064e3b;
+  --sgh-tone-success-fg: #a7f3d0;
+  --sgh-tone-success-solid: #10b981;
+  --sgh-tone-warning-bg: #451a03;
+  --sgh-tone-warning-fg: #fde68a;
+  --sgh-tone-warning-solid: #f59e0b;
+  --sgh-tone-danger-bg: #450a0a;
+  --sgh-tone-danger-fg: #fecaca;
+  --sgh-tone-danger-solid: #ef4444;
+  --sgh-tone-neutral-bg: #1e293b;
+  --sgh-tone-neutral-fg: #cbd5e1;
+  --sgh-tone-neutral-solid: #64748b;
+  --sgh-tone-accent-bg: #2e1065;
+  --sgh-tone-accent-fg: #ddd6fe;
+  --sgh-tone-accent-solid: #8b5cf6;
 
-  --sgh-shadow: 0 1px 3px 0 rgb(0 0 0 / 30%), 0 1px 2px -1px rgb(0 0 0 / 20%);
-  --sgh-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 40%), 0 2px 4px -2px rgb(0 0 0 / 30%);
-  --sgh-shadow-lg: 0 12px 28px -6px rgb(0 0 0 / 60%), 0 4px 12px -2px rgb(0 0 0 / 40%);
+  --sgh-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+  --sgh-shadow-md: 0 6px 16px -3px rgba(0, 0, 0, 0.5);
+  --sgh-shadow-lg: 0 20px 40px -10px rgba(0, 0, 0, 0.6);
 }
 
 // ---------------------------------------------------------------------------------------------
