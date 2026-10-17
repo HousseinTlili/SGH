@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "prescription.created.data.schema.json",
+  "title": "prescription.created data",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "prescriptionId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "consultationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "patientId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "doctorId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "required": [
+          "drugName",
+          "dosage",
+          "frequency",
+          "duration"
+        ],
+        "properties": {
+          "drugName": {
+            "type": "string"
+          },
+          "dosage": {
+            "type": "string"
+          },
+          "frequency": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "prescriptionId",
+    "consultationId",
+    "patientId",
+    "doctorId",
+    "items"
+  ]
+}

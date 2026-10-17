@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "prescription.dispensed.data.schema.json",
+  "title": "prescription.dispensed data",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "prescriptionId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "pharmacistId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "status": {
+      "enum": [
+        "PARTIALLY_DISPENSED",
+        "DISPENSED"
+      ]
+    },
+    "dispensedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "prescriptionId",
+    "pharmacistId",
+    "status",
+    "dispensedAt"
+  ]
+}
