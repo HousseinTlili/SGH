@@ -1,0 +1,18 @@
+{
+  "exchanges": [
+    { "name": "sgh.events", "vhost": "/", "type": "topic", "durable": true, "auto_delete": false, "internal": false, "arguments": {} },
+    { "name": "sgh.events.dlx", "vhost": "/", "type": "fanout", "durable": true, "auto_delete": false, "internal": false, "arguments": {} }
+  ],
+  "queues": [
+    { "name": "sgh.events.dlq", "vhost": "/", "durable": true, "auto_delete": false, "arguments": {} },
+    { "name": "lab.lab.request.created", "vhost": "/", "durable": true, "auto_delete": false, "arguments": { "x-dead-letter-exchange": "sgh.events.dlx" } },
+    { "name": "pharmacy.prescription.created", "vhost": "/", "durable": true, "auto_delete": false, "arguments": { "x-dead-letter-exchange": "sgh.events.dlx" } },
+    { "name": "consultation.lab.result.ready", "vhost": "/", "durable": true, "auto_delete": false, "arguments": { "x-dead-letter-exchange": "sgh.events.dlx" } }
+  ],
+  "bindings": [
+    { "source": "sgh.events.dlx", "vhost": "/", "destination": "sgh.events.dlq", "destination_type": "queue", "routing_key": "", "arguments": {} },
+    { "source": "sgh.events", "vhost": "/", "destination": "lab.lab.request.created", "destination_type": "queue", "routing_key": "lab.request.created", "arguments": {} },
+    { "source": "sgh.events", "vhost": "/", "destination": "pharmacy.prescription.created", "destination_type": "queue", "routing_key": "prescription.created", "arguments": {} },
+    { "source": "sgh.events", "vhost": "/", "destination": "consultation.lab.result.ready", "destination_type": "queue", "routing_key": "lab.result.ready", "arguments": {} }
+  ]
+}
