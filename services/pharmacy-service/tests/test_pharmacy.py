@@ -46,9 +46,10 @@ def test_dispense_decrements_stock_and_marks_prescription(client, app):
     assert response.status_code == 201
     assert response.json["prescription"]["status"] == "DISPENSED"
     with app.app_context():
+        from pharmacy.extensions import db
         from pharmacy.models import Drug
 
-        assert Drug.query.get("drug-1").stock == 8
+        assert db.session.get(Drug, "drug-1").stock == 8
 
 
 def test_insufficient_stock_changes_nothing(client, app):
@@ -59,10 +60,11 @@ def test_insufficient_stock_changes_nothing(client, app):
     )
     assert response.status_code == 409
     with app.app_context():
+        from pharmacy.extensions import db
         from pharmacy.models import Drug, PrescriptionCopy
 
-        assert Drug.query.get("drug-1").stock == 10
-        assert PrescriptionCopy.query.get("copy-1").status == "ISSUED"
+        assert db.session.get(Drug, "drug-1").stock == 10
+        assert db.session.get(PrescriptionCopy, "copy-1").status == "ISSUED"
 
 
 def test_cannot_dispense_fully_dispensed_twice(client):
@@ -78,15 +80,90 @@ def test_cannot_dispense_fully_dispensed_twice(client):
 
 def test_stock_alerts_include_drugs_at_threshold(client, app):
     with app.app_context():
+        from pharmacy.extensions import db
         from pharmacy.models import Drug
 
-        drug = Drug.query.get("drug-1")
+        drug = db.session.get(Drug, "drug-1")
         drug.stock = 3
-        db = __import__("pharmacy.extensions", fromlist=["db"]).db
         db.session.commit()
     response = client.get("/api/stock/alerts", headers=headers(("DOCTOR",)))
     assert response.status_code == 200
     assert response.json[0]["id"] == "drug-1"
+
+
+def test_partial_dispensing_does_not_allow_same_item_twice(client, app):
+    from pharmacy.extensions import db
+    from pharmacy.models import PrescriptionCopy, PrescriptionItem
+
+    with app.app_context():
+        prescription = PrescriptionCopy(
+            id="copy-2",
+            prescription_id="prescription-2",
+            consultation_id="consultation-2",
+            patient_id="patient-2",
+            doctor_id="doctor-2",
+        )
+        prescription.items = [
+            PrescriptionItem(
+                item_index=0,
+                drug_name="Paracetamol",
+                dosage="1000mg",
+                frequency="Once daily",
+                duration="5 days",
+            ),
+            PrescriptionItem(
+                item_index=1,
+                drug_name="Paracetamol",
+                dosage="1000mg",
+                frequency="Once daily",
+                duration="5 days",
+            ),
+        ]
+        db.session.add(prescription)
+        db.session.commit()
+
+    line = {"itemIndex": 0, "drugId": "drug-1", "quantity": 1}
+    assert client.post(
+        "/api/prescriptions/prescription-2/dispense", json={"items": [line]}, headers=headers()
+    ).status_code == 201
+    response = client.post(
+        "/api/prescriptions/prescription-2/dispense", json={"items": [line]}, headers=headers()
+    )
+    assert response.status_code == 409
+    with app.app_context():
+        assert db.session.get(PrescriptionCopy, "copy-2").status == "PARTIALLY_DISPENSED"
+
+
+def test_cancelled_prescription_cannot_be_dispensed(client, app):
+    from pharmacy.extensions import db
+    from pharmacy.models import PrescriptionCopy
+
+    with app.app_context():
+        prescription = db.session.get(PrescriptionCopy, "copy-1")
+        prescription.status = "CANCELLED"
+        db.session.commit()
+    response = client.post(
+        "/api/prescriptions/prescription-1/dispense",
+        json={"items": [{"itemIndex": 0, "drugId": "drug-1", "quantity": 1}]},
+        headers=headers(),
+    )
+    assert response.status_code == 409
+
+
+def test_drug_payload_rejects_boolean_stock(client):
+    response = client.post(
+        "/api/drugs",
+        json={
+            "name": "Invalid",
+            "form": "Tablet",
+            "strength": "1mg",
+            "unit": "tablet",
+            "stock": True,
+            "reorderThreshold": 1,
+        },
+        headers=headers(),
+    )
+    assert response.status_code == 422
 
 
 def test_duplicate_prescription_event_is_idempotent(app):

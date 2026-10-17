@@ -34,8 +34,12 @@ def create_drug():
     required = ("name", "form", "strength", "unit", "stock", "reorderThreshold")
     if any(field not in payload for field in required):
         return error(400, "name, form, strength, unit, stock and reorderThreshold are required")
-    if payload["stock"] < 0 or payload["reorderThreshold"] < 0:
+    if not _valid_nonnegative_int(payload["stock"]) or not _valid_nonnegative_int(
+        payload["reorderThreshold"]
+    ):
         return error(422, "stock and reorderThreshold cannot be negative")
+    if any(not isinstance(payload[field], str) or not payload[field].strip() for field in required[:4]):
+        return error(422, "name, form, strength and unit must be non-empty strings")
     drug = Drug(
         name=payload["name"].strip(),
         form=payload["form"].strip(),
@@ -65,8 +69,11 @@ def update_drug(drug_id):
         ("reorderThreshold", "reorder_threshold"),
     ):
         if field in payload:
-            if field in ("stock", "reorderThreshold") and payload[field] < 0:
-                return error(422, f"{field} cannot be negative")
+            if field in ("stock", "reorderThreshold"):
+                if not _valid_nonnegative_int(payload[field]):
+                    return error(422, f"{field} must be a non-negative integer")
+            elif not isinstance(payload[field], str) or not payload[field].strip():
+                return error(422, f"{field} must be a non-empty string")
             setattr(drug, attribute, payload[field])
     db.session.commit()
     return jsonify(drug.to_dict())
@@ -75,7 +82,7 @@ def update_drug(drug_id):
 @api.post("/drugs/<drug_id>/stock")
 @require_roles("PHARMACIST")
 def adjust_stock(drug_id):
-    drug = db.session.get(Drug, drug_id)
+    drug = db.session.scalar(select(Drug).where(Drug.id == drug_id).with_for_update())
     payload = request.get_json(silent=True) or {}
     amount = payload.get("quantity")
     if drug is None:
@@ -167,6 +174,8 @@ def dispense_prescription(prescription_id):
         drug = db.session.scalar(select(Drug).where(Drug.id == drug_id).with_for_update())
         if item is None:
             return error(422, f"Prescription item {index} does not exist")
+        if item.dispensed_quantity > 0:
+            return error(409, f"Prescription item {index} has already been dispensed")
         if drug is None:
             return error(404, f"Drug {drug_id} not found")
         if drug.stock < quantity:
@@ -199,3 +208,7 @@ def _prescription_status(prescription):
     if all(item.dispensed_quantity > 0 for item in prescription.items):
         return "DISPENSED"
     return "PARTIALLY_DISPENSED"
+
+
+def _valid_nonnegative_int(value):
+    return isinstance(value, int) and not isinstance(value, bool) and value >= 0
