@@ -38,3 +38,11 @@ def seed_drugs():
         return
     db.session.add_all(Drug(**drug) for drug in SEED_DRUGS)
     db.session.commit()
+
+
+if __name__ == "__main__":
+    from . import create_app
+
+    application = create_app()
+    with application.app_context():
+        seed_drugs()

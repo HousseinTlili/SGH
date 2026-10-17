@@ -1,0 +1,115 @@
+{
+  "info": {
+    "_postman_id": "4f9c2e4e-8afc-4d07-a2b3-7bc1c66b3a15",
+    "name": "SGH Pharmacy Service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8085"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "drugId",
+      "value": "e1e1e1e1-0000-4000-8000-000000000001"
+    },
+    {
+      "key": "prescriptionId",
+      "value": "d4d4d4d4-0000-4000-8000-000000000001"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "List drugs",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/drugs"
+      }
+    },
+    {
+      "name": "Low-stock alerts",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/stock/alerts"
+      }
+    },
+    {
+      "name": "Get prescription",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/prescriptions/{{prescriptionId}}"
+      }
+    },
+    {
+      "name": "Dispense prescription",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"items\": [\n    {\n      \"itemIndex\": 0,\n      \"drugId\": \"{{drugId}}\",\n      \"quantity\": 1\n    }\n  ]"
+        },
+        "url": "{{baseUrl}}/api/prescriptions/{{prescriptionId}}/dispense"
+      }
+    },
+    {
+      "name": "Adjust stock",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"quantity\": 10\n}"
+        },
+        "url": "{{baseUrl}}/api/drugs/{{drugId}}/stock"
+      }
+    }
+  ]
+}

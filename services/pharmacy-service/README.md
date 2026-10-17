@@ -21,6 +21,12 @@ Initialize or upgrade the database before starting the service:
 alembic upgrade head
 ```
 
+Seed the catalogue explicitly after migrations when needed:
+
+```powershell
+python -m pharmacy.seed
+```
+
 The service exposes `GET /health` without authentication and all `/api/**` endpoints require a
 Bearer token. The gateway remains responsible for the public entry point and routing.
 

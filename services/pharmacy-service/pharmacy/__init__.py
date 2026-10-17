@@ -21,17 +21,17 @@ def create_app(test_config=None):
     app.register_blueprint(health)
     app.register_blueprint(api, url_prefix="/api")
 
-    if app.config.get("AUTO_CREATE_SCHEMA"):
-        with app.app_context():
-            try:
+    with app.app_context():
+        try:
+            if app.config.get("AUTO_CREATE_SCHEMA"):
                 db.create_all()
-                from .seed import seed_drugs
+            from .seed import seed_drugs
 
-                seed_drugs()
-            except SQLAlchemyError:
-                logging.getLogger(__name__).warning(
-                    "Pharmacy database is unavailable; starting without seed data",
-                    exc_info=True,
-                )
+            seed_drugs()
+        except SQLAlchemyError:
+            logging.getLogger(__name__).warning(
+                "Pharmacy database is unavailable or not migrated; starting without seed data",
+                exc_info=True,
+            )
 
     return app
