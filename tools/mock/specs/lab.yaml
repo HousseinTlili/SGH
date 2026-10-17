@@ -2,7 +2,8 @@ openapi: 3.0.3
 info:
   title: SGH lab service (mock spec for the Angular app)
   description: >-
-    Mock specification for lab service. Seeded tests catalogue and requests.
+    Mock specification for the lab service. Examples follow Seed Data and Fixtures: the test
+    catalogue and request L1 (patient P5, consultation C1) and L2 (patient P3, consultation C2).
   version: 0.0.0
 servers:
   - url: http://localhost:8084
@@ -38,53 +39,213 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/LabTest'
+                  $ref: "#/components/schemas/LabTest"
               example:
-                - code: HGB
-                  name: Hemoglobin
-                  unit: g/dL
-                  refLow: 12.0
-                  refHigh: 17.5
-                  criticalLow: 7.0
-                  criticalHigh: 20.0
-                - code: WBC
-                  name: White blood cells
-                  unit: 10^3/µL
-                  refLow: 4.5
-                  refHigh: 11.0
-                  criticalLow: 2.0
-                  criticalHigh: 30.0
-                - code: GLU
-                  name: Fasting glucose
-                  unit: mg/dL
-                  refLow: 70.0
-                  refHigh: 99.0
-                  criticalLow: 50.0
-                  criticalHigh: 350.0
-                - code: CHOL
-                  name: Total cholesterol
-                  unit: mg/dL
-                  refLow: 120.0
-                  refHigh: 200.0
-                  criticalLow: null
-                  criticalHigh: 300.0
-                - code: CRE
-                  name: Creatinine
-                  unit: mg/dL
-                  refLow: 0.6
-                  refHigh: 1.2
-                  criticalLow: null
-                  criticalHigh: 4.0
-                - code: K
-                  name: Potassium
-                  unit: mmol/L
-                  refLow: 3.5
-                  refHigh: 5.1
-                  criticalLow: 2.8
-                  criticalHigh: 6.2
+                - { code: HGB, name: Hemoglobin, unit: g/dL, refLow: 12.0, refHigh: 17.0, criticalLow: 7.0, criticalHigh: 20.0 }
+                - { code: WBC, name: White blood cells, unit: 10^9/L, refLow: 4.0, refHigh: 11.0, criticalLow: 2.0, criticalHigh: 30.0 }
+                - { code: GLU, name: Fasting glucose, unit: mg/dL, refLow: 70, refHigh: 100, criticalLow: 40, criticalHigh: 400 }
+                - { code: CHOL, name: Total cholesterol, unit: mg/dL, refLow: 0, refHigh: 200, criticalLow: null, criticalHigh: null }
+                - { code: CRE, name: Creatinine, unit: mg/dL, refLow: 0.6, refHigh: 1.3, criticalLow: null, criticalHigh: 5.0 }
+                - { code: K, name: Potassium, unit: mmol/L, refLow: 3.5, refHigh: 5.1, criticalLow: 2.5, criticalHigh: 6.5 }
+
+  /api/lab-requests:
+    get:
+      summary: Lab work queue (paged, URGENT first)
+      parameters:
+        - { name: status, in: query, schema: { type: string } }
+        - { name: priority, in: query, schema: { type: string } }
+        - { name: patientId, in: query, schema: { type: string } }
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: size, in: query, schema: { type: integer } }
+      responses:
+        "200":
+          description: Page of lab requests
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [content, page, size, totalElements, totalPages]
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/LabRequest"
+                  page: { type: integer }
+                  size: { type: integer }
+                  totalElements: { type: integer }
+                  totalPages: { type: integer }
+              example:
+                content:
+                  - id: f9f9f9f9-0000-4000-8000-000000000002
+                    consultationId: f7f7f7f7-0000-4000-8000-000000000002
+                    patientId: a1a1a1a1-0000-4000-8000-000000000003
+                    doctorId: b2b2b2b2-0000-4000-8000-000000000001
+                    priority: URGENT
+                    status: REQUESTED
+                    tests:
+                      - { code: K, name: Potassium }
+                      - { code: CRE, name: Creatinine }
+                    results: []
+                    requestedAt: "2026-10-12T08:50:00Z"
+                    startedAt: null
+                    validatedAt: null
+                  - id: f9f9f9f9-0000-4000-8000-000000000001
+                    consultationId: f7f7f7f7-0000-4000-8000-000000000001
+                    patientId: a1a1a1a1-0000-4000-8000-000000000005
+                    doctorId: b2b2b2b2-0000-4000-8000-000000000002
+                    priority: ROUTINE
+                    status: VALIDATED
+                    tests:
+                      - { code: HGB, name: Hemoglobin }
+                      - { code: WBC, name: White blood cells }
+                    results:
+                      - { testCode: HGB, value: 14.2, unit: g/dL, referenceRange: "12.0-17.0", flag: NORMAL }
+                      - { testCode: WBC, value: 12.5, unit: 10^9/L, referenceRange: "4.0-11.0", flag: HIGH }
+                    requestedAt: "2026-10-10T11:30:00Z"
+                    startedAt: "2026-10-10T13:00:00Z"
+                    validatedAt: "2026-10-10T15:00:00Z"
+                page: 0
+                size: 20
+                totalElements: 2
+                totalPages: 1
+
+  /api/lab-requests/{id}:
+    get:
+      summary: One lab request with its results
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: The request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LabRequest"
+              example:
+                id: f9f9f9f9-0000-4000-8000-000000000001
+                consultationId: f7f7f7f7-0000-4000-8000-000000000001
+                patientId: a1a1a1a1-0000-4000-8000-000000000005
+                doctorId: b2b2b2b2-0000-4000-8000-000000000002
+                priority: ROUTINE
+                status: VALIDATED
+                tests:
+                  - { code: HGB, name: Hemoglobin }
+                  - { code: WBC, name: White blood cells }
+                results:
+                  - { testCode: HGB, value: 14.2, unit: g/dL, referenceRange: "12.0-17.0", flag: NORMAL }
+                  - { testCode: WBC, value: 12.5, unit: 10^9/L, referenceRange: "4.0-11.0", flag: HIGH }
+                requestedAt: "2026-10-10T11:30:00Z"
+                startedAt: "2026-10-10T13:00:00Z"
+                validatedAt: "2026-10-10T15:00:00Z"
+        "404":
+          description: Unknown request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                timestamp: "2026-10-12T09:30:00Z"
+                status: 404
+                error: Not Found
+                message: Lab request not found
+                path: /api/lab-requests/unknown
+                correlationId: b3f1c2d4
+
+  /api/lab-results:
+    get:
+      summary: Validated results, newest first (paged)
+      parameters:
+        - { name: patientId, in: query, schema: { type: string } }
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: size, in: query, schema: { type: integer } }
+      responses:
+        "200":
+          description: Page of validated results
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [content, page, size, totalElements, totalPages]
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/LabResultRow"
+                  page: { type: integer }
+                  size: { type: integer }
+                  totalElements: { type: integer }
+                  totalPages: { type: integer }
+              example:
+                content:
+                  - { labRequestId: f9f9f9f9-0000-4000-8000-000000000001, patientId: a1a1a1a1-0000-4000-8000-000000000005, testCode: WBC, value: 12.5, unit: 10^9/L, referenceRange: "4.0-11.0", flag: HIGH, validatedAt: "2026-10-10T15:00:00Z" }
+                  - { labRequestId: f9f9f9f9-0000-4000-8000-000000000001, patientId: a1a1a1a1-0000-4000-8000-000000000005, testCode: HGB, value: 14.2, unit: g/dL, referenceRange: "12.0-17.0", flag: NORMAL, validatedAt: "2026-10-10T15:00:00Z" }
+                page: 0
+                size: 20
+                totalElements: 2
+                totalPages: 1
 
 components:
   schemas:
+    ApiError:
+      type: object
+      required: [status, error, message]
+      properties:
+        timestamp: { type: string }
+        status: { type: integer }
+        error: { type: string }
+        message: { type: string }
+        path: { type: string }
+        correlationId: { type: string }
+    LabFlag:
+      type: string
+      enum: [NORMAL, HIGH, LOW, CRITICAL]
+    LabResultLine:
+      type: object
+      required: [testCode, value, unit, referenceRange, flag]
+      properties:
+        testCode: { type: string }
+        value: { type: number }
+        unit: { type: string }
+        referenceRange: { type: string }
+        flag:
+          $ref: "#/components/schemas/LabFlag"
+    LabResultRow:
+      type: object
+      required: [labRequestId, patientId, testCode, value, unit, referenceRange, flag, validatedAt]
+      properties:
+        labRequestId: { type: string }
+        patientId: { type: string }
+        testCode: { type: string }
+        value: { type: number }
+        unit: { type: string }
+        referenceRange: { type: string }
+        flag:
+          $ref: "#/components/schemas/LabFlag"
+        validatedAt: { type: string }
+    LabRequest:
+      type: object
+      required: [id, consultationId, patientId, doctorId, priority, status, tests, results, requestedAt]
+      properties:
+        id: { type: string }
+        consultationId: { type: string }
+        patientId: { type: string }
+        doctorId: { type: string }
+        priority: { type: string, enum: [ROUTINE, URGENT] }
+        status: { type: string, enum: [REQUESTED, IN_PROGRESS, RESULT_ENTERED, VALIDATED] }
+        tests:
+          type: array
+          items:
+            type: object
+            properties:
+              code: { type: string }
+              name: { type: string }
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/LabResultLine"
+        requestedAt: { type: string }
+        startedAt: { type: string, nullable: true }
+        validatedAt: { type: string, nullable: true }
     LabTest:
       type: object
       required: [code, name, unit, refLow, refHigh]

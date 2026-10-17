@@ -1,0 +1,393 @@
+openapi: 3.0.3
+info:
+  title: SGH Lab service
+  version: 1.0.0
+  description: >-
+    Contract of Service 4 (port 8084). Source: Lab Service - API Spec, Domain Model and Business Rules (LAB-1 to LAB-8, X-1 to X-8), Seed Data and Fixtures, Event Catalogue. There is no endpoint to create a request: requests arrive by consuming lab.request.created (LAB-1). Publishes lab.result.ready on validation. Every endpoint except /health needs a Keycloak JWT; roles are in the description
+    of each operation (and in x-roles). Errors use the shared body of API Contracts and Conventions.
+servers:
+  - url: http://localhost:8084
+security:
+  - bearerAuth: []
+tags:
+  - name: lab-requests
+  - name: lab-results
+  - name: tests
+  - name: health
+paths:
+  /health:
+    get:
+      tags: [health]
+      operationId: health
+      summary: Liveness of the process (never checks the database or the broker)
+      security: []
+      responses:
+        "200":
+          description: The service process is up
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Health" }
+              example: { status: UP }
+  /api/lab-requests:
+    get:
+      tags: [lab-requests]
+      operationId: listLabRequests
+      summary: Work queue, URGENT first then oldest (LAB-7)
+      description: "Roles: LAB_TECHNICIAN, DOCTOR, ADMIN."
+      x-roles: [LAB_TECHNICIAN, DOCTOR, ADMIN]
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/LabStatus" } }
+        - { name: priority, in: query, schema: { type: string, enum: [ROUTINE, URGENT] } }
+        - { name: patientId, in: query, schema: { type: string, format: uuid } }
+        - { $ref: "#/components/parameters/page" }
+        - { $ref: "#/components/parameters/size" }
+      responses:
+        "200":
+          description: A page of lab requests
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LabRequestPage" }
+              example:
+                content:
+                  - { id: f9f9f9f9-0000-4000-8000-000000000002, consultationId: f7f7f7f7-0000-4000-8000-000000000002, patientId: a1a1a1a1-0000-4000-8000-000000000003, doctorId: b2b2b2b2-0000-4000-8000-000000000001, priority: URGENT, status: REQUESTED, tests: [{ code: K, name: Potassium }, { code: CRE, name: Creatinine }], results: [], requestedAt: "2026-10-12T08:50:00Z", startedAt: null, validatedAt: null }
+                  - { id: f9f9f9f9-0000-4000-8000-000000000001, consultationId: f7f7f7f7-0000-4000-8000-000000000001, patientId: a1a1a1a1-0000-4000-8000-000000000005, doctorId: b2b2b2b2-0000-4000-8000-000000000002, priority: ROUTINE, status: VALIDATED, tests: [{ code: HGB, name: Hemoglobin }, { code: WBC, name: White blood cells }], results: [{ testCode: HGB, value: 14.2, unit: g/dL, referenceRange: "12.0-17.0", flag: NORMAL }, { testCode: WBC, value: 12.5, unit: 10^9/L, referenceRange: "4.0-11.0", flag: HIGH }], requestedAt: "2026-10-10T11:30:00Z", startedAt: "2026-10-10T13:00:00Z", validatedAt: "2026-10-10T15:00:00Z" }
+                page: 0
+                size: 20
+                totalElements: 2
+                totalPages: 1
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/lab-requests/{id}:
+    parameters:
+      - { $ref: "#/components/parameters/id" }
+    get:
+      tags: [lab-requests]
+      operationId: getLabRequest
+      summary: One request with its results
+      description: "Roles: LAB_TECHNICIAN, DOCTOR, ADMIN. results is an empty array until results are entered."
+      x-roles: [LAB_TECHNICIAN, DOCTOR, ADMIN]
+      responses:
+        "200":
+          description: The request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LabRequest" }
+              example: { id: f9f9f9f9-0000-4000-8000-000000000001, consultationId: f7f7f7f7-0000-4000-8000-000000000001, patientId: a1a1a1a1-0000-4000-8000-000000000005, doctorId: b2b2b2b2-0000-4000-8000-000000000002, priority: ROUTINE, status: VALIDATED, tests: [{ code: HGB, name: Hemoglobin }, { code: WBC, name: White blood cells }], results: [{ testCode: HGB, value: 14.2, unit: g/dL, referenceRange: "12.0-17.0", flag: NORMAL }, { testCode: WBC, value: 12.5, unit: 10^9/L, referenceRange: "4.0-11.0", flag: HIGH }], requestedAt: "2026-10-10T11:30:00Z", startedAt: "2026-10-10T13:00:00Z", validatedAt: "2026-10-10T15:00:00Z" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/lab-requests/{id}/start:
+    post:
+      tags: [lab-requests]
+      operationId: startLabRequest
+      summary: REQUESTED to IN_PROGRESS (LAB-2)
+      description: "Roles: LAB_TECHNICIAN. 409 when the request is not REQUESTED."
+      x-roles: [LAB_TECHNICIAN]
+      parameters:
+        - { $ref: "#/components/parameters/id" }
+      responses:
+        "200":
+          description: The request, now IN_PROGRESS with startedAt set
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LabRequest" }
+              example: { id: f9f9f9f9-0000-4000-8000-000000000001, consultationId: f7f7f7f7-0000-4000-8000-000000000001, patientId: a1a1a1a1-0000-4000-8000-000000000005, doctorId: b2b2b2b2-0000-4000-8000-000000000002, priority: ROUTINE, status: IN_PROGRESS, tests: [{ code: HGB, name: Hemoglobin }, { code: WBC, name: White blood cells }], results: [], requestedAt: "2026-10-10T11:30:00Z", startedAt: "2026-10-10T13:00:00Z", validatedAt: null }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/lab-requests/{id}/results:
+    post:
+      tags: [lab-requests]
+      operationId: enterLabResults
+      summary: Enter results and compute flags (LAB-2, LAB-3, LAB-4)
+      description: "Roles: LAB_TECHNICIAN. Allowed while IN_PROGRESS or RESULT_ENTERED (entering again replaces the previous values). Every testCode must be in the request's tests and every value must be a number (422). The unit defaults to the catalogue unit. Flag: below criticalLow or above criticalHigh gives CRITICAL, else below refLow LOW, else above refHigh HIGH, else NORMAL."
+      x-roles: [LAB_TECHNICIAN]
+      parameters:
+        - { $ref: "#/components/parameters/id" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ResultsInput" }
+            example: { results: [{ testCode: HGB, value: 14.2 }, { testCode: WBC, value: 12.5, unit: 10^9/L }] }
+      responses:
+        "200":
+          description: The request, now RESULT_ENTERED with flags and referenceRange strings
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LabRequest" }
+              example: { id: f9f9f9f9-0000-4000-8000-000000000001, consultationId: f7f7f7f7-0000-4000-8000-000000000001, patientId: a1a1a1a1-0000-4000-8000-000000000005, doctorId: b2b2b2b2-0000-4000-8000-000000000002, priority: ROUTINE, status: RESULT_ENTERED, tests: [{ code: HGB, name: Hemoglobin }, { code: WBC, name: White blood cells }], results: [{ testCode: HGB, value: 14.2, unit: g/dL, referenceRange: "12.0-17.0", flag: NORMAL }, { testCode: WBC, value: 12.5, unit: 10^9/L, referenceRange: "4.0-11.0", flag: HIGH }], requestedAt: "2026-10-10T11:30:00Z", startedAt: "2026-10-10T13:00:00Z", validatedAt: null }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/lab-requests/{id}/validate:
+    post:
+      tags: [lab-requests]
+      operationId: validateLabRequest
+      summary: RESULT_ENTERED to VALIDATED, publishes lab.result.ready (LAB-5, LAB-6)
+      description: "Roles: LAB_TECHNICIAN. 409 when the request is not RESULT_ENTERED; 422 when a test has no result. Sets validatedBy from the token claim staffId and publishes lab.result.ready after the commit; a failed publish never rolls the validation back. Validated results are immutable."
+      x-roles: [LAB_TECHNICIAN]
+      parameters:
+        - { $ref: "#/components/parameters/id" }
+      responses:
+        "200":
+          description: The validated request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LabRequest" }
+              example: { id: f9f9f9f9-0000-4000-8000-000000000001, consultationId: f7f7f7f7-0000-4000-8000-000000000001, patientId: a1a1a1a1-0000-4000-8000-000000000005, doctorId: b2b2b2b2-0000-4000-8000-000000000002, priority: ROUTINE, status: VALIDATED, tests: [{ code: HGB, name: Hemoglobin }, { code: WBC, name: White blood cells }], results: [{ testCode: HGB, value: 14.2, unit: g/dL, referenceRange: "12.0-17.0", flag: NORMAL }, { testCode: WBC, value: 12.5, unit: 10^9/L, referenceRange: "4.0-11.0", flag: HIGH }], requestedAt: "2026-10-10T11:30:00Z", startedAt: "2026-10-10T13:00:00Z", validatedAt: "2026-10-10T15:00:00Z" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/lab-results:
+    get:
+      tags: [lab-results]
+      operationId: listValidatedResults
+      summary: Validated results only, newest first
+      description: "Roles: LAB_TECHNICIAN, DOCTOR, ADMIN."
+      x-roles: [LAB_TECHNICIAN, DOCTOR, ADMIN]
+      parameters:
+        - { name: patientId, in: query, schema: { type: string, format: uuid } }
+        - { $ref: "#/components/parameters/page" }
+        - { $ref: "#/components/parameters/size" }
+      responses:
+        "200":
+          description: A page of results
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LabResultRowPage" }
+              example:
+                content:
+                  - { labRequestId: f9f9f9f9-0000-4000-8000-000000000001, patientId: a1a1a1a1-0000-4000-8000-000000000005, testCode: WBC, value: 12.5, unit: 10^9/L, referenceRange: "4.0-11.0", flag: HIGH, validatedAt: "2026-10-10T15:00:00Z" }
+                  - { labRequestId: f9f9f9f9-0000-4000-8000-000000000001, patientId: a1a1a1a1-0000-4000-8000-000000000005, testCode: HGB, value: 14.2, unit: g/dL, referenceRange: "12.0-17.0", flag: NORMAL, validatedAt: "2026-10-10T15:00:00Z" }
+                page: 0
+                size: 20
+                totalElements: 2
+                totalPages: 1
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/tests:
+    get:
+      tags: [tests]
+      operationId: listTests
+      summary: The test catalogue (plain array)
+      description: "Roles: LAB_TECHNICIAN, DOCTOR, ADMIN."
+      x-roles: [LAB_TECHNICIAN, DOCTOR, ADMIN]
+      responses:
+        "200":
+          description: The six catalogue tests
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/TestDto" }
+              example:
+                - { code: HGB, name: Hemoglobin, unit: g/dL, refLow: 12.0, refHigh: 17.0, criticalLow: 7.0, criticalHigh: 20.0 }
+                - { code: WBC, name: White blood cells, unit: 10^9/L, refLow: 4.0, refHigh: 11.0, criticalLow: 2.0, criticalHigh: 30.0 }
+                - { code: GLU, name: Fasting glucose, unit: mg/dL, refLow: 70, refHigh: 100, criticalLow: 40, criticalHigh: 400 }
+                - { code: CHOL, name: Total cholesterol, unit: mg/dL, refLow: 0, refHigh: 200, criticalLow: null, criticalHigh: null }
+                - { code: CRE, name: Creatinine, unit: mg/dL, refLow: 0.6, refHigh: 1.3, criticalLow: null, criticalHigh: 5.0 }
+                - { code: K, name: Potassium, unit: mmol/L, refLow: 3.5, refHigh: 5.1, criticalLow: 2.5, criticalHigh: 6.5 }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    id:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 0, default: 0 }
+    size:
+      name: size
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+  responses:
+    Unauthorized:
+      description: Missing or invalid token
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 401, error: Unauthorized, message: Missing or invalid token, path: /api/lab-requests, correlationId: b3f1c2d4 }
+    Forbidden:
+      description: Valid token, role or record not allowed
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 403, error: Forbidden, message: Your role is not allowed to do this, path: /api/lab-requests, correlationId: b3f1c2d4 }
+    NotFound:
+      description: Unknown resource
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 404, error: Not Found, message: Resource not found, path: /api/lab-requests/unknown, correlationId: b3f1c2d4 }
+    Conflict:
+      description: Duplicate, business conflict or invalid state move
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 409, error: Conflict, message: Request is not IN_PROGRESS, path: /api/lab-requests, correlationId: b3f1c2d4 }
+    Unprocessable:
+      description: Validation failed (details name the fields)
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example:
+            timestamp: "2026-10-12T09:30:00Z"
+            status: 422
+            error: Unprocessable Entity
+            message: Validation failed
+            path: /api/lab-requests
+            correlationId: b3f1c2d4
+            details:
+              - { field: testCode, problem: not part of this request }
+    DatabaseUnavailable:
+      description: The database is not reachable yet (X-8); the service itself is up
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 503, error: Service Unavailable, message: Database unavailable, path: /api/lab-requests, correlationId: b3f1c2d4 }
+  schemas:
+    Health:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [UP] }
+    ApiError:
+      type: object
+      required: [status, error, message]
+      properties:
+        timestamp: { type: string, format: date-time }
+        status: { type: integer }
+        error: { type: string }
+        message: { type: string }
+        path: { type: string }
+        correlationId: { type: string }
+        service: { type: string, description: "Only on gateway 503 bodies" }
+        details:
+          type: array
+          items:
+            type: object
+            required: [field, problem]
+            properties:
+              field: { type: string }
+              problem: { type: string }
+    LabStatus:
+      type: string
+      enum: [REQUESTED, IN_PROGRESS, RESULT_ENTERED, VALIDATED]
+    LabFlag:
+      type: string
+      enum: [NORMAL, HIGH, LOW, CRITICAL]
+    LabTestRef:
+      type: object
+      required: [code, name]
+      properties:
+        code: { type: string, maxLength: 10 }
+        name: { type: string, maxLength: 100 }
+    LabResultLine:
+      type: object
+      required: [testCode, value, unit, referenceRange, flag]
+      properties:
+        testCode: { type: string }
+        value: { type: number }
+        unit: { type: string }
+        referenceRange: { type: string, description: "refLow-refHigh, for example 12.0-17.0" }
+        flag: { $ref: "#/components/schemas/LabFlag" }
+    LabRequest:
+      type: object
+      required: [id, consultationId, patientId, doctorId, priority, status, tests, results, requestedAt]
+      properties:
+        id: { type: string, format: uuid, description: Equals the labRequestId of the event }
+        consultationId: { type: string, format: uuid }
+        patientId: { type: string, format: uuid }
+        doctorId: { type: string, format: uuid }
+        priority: { type: string, enum: [ROUTINE, URGENT] }
+        status: { $ref: "#/components/schemas/LabStatus" }
+        tests:
+          type: array
+          items: { $ref: "#/components/schemas/LabTestRef" }
+        results:
+          type: array
+          items: { $ref: "#/components/schemas/LabResultLine" }
+        requestedAt: { type: string, format: date-time }
+        startedAt: { type: string, format: date-time, nullable: true }
+        validatedAt: { type: string, format: date-time, nullable: true }
+    ResultsInput:
+      type: object
+      required: [results]
+      properties:
+        results:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [testCode, value]
+            properties:
+              testCode: { type: string }
+              value: { type: number }
+              unit: { type: string, description: "Optional, defaults to the catalogue unit" }
+    LabResultRow:
+      type: object
+      required: [labRequestId, patientId, testCode, value, unit, referenceRange, flag, validatedAt]
+      properties:
+        labRequestId: { type: string, format: uuid }
+        patientId: { type: string, format: uuid }
+        testCode: { type: string }
+        value: { type: number }
+        unit: { type: string }
+        referenceRange: { type: string }
+        flag: { $ref: "#/components/schemas/LabFlag" }
+        validatedAt: { type: string, format: date-time }
+    TestDto:
+      type: object
+      required: [code, name, unit, refLow, refHigh]
+      properties:
+        code: { type: string, maxLength: 10 }
+        name: { type: string }
+        unit: { type: string }
+        refLow: { type: number }
+        refHigh: { type: number }
+        criticalLow: { type: number, nullable: true }
+        criticalHigh: { type: number, nullable: true }
+    LabRequestPage:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content:
+          type: array
+          items: { $ref: "#/components/schemas/LabRequest" }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+    LabResultRowPage:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content:
+          type: array
+          items: { $ref: "#/components/schemas/LabResultRow" }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }

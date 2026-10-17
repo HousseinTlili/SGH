@@ -1,0 +1,464 @@
+openapi: 3.0.3
+info:
+  title: SGH Patient service
+  version: 1.0.0
+  description: >-
+    Contract of Service 1 (port 8081). Source: Patient Service - API Spec, Domain Model and Business
+    Rules (PAT-1 to PAT-8, X-1 to X-8), Seed Data and Fixtures. Every endpoint except /health needs a
+    Keycloak JWT; roles are in the description of each operation (and in x-roles).
+servers:
+  - url: http://localhost:8081
+security:
+  - bearerAuth: []
+tags:
+  - name: patients
+  - name: medical-file
+  - name: health
+paths:
+  /health:
+    get:
+      tags: [health]
+      operationId: health
+      summary: Liveness of the process (never checks the database)
+      security: []
+      responses:
+        "200":
+          description: The service process is up
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+              example: { status: UP }
+  /api/patients:
+    get:
+      tags: [patients]
+      operationId: listPatients
+      summary: List or search patients (case-insensitive contains on first or last name, sorted by last name then first name; deleted patients are skipped)
+      description: "Roles: RECEPTIONIST, DOCTOR, NURSE, ADMIN. Rules PAT-3, PAT-7."
+      x-roles: [RECEPTIONIST, DOCTOR, NURSE, ADMIN]
+      parameters:
+        - name: search
+          in: query
+          schema: { type: string }
+          example: ben
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/size"
+      responses:
+        "200":
+          description: A page of patients
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientPage"
+              example:
+                content:
+                  - id: a1a1a1a1-0000-4000-8000-000000000001
+                    firstName: Youssef
+                    lastName: Ben Salah
+                    birthDate: "1985-03-14"
+                    gender: MALE
+                    phone: "+21620111001"
+                    email: youssef.bensalah@example.com
+                    address: Tunis, Tunisia
+                    bloodType: A+
+                    allergies: Penicillin
+                    insuranceProvider: CNAM
+                    insuranceNumber: "10001"
+                    createdAt: "2026-10-12T08:00:00Z"
+                    updatedAt: "2026-10-12T08:00:00Z"
+                page: 0
+                size: 20
+                totalElements: 1
+                totalPages: 1
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+    post:
+      tags: [patients]
+      operationId: createPatient
+      summary: Register a patient
+      description: "Roles: RECEPTIONIST. PAT-1 (422), PAT-2 duplicate first name, last name and birth date, case-insensitive (409)."
+      x-roles: [RECEPTIONIST]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatientInput"
+            examples:
+              valid:
+                $ref: "#/components/examples/PatientInputValid"
+      responses:
+        "201":
+          description: Created
+          headers:
+            Location:
+              description: /api/patients/{id}
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Patient"
+              examples:
+                created:
+                  $ref: "#/components/examples/PatientP1"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/patients/{id}:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    get:
+      tags: [patients]
+      operationId: getPatient
+      summary: Get one patient
+      description: "Roles: RECEPTIONIST, DOCTOR, NURSE, ADMIN, PATIENT (own record only, PAT-4: 403 for another id). 404 when unknown or soft-deleted (PAT-3)."
+      x-roles: [RECEPTIONIST, DOCTOR, NURSE, ADMIN, PATIENT]
+      responses:
+        "200":
+          description: The patient
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Patient"
+              examples:
+                p1:
+                  $ref: "#/components/examples/PatientP1"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+    put:
+      tags: [patients]
+      operationId: updatePatient
+      summary: Replace a patient (full replacement)
+      description: "Roles: RECEPTIONIST. 409 when the new names and birth date duplicate another patient."
+      x-roles: [RECEPTIONIST]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatientInput"
+            examples:
+              valid:
+                $ref: "#/components/examples/PatientInputValid"
+      responses:
+        "200":
+          description: The updated patient
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Patient"
+              examples:
+                p1:
+                  $ref: "#/components/examples/PatientP1"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+    delete:
+      tags: [patients]
+      operationId: deletePatient
+      summary: Soft delete (PAT-3)
+      description: "Roles: ADMIN. 404 when already deleted or unknown."
+      x-roles: [ADMIN]
+      responses:
+        "204":
+          description: Deleted (the record stays in the database, invisible to every read)
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/patients/{id}/summary:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    get:
+      tags: [patients]
+      operationId: getPatientSummary
+      summary: Minimal data for other services (PAT-5)
+      description: "Roles: RECEPTIONIST, DOCTOR, NURSE, LAB_TECHNICIAN, PHARMACIST, ADMIN, PATIENT (own). Returns exactly id, fullName, birthDate."
+      x-roles: [RECEPTIONIST, DOCTOR, NURSE, LAB_TECHNICIAN, PHARMACIST, ADMIN, PATIENT]
+      responses:
+        "200":
+          description: Summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientSummary"
+              example:
+                id: a1a1a1a1-0000-4000-8000-000000000001
+                fullName: Youssef Ben Salah
+                birthDate: "1985-03-14"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/patients/{id}/medical-file:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    get:
+      tags: [medical-file]
+      operationId: listMedicalFile
+      summary: Medical file entries, newest first (PAT-8)
+      description: "Roles: DOCTOR, NURSE, PATIENT (own)."
+      x-roles: [DOCTOR, NURSE, PATIENT]
+      parameters:
+        - name: type
+          in: query
+          schema: { $ref: "#/components/schemas/MedicalFileType" }
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/size"
+      responses:
+        "200":
+          description: A page of entries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MedicalFilePage"
+              example:
+                content:
+                  - id: 7d6a1f5e-3b52-4c0e-8b0a-0000000000a1
+                    patientId: a1a1a1a1-0000-4000-8000-000000000005
+                    type: LAB
+                    summary: "Blood tests: hemoglobin normal, white blood cells slightly high"
+                    sourceService: lab
+                    referenceId: f9f9f9f9-0000-4000-8000-000000000001
+                    createdAt: "2026-10-10T15:00:00Z"
+                page: 0
+                size: 20
+                totalElements: 1
+                totalPages: 1
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+    post:
+      tags: [medical-file]
+      operationId: addMedicalFileNote
+      summary: Add a NOTE entry (PAT-6)
+      description: "Roles: DOCTOR. Creates an entry of type NOTE with sourceService patient."
+      x-roles: [DOCTOR]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [summary]
+              properties:
+                summary: { type: string, minLength: 1, maxLength: 1000 }
+            example: { summary: Penicillin allergy confirmed at registration }
+      responses:
+        "201":
+          description: The new entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MedicalFileEntry"
+              example:
+                id: 7d6a1f5e-3b52-4c0e-8b0a-0000000000a2
+                patientId: a1a1a1a1-0000-4000-8000-000000000001
+                type: NOTE
+                summary: Penicillin allergy confirmed at registration
+                sourceService: patient
+                createdAt: "2026-10-12T09:30:00Z"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    id:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 0, default: 0 }
+    size:
+      name: size
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+  responses:
+    Unauthorized:
+      description: Missing or invalid token
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 401, error: Unauthorized, message: Missing or invalid token, path: /api/patients, correlationId: b3f1c2d4 }
+    Forbidden:
+      description: Valid token, role or record not allowed
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 403, error: Forbidden, message: Your role is not allowed to do this, path: /api/patients, correlationId: b3f1c2d4 }
+    NotFound:
+      description: Unknown or soft-deleted resource
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 404, error: Not Found, message: Patient not found, path: /api/patients/unknown, correlationId: b3f1c2d4 }
+    Conflict:
+      description: Duplicate or invalid state move
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 409, error: Conflict, message: A patient with the same name and birth date already exists, path: /api/patients, correlationId: b3f1c2d4 }
+    Unprocessable:
+      description: Validation failed (details name the fields)
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example:
+            timestamp: "2026-10-12T09:30:00Z"
+            status: 422
+            error: Unprocessable Entity
+            message: Validation failed
+            path: /api/patients
+            correlationId: b3f1c2d4
+            details:
+              - { field: birthDate, problem: must not be in the future }
+    DatabaseUnavailable:
+      description: The database is not reachable yet (X-8); the service itself is up
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 503, error: Service Unavailable, message: Database unavailable, path: /api/patients, correlationId: b3f1c2d4 }
+  schemas:
+    Health:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [UP] }
+    ApiError:
+      type: object
+      required: [status, error, message]
+      properties:
+        timestamp: { type: string, format: date-time }
+        status: { type: integer }
+        error: { type: string }
+        message: { type: string }
+        path: { type: string }
+        correlationId: { type: string }
+        service: { type: string, description: "Only on gateway 503 bodies" }
+        details:
+          type: array
+          items:
+            type: object
+            required: [field, problem]
+            properties:
+              field: { type: string }
+              problem: { type: string }
+    Gender:
+      type: string
+      enum: [MALE, FEMALE, OTHER]
+    MedicalFileType:
+      type: string
+      enum: [CONSULTATION, LAB, PRESCRIPTION, NOTE]
+    PatientInput:
+      type: object
+      required: [firstName, lastName, birthDate, gender]
+      properties:
+        firstName: { type: string, minLength: 1, maxLength: 80 }
+        lastName: { type: string, minLength: 1, maxLength: 80 }
+        birthDate: { type: string, format: date, description: "Not in the future, not before 1900-01-01" }
+        gender: { $ref: "#/components/schemas/Gender" }
+        phone: { type: string, maxLength: 20, pattern: '^[+]?[0-9 ]{8,15}$', nullable: true }
+        email: { type: string, format: email, maxLength: 120, nullable: true }
+        address: { type: string, maxLength: 255, nullable: true }
+        bloodType: { type: string, enum: [A+, A-, B+, B-, AB+, AB-, O+, O-, null], nullable: true }
+        allergies: { type: string, maxLength: 500, nullable: true }
+        insuranceProvider: { type: string, maxLength: 100, nullable: true }
+        insuranceNumber: { type: string, maxLength: 50, nullable: true }
+    Patient:
+      allOf:
+        - $ref: "#/components/schemas/PatientInput"
+        - type: object
+          required: [id, createdAt, updatedAt]
+          properties:
+            id: { type: string, format: uuid }
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time }
+    PatientSummary:
+      type: object
+      required: [id, fullName, birthDate]
+      properties:
+        id: { type: string, format: uuid }
+        fullName: { type: string }
+        birthDate: { type: string, format: date }
+    MedicalFileEntry:
+      type: object
+      required: [id, patientId, type, summary, sourceService, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        patientId: { type: string, format: uuid }
+        type: { $ref: "#/components/schemas/MedicalFileType" }
+        summary: { type: string, maxLength: 1000 }
+        sourceService: { type: string, enum: [patient, consultation, lab, pharmacy] }
+        referenceId: { type: string, format: uuid, nullable: true }
+        createdAt: { type: string, format: date-time }
+    PatientPage:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content:
+          type: array
+          items: { $ref: "#/components/schemas/Patient" }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+    MedicalFilePage:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content:
+          type: array
+          items: { $ref: "#/components/schemas/MedicalFileEntry" }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+  examples:
+    PatientP1:
+      value:
+        id: a1a1a1a1-0000-4000-8000-000000000001
+        firstName: Youssef
+        lastName: Ben Salah
+        birthDate: "1985-03-14"
+        gender: MALE
+        phone: "+21620111001"
+        email: youssef.bensalah@example.com
+        address: Tunis, Tunisia
+        bloodType: A+
+        allergies: Penicillin
+        insuranceProvider: CNAM
+        insuranceNumber: "10001"
+        createdAt: "2026-10-12T08:00:00Z"
+        updatedAt: "2026-10-12T08:00:00Z"
+    PatientInputValid:
+      value:
+        firstName: Youssef
+        lastName: Ben Salah
+        birthDate: "1985-03-14"
+        gender: MALE
+        phone: "+21620111001"
+        email: youssef.bensalah@example.com
+        address: Tunis, Tunisia
+        bloodType: A+
+        allergies: Penicillin
+        insuranceProvider: CNAM
+        insuranceNumber: "10001"

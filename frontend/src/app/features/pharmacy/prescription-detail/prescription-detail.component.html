@@ -1,0 +1,117 @@
+<div *appServiceGate="'pharmacy'">
+  <app-page-header title="Prescription" subtitle="Items and dispensing history">
+    <button mat-stroked-button type="button" (click)="back()">
+      <mat-icon>arrow_back</mat-icon>
+      Back
+    </button>
+  </app-page-header>
+
+  @if (loading() && !prescription()) {
+    <app-loading-state label="Loading prescription..." />
+  } @else if (error(); as err) {
+    <app-error-state [error]="err" (retry)="load()" />
+  } @else if (prescription(); as rx) {
+    <section class="sgh-card summary" aria-label="Prescription summary">
+      <dl class="facts">
+        <div>
+          <dt>Patient</dt>
+          <dd>{{ patientName() || '…' }}</dd>
+        </div>
+        <div>
+          <dt>Prescribed by</dt>
+          <dd>{{ doctorName() || '…' }}</dd>
+        </div>
+        <div>
+          <dt>Prescribed</dt>
+          <dd>{{ rx.createdAt | localDatetime }}</dd>
+        </div>
+        <div>
+          <dt>Status</dt>
+          <dd><app-status-badge [status]="rx.status" /></dd>
+        </div>
+        <div>
+          <dt>Progress</dt>
+          <dd>{{ progress() }}</dd>
+        </div>
+      </dl>
+    </section>
+
+    <h2 class="block-title">Items</h2>
+    <div class="sgh-card table-card">
+      <table class="sgh-table" aria-label="Prescription items">
+        <thead>
+          <tr>
+            <th scope="col">Drug</th>
+            <th scope="col">Dosage</th>
+            <th scope="col">Frequency</th>
+            <th scope="col">Duration</th>
+            <th scope="col">Dispensed</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of rx.items; track item.index) {
+            <tr>
+              <td>
+                <strong>{{ item.drugName }}</strong>
+              </td>
+              <td>{{ item.dosage }}</td>
+              <td>{{ item.frequency }}</td>
+              <td>{{ item.duration }}</td>
+              <td>
+                @if (item.dispensed) {
+                  <span class="dispensed" data-done="true">
+                    <mat-icon aria-hidden="true">check_circle</mat-icon> Dispensed
+                  </span>
+                } @else {
+                  <span class="dispensed">
+                    <mat-icon aria-hidden="true">schedule</mat-icon> Waiting
+                  </span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <h2 class="block-title">Dispensing history</h2>
+    @if (historyFailed()) {
+      <p class="notice" role="status">
+        <mat-icon aria-hidden="true">cloud_off</mat-icon>
+        The dispensing history is unavailable right now.
+        <button mat-button type="button" (click)="loadHistory()">Retry</button>
+      </p>
+    } @else if (dispensings().length === 0) {
+      <app-empty-state
+        icon="medication"
+        title="Nothing dispensed yet"
+        message="Each time the pharmacist hands out items, it is listed here."
+      />
+    } @else {
+      <div class="sgh-card table-card">
+        <table class="sgh-table" aria-label="Dispensing history">
+          <thead>
+            <tr>
+              <th scope="col">Date</th>
+              <th scope="col">Pharmacist</th>
+              <th scope="col">Handed out</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (d of dispensings(); track d.id) {
+              <tr>
+                <td>{{ d.dispensedAt | localDatetime }}</td>
+                <td>{{ pharmacistName(d.pharmacistId) }}</td>
+                <td>
+                  @for (line of d.lines; track line.itemIndex) {
+                    <div>{{ describeLine(line) }}</div>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</div>
