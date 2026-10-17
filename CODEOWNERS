@@ -1,0 +1,16 @@
+# Project lead owns everything shared; each module folder is reviewed by its owner.
+# Replace the username when owners change.
+*                           @HousseinTlili
+/contracts/                 @HousseinTlili
+/infra/                     @HousseinTlili
+/gateway/                   @HousseinTlili
+/frontend/                  @HousseinTlili
+/scripts/                   @HousseinTlili
+/tools/                     @HousseinTlili
+/docs/                      @HousseinTlili
+/services/patient-service/    @HousseinTlili
+/services/reception-service/  @HousseinTlili
+/services/doctor-service/     @HousseinTlili
+/services/lab-service/        @HousseinTlili
+/services/pharmacy-service/   @HousseinTlili
+/services/staff-service/      @HousseinTlili

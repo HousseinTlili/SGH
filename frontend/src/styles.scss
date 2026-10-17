@@ -148,3 +148,48 @@ a:hover {
     --tone-solid: var(--sgh-tone-#{$tone}-solid);
   }
 }
+
+// Numbers line up in columns (vitals, lab values, money, dates): tabular figures everywhere data is shown.
+table,
+input[type='number'],
+.sgh-num {
+  font-variant-numeric: tabular-nums;
+}
+
+// Plain data table used by the clinical screens (vitals, prescriptions, lab orders and results).
+// Component-level overrides in the reception screens still win where they exist.
+.sgh-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: var(--sgh-text-sm);
+
+  th,
+  td {
+    padding: var(--sgh-space-3) var(--sgh-space-4);
+    vertical-align: middle;
+  }
+
+  th {
+    color: var(--sgh-text-muted);
+    font-size: var(--sgh-text-xs, 0.75rem);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    background: var(--sgh-surface-1);
+    border-bottom: 1px solid var(--sgh-border-subtle);
+  }
+
+  td {
+    border-bottom: 1px solid var(--sgh-border-subtle);
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  tbody tr:hover td {
+    background: var(--sgh-surface-1);
+  }
+}

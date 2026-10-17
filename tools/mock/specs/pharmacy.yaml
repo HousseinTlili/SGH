@@ -2,7 +2,9 @@ openapi: 3.0.3
 info:
   title: SGH pharmacy service (mock spec for the Angular app)
   description: >-
-    Mock specification for pharmacy service. Seeded prescriptions and drugs.
+    Mock specification for the pharmacy service. Prescription R1 (id f8f8f8f8-...-01, patient P5,
+    consultation C1, doctor S2) is the seeded one. The second list entry (N=02) is illustrative: the
+    id scheme allows it and it shows a partly dispensed prescription.
   version: 0.0.0
 servers:
   - url: http://localhost:8085
@@ -27,46 +29,126 @@ paths:
               example:
                 status: UP
 
+  /api/prescriptions:
+    get:
+      summary: Prescription queue (paged, open ones first)
+      parameters:
+        - { name: status, in: query, schema: { type: string } }
+        - { name: patientId, in: query, schema: { type: string } }
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: size, in: query, schema: { type: integer } }
+      responses:
+        "200":
+          description: Page of prescriptions
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [content, page, size, totalElements, totalPages]
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PharmacyPrescription"
+                  page: { type: integer }
+                  size: { type: integer }
+                  totalElements: { type: integer }
+                  totalPages: { type: integer }
+              example:
+                content:
+                  - id: f8f8f8f8-0000-4000-8000-000000000001
+                    consultationId: f7f7f7f7-0000-4000-8000-000000000001
+                    patientId: a1a1a1a1-0000-4000-8000-000000000005
+                    doctorId: b2b2b2b2-0000-4000-8000-000000000002
+                    status: ISSUED
+                    items:
+                      - { index: 0, drugName: Paracetamol 500 mg, dosage: 1 tablet, frequency: 3 per day, duration: 5 days, dispensed: false }
+                      - { index: 1, drugName: Cetirizine 10 mg, dosage: 1 tablet, frequency: 1 per day, duration: 7 days, dispensed: false }
+                    createdAt: "2026-10-10T11:35:00Z"
+                  - id: f8f8f8f8-0000-4000-8000-000000000002
+                    consultationId: f7f7f7f7-0000-4000-8000-000000000002
+                    patientId: a1a1a1a1-0000-4000-8000-000000000003
+                    doctorId: b2b2b2b2-0000-4000-8000-000000000001
+                    status: PARTIALLY_DISPENSED
+                    items:
+                      - { index: 0, drugName: Amlodipine 5 mg, dosage: 1 tablet, frequency: 1 per day, duration: 30 days, dispensed: true }
+                      - { index: 1, drugName: Atorvastatin 20 mg, dosage: 1 tablet, frequency: 1 per day, duration: 30 days, dispensed: false }
+                    createdAt: "2026-10-12T09:00:00Z"
+                page: 0
+                size: 20
+                totalElements: 2
+                totalPages: 1
+
   /api/prescriptions/{id}:
     get:
-      summary: Get prescription dispensing details
+      summary: Get one prescription with its dispensing status
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema: { type: string }
+        - { name: id, in: path, required: true, schema: { type: string } }
       responses:
         "200":
           description: Prescription details with dispensing status
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PharmacyPrescription'
+                $ref: "#/components/schemas/PharmacyPrescription"
               example:
-                id: d4d4d4d4-0000-4000-8000-000000000001
+                id: f8f8f8f8-0000-4000-8000-000000000002
                 consultationId: f7f7f7f7-0000-4000-8000-000000000002
                 patientId: a1a1a1a1-0000-4000-8000-000000000003
                 doctorId: b2b2b2b2-0000-4000-8000-000000000001
-                status: ISSUED
+                status: PARTIALLY_DISPENSED
                 items:
-                  - drugName: "Paracetamol"
-                    dosage: "1000mg"
-                    frequency: "Every 8 hours as needed"
-                    duration: "5 days"
-                    index: 0
-                    dispensed: false
-                  - drugName: "Omeprazole"
-                    dosage: "20mg"
-                    frequency: "Once daily before breakfast"
-                    duration: "14 days"
-                    index: 1
-                    dispensed: false
+                  - { index: 0, drugName: Amlodipine 5 mg, dosage: 1 tablet, frequency: 1 per day, duration: 30 days, dispensed: true }
+                  - { index: 1, drugName: Atorvastatin 20 mg, dosage: 1 tablet, frequency: 1 per day, duration: 30 days, dispensed: false }
                 createdAt: "2026-10-12T09:00:00Z"
         "404":
           description: Prescription not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                timestamp: "2026-10-12T09:30:00Z"
+                status: 404
+                error: Not Found
+                message: Prescription not found
+                path: /api/prescriptions/unknown
+                correlationId: b3f1c2d4
+
+  /api/prescriptions/{id}/dispensings:
+    get:
+      summary: Dispensing history of one prescription (plain array)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Dispensing events, oldest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Dispensing"
+              example:
+                - id: 5c2d7a10-3f4b-4c1e-9a7d-0000000000a1
+                  prescriptionId: f8f8f8f8-0000-4000-8000-000000000002
+                  pharmacistId: b2b2b2b2-0000-4000-8000-000000000005
+                  lines:
+                    - { itemIndex: 0, drugId: d4d4d4d4-0000-4000-8000-000000000006, quantity: 30 }
+                  dispensedAt: "2026-10-12T10:00:00Z"
 
 components:
   schemas:
+    ApiError:
+      type: object
+      required: [status, error, message]
+      properties:
+        timestamp: { type: string }
+        status: { type: integer }
+        error: { type: string }
+        message: { type: string }
+        path: { type: string }
+        correlationId: { type: string }
     PharmacyItem:
       type: object
       required: [drugName, dosage, frequency, duration, index, dispensed]
@@ -89,8 +171,25 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/PharmacyItem'
+            $ref: "#/components/schemas/PharmacyItem"
         createdAt: { type: string }
+    Dispensing:
+      type: object
+      required: [id, prescriptionId, pharmacistId, lines, dispensedAt]
+      properties:
+        id: { type: string }
+        prescriptionId: { type: string }
+        pharmacistId: { type: string }
+        lines:
+          type: array
+          items:
+            type: object
+            required: [itemIndex, drugId, quantity]
+            properties:
+              itemIndex: { type: integer }
+              drugId: { type: string }
+              quantity: { type: integer }
+        dispensedAt: { type: string }
   securitySchemes:
     bearerAuth:
       type: http

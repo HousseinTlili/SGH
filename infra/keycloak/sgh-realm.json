@@ -1,0 +1,372 @@
+{
+  "realm": "sgh",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "accessTokenLifespan": 900,
+  "roles": {
+    "realm": [
+      {
+        "name": "PATIENT"
+      },
+      {
+        "name": "DOCTOR"
+      },
+      {
+        "name": "NURSE"
+      },
+      {
+        "name": "LAB_TECHNICIAN"
+      },
+      {
+        "name": "PHARMACIST"
+      },
+      {
+        "name": "RECEPTIONIST"
+      },
+      {
+        "name": "ADMIN"
+      }
+    ]
+  },
+  "components": {
+    "org.keycloak.userprofile.UserProfileProvider": [
+      {
+        "providerId": "declarative-user-profile",
+        "subComponents": {},
+        "config": {
+          "kc.user.profile.config": [
+            "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"${username}\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"validations\":{\"length\":{\"max\":255},\"person-name-prohibited-characters\":{}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"staffId\",\"displayName\":\"Staff id\",\"validations\":{},\"permissions\":{\"view\":[\"admin\"],\"edit\":[\"admin\"]},\"multivalued\":false},{\"name\":\"patientId\",\"displayName\":\"Patient id\",\"validations\":{},\"permissions\":{\"view\":[\"admin\"],\"edit\":[\"admin\"]},\"multivalued\":false}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}]}"
+          ]
+        }
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "sgh-frontend",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": [
+        "http://localhost:4200/*"
+      ],
+      "webOrigins": [
+        "http://localhost:4200"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:4200/*"
+      },
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "profile",
+        "roles",
+        "email"
+      ],
+      "protocolMappers": [
+        {
+          "name": "staffId",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "staffId",
+            "claim.name": "staffId",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "patientId",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "patientId",
+            "claim.name": "patientId",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "sgh-dev-cli",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "profile",
+        "roles",
+        "email"
+      ],
+      "protocolMappers": [
+        {
+          "name": "staffId",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "staffId",
+            "claim.name": "staffId",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "patientId",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "patientId",
+            "claim.name": "patientId",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "sgh-reception-svc",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "sgh_reception_dev_secret",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "profile",
+        "roles",
+        "email"
+      ]
+    }
+  ],
+  "users": [
+    {
+      "id": "c3c3c3c3-0000-4000-8000-000000000001",
+      "username": "doctor1",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Amel",
+      "lastName": "Trabelsi",
+      "email": "doctor1@sgh.local",
+      "attributes": {
+        "staffId": [
+          "b2b2b2b2-0000-4000-8000-000000000001"
+        ]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Sgh@dev2026",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "DOCTOR"
+      ],
+      "requiredActions": []
+    },
+    {
+      "id": "c3c3c3c3-0000-4000-8000-000000000002",
+      "username": "doctor2",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Karim",
+      "lastName": "Jlassi",
+      "email": "doctor2@sgh.local",
+      "attributes": {
+        "staffId": [
+          "b2b2b2b2-0000-4000-8000-000000000002"
+        ]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Sgh@dev2026",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "DOCTOR"
+      ],
+      "requiredActions": []
+    },
+    {
+      "id": "c3c3c3c3-0000-4000-8000-000000000003",
+      "username": "nurse1",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Sonia",
+      "lastName": "Gharbi",
+      "email": "nurse1@sgh.local",
+      "attributes": {
+        "staffId": [
+          "b2b2b2b2-0000-4000-8000-000000000003"
+        ]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Sgh@dev2026",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "NURSE"
+      ],
+      "requiredActions": []
+    },
+    {
+      "id": "c3c3c3c3-0000-4000-8000-000000000004",
+      "username": "lab1",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Walid",
+      "lastName": "Mansouri",
+      "email": "lab1@sgh.local",
+      "attributes": {
+        "staffId": [
+          "b2b2b2b2-0000-4000-8000-000000000004"
+        ]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Sgh@dev2026",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "LAB_TECHNICIAN"
+      ],
+      "requiredActions": []
+    },
+    {
+      "id": "c3c3c3c3-0000-4000-8000-000000000005",
+      "username": "pharmacist1",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Ines",
+      "lastName": "Chaabane",
+      "email": "pharmacist1@sgh.local",
+      "attributes": {
+        "staffId": [
+          "b2b2b2b2-0000-4000-8000-000000000005"
+        ]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Sgh@dev2026",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "PHARMACIST"
+      ],
+      "requiredActions": []
+    },
+    {
+      "id": "c3c3c3c3-0000-4000-8000-000000000006",
+      "username": "reception1",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Rim",
+      "lastName": "Bouazizi",
+      "email": "reception1@sgh.local",
+      "attributes": {
+        "staffId": [
+          "b2b2b2b2-0000-4000-8000-000000000006"
+        ]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Sgh@dev2026",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "RECEPTIONIST"
+      ],
+      "requiredActions": []
+    },
+    {
+      "id": "c3c3c3c3-0000-4000-8000-000000000007",
+      "username": "admin1",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Sami",
+      "lastName": "Hamdi",
+      "email": "admin1@sgh.local",
+      "attributes": {
+        "staffId": [
+          "b2b2b2b2-0000-4000-8000-000000000007"
+        ]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Sgh@dev2026",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "ADMIN"
+      ],
+      "requiredActions": []
+    },
+    {
+      "id": "c3c3c3c3-0000-4000-8000-000000000008",
+      "username": "patient1",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Youssef",
+      "lastName": "Ben Salah",
+      "email": "patient1@sgh.local",
+      "attributes": {
+        "patientId": [
+          "a1a1a1a1-0000-4000-8000-000000000001"
+        ]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Sgh@dev2026",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "PATIENT"
+      ],
+      "requiredActions": []
+    },
+    {
+      "username": "service-account-sgh-reception-svc",
+      "enabled": true,
+      "serviceAccountClientId": "sgh-reception-svc",
+      "realmRoles": [
+        "RECEPTIONIST"
+      ],
+      "requiredActions": []
+    }
+  ]
+}

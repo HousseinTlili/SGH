@@ -1,0 +1,130 @@
+<div *appServiceGate="'lab'">
+  <app-page-header title="Lab request" subtitle="Status and results of one laboratory request">
+    <button mat-stroked-button type="button" (click)="back()">
+      <mat-icon>arrow_back</mat-icon>
+      Back
+    </button>
+  </app-page-header>
+
+  @if (loading() && !request()) {
+    <app-loading-state label="Loading lab request..." />
+  } @else if (error(); as err) {
+    <app-error-state [error]="err" (retry)="load()" />
+  } @else if (request(); as req) {
+    <section class="sgh-card summary" aria-label="Request summary">
+      <dl class="facts">
+        <div>
+          <dt>Patient</dt>
+          <dd>{{ patientName() || '…' }}</dd>
+        </div>
+        <div>
+          <dt>Requested by</dt>
+          <dd>{{ doctorName() || '…' }}</dd>
+        </div>
+        <div>
+          <dt>Priority</dt>
+          <dd><app-status-badge [status]="req.priority" /></dd>
+        </div>
+        <div>
+          <dt>Status</dt>
+          <dd><app-status-badge [status]="req.status" /></dd>
+        </div>
+        <div>
+          <dt>Requested</dt>
+          <dd>{{ req.requestedAt | localDatetime }}</dd>
+        </div>
+        @if (req.startedAt) {
+          <div>
+            <dt>Started</dt>
+            <dd>{{ req.startedAt | localDatetime }}</dd>
+          </div>
+        }
+        @if (req.validatedAt) {
+          <div>
+            <dt>Validated</dt>
+            <dd>{{ req.validatedAt | localDatetime }}</dd>
+          </div>
+        }
+      </dl>
+
+      <ol class="stepper" aria-label="Request progress">
+        @for (step of steps(); track step.status) {
+          <li
+            class="step"
+            [attr.data-state]="step.state"
+            [attr.aria-current]="step.state === 'current' ? 'step' : null"
+          >
+            <mat-icon aria-hidden="true">{{ stepIcon(step.state) }}</mat-icon>
+            <span>{{ step.label }}</span>
+            <span class="sgh-visually-hidden">
+              ({{
+                step.state === 'done' ? 'done' : step.state === 'current' ? 'current' : 'not yet'
+              }})
+            </span>
+          </li>
+        }
+      </ol>
+
+      <p class="tests">
+        <strong>Tests:</strong>
+        @for (test of req.tests; track test.code; let last = $last) {
+          {{ test.code }} ({{ test.name }}){{ last ? '' : ', ' }}
+        }
+      </p>
+    </section>
+
+    @if (req.status !== 'VALIDATED') {
+      <p class="notice" role="status">
+        <mat-icon aria-hidden="true">hourglass_top</mat-icon>
+        The laboratory has not validated this request yet. Results are final once validated.
+      </p>
+    }
+
+    @if (critical().length > 0) {
+      <div class="critical-banner" role="alert">
+        <mat-icon aria-hidden="true">error</mat-icon>
+        <span>
+          {{ critical().length }} critical {{ critical().length === 1 ? 'value' : 'values' }}:
+          @for (line of critical(); track line.testCode; let last = $last) {
+            <strong>{{ line.testCode }} {{ formatValue(line.value, line.unit) }}</strong
+            >{{ last ? '' : ', ' }}
+          }
+        </span>
+      </div>
+    }
+
+    <h2 class="results-title">Results</h2>
+    @if (req.results.length === 0) {
+      <app-empty-state
+        icon="science"
+        title="No results yet"
+        message="Results appear here once the laboratory has entered them."
+      />
+    } @else {
+      <div class="sgh-card table-card">
+        <table class="sgh-table" aria-label="Lab results">
+          <thead>
+            <tr>
+              <th scope="col">Test</th>
+              <th scope="col">Value</th>
+              <th scope="col">Reference range</th>
+              <th scope="col">Flag</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (line of req.results; track line.testCode) {
+              <tr [class.critical]="line.flag === 'CRITICAL'">
+                <td>
+                  <strong>{{ line.testCode }}</strong>
+                </td>
+                <td>{{ formatValue(line.value, line.unit) }}</td>
+                <td>{{ line.referenceRange }}</td>
+                <td><app-flag-badge [flag]="line.flag" /></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</div>
