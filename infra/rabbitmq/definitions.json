@@ -1,4 +1,25 @@
 {
+  "users": [
+    {
+      "name": "sgh",
+      "password": "sgh_dev_password",
+      "tags": [
+        "administrator"
+      ]
+    }
+  ],
+  "vhosts": [
+    { "name": "/" }
+  ],
+  "permissions": [
+    {
+      "user": "sgh",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
   "exchanges": [
     { "name": "sgh.events", "vhost": "/", "type": "topic", "durable": true, "auto_delete": false, "internal": false, "arguments": {} },
     { "name": "sgh.events.dlx", "vhost": "/", "type": "fanout", "durable": true, "auto_delete": false, "internal": false, "arguments": {} }
