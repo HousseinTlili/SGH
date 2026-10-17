@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "lab.result.ready.data.schema.json",
+  "title": "lab.result.ready data",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "labRequestId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "consultationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "patientId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "validatedBy": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "validatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "results": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "testCode",
+          "value",
+          "unit",
+          "referenceRange",
+          "flag"
+        ],
+        "properties": {
+          "testCode": {
+            "type": "string"
+          },
+          "value": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "referenceRange": {
+            "type": "string"
+          },
+          "flag": {
+            "enum": [
+              "NORMAL",
+              "HIGH",
+              "LOW",
+              "CRITICAL"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "labRequestId",
+    "consultationId",
+    "patientId",
+    "validatedBy",
+    "validatedAt",
+    "results"
+  ]
+}

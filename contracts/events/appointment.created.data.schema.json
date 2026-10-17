@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "appointment.created.data.schema.json",
+  "title": "appointment.created data",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "appointmentId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "patientId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "doctorId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "startAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "endAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "appointmentId",
+    "patientId",
+    "doctorId",
+    "startAt",
+    "endAt"
+  ]
+}
