@@ -1,0 +1,59 @@
+name: sgh
+
+# Local infrastructure only (development values, never for deployment).
+# Pinned tags were current on 2026-10-17 (Decisions Log D29).
+
+services:
+  postgres:
+    image: postgres:16.15
+    container_name: sgh-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sgh
+      POSTGRES_PASSWORD: sgh_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - sgh-pgdata:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sgh"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:4.3.6-management
+    container_name: sgh-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: sgh
+      RABBITMQ_DEFAULT_PASS: sgh_dev_password
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      # exchange, dead-letter queue, every consumer queue and binding exist before any service starts (D27)
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/conf.d/20-sgh.conf:ro
+      - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.8.1
+    container_name: sgh-keycloak
+    restart: unless-stopped
+    command: start-dev --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    ports:
+      - "8180:8080"
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import:ro
+
+volumes:
+  sgh-pgdata:
