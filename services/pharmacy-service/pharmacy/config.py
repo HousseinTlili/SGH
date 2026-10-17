@@ -12,6 +12,7 @@ class Config:
     JWT_SECRET = os.getenv("JWT_SECRET") or None
     JWT_PUBLIC_KEY = os.getenv("JWT_PUBLIC_KEY") or None
     RABBITMQ_URL = os.getenv("RABBITMQ_URL", "")
+    RABBITMQ_RECONNECT_SECONDS = float(os.getenv("RABBITMQ_RECONNECT_SECONDS", "5"))
     CONSULTATION_URL = os.getenv("CONSULTATION_URL", "http://localhost:8083")
     AUTO_CREATE_SCHEMA = os.getenv("AUTO_CREATE_SCHEMA", "false").lower() == "true"
     JSON_SORT_KEYS = False

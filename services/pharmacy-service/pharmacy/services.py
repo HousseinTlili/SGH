@@ -50,10 +50,11 @@ def publish_event(app, routing_key, payload):
     if not url:
         logger.info("RabbitMQ is not configured; skipped %s", routing_key)
         return False
+    connection = None
     try:
         connection = pika.BlockingConnection(pika.URLParameters(url))
         channel = connection.channel()
-        channel.exchange_declare(exchange="sgh.events", exchange_type="topic", durable=True)
+        declare_event_topology(channel)
         channel.basic_publish(
             exchange="sgh.events",
             routing_key=routing_key,
@@ -65,6 +66,19 @@ def publish_event(app, routing_key, payload):
     except pika.exceptions.PikaException:
         logger.exception("Could not publish %s", routing_key)
         return False
+    finally:
+        if connection is not None and not connection.is_closed:
+            connection.close()
+
+
+def declare_event_topology(channel):
+    channel.exchange_declare(exchange="sgh.events", exchange_type="topic", durable=True)
+    channel.queue_declare(queue="pharmacy.prescription-created", durable=True)
+    channel.queue_bind(
+        exchange="sgh.events",
+        queue="pharmacy.prescription-created",
+        routing_key="prescription.created",
+    )
 
 
 def verify_prescription_with_consultation(app, prescription):

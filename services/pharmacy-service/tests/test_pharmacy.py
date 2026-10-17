@@ -87,3 +87,31 @@ def test_stock_alerts_include_drugs_at_threshold(client, app):
     response = client.get("/api/stock/alerts", headers=headers(("DOCTOR",)))
     assert response.status_code == 200
     assert response.json[0]["id"] == "drug-1"
+
+
+def test_duplicate_prescription_event_is_idempotent(app):
+    from pharmacy.extensions import db
+    from pharmacy.models import PrescriptionCopy
+    from pharmacy.services import upsert_prescription_copy
+
+    payload = {
+        "prescriptionId": "event-prescription-1",
+        "consultationId": "consultation-2",
+        "patientId": "patient-2",
+        "doctorId": "doctor-2",
+        "items": [
+            {
+                "drugName": "Omeprazole",
+                "dosage": "20mg",
+                "frequency": "Once daily",
+                "duration": "14 days",
+            }
+        ],
+    }
+    with app.app_context():
+        upsert_prescription_copy(payload)
+        upsert_prescription_copy(payload)
+        assert PrescriptionCopy.query.filter_by(
+            prescription_id="event-prescription-1"
+        ).count() == 1
+        assert db.session.query(PrescriptionCopy).count() == 2
