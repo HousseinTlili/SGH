@@ -1,0 +1,79 @@
+openapi: 3.0.3
+info:
+  title: SGH Pharmacy Service
+  version: 1.0.0
+  description: Drug stock and prescription dispensing service.
+servers:
+  - url: http://localhost:8085
+security:
+  - bearerAuth: []
+paths:
+  /health:
+    get:
+      security: []
+      responses:
+        "200":
+          description: Service is available
+  /api/drugs:
+    get:
+      summary: List drugs
+      parameters:
+        - in: query
+          name: search
+          schema: { type: string }
+      responses:
+        "200": { description: Drug list }
+    post:
+      summary: Create a drug
+      responses:
+        "201": { description: Drug created }
+  /api/drugs/{id}:
+    put:
+      summary: Update a drug
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Drug updated }
+  /api/drugs/{id}/stock:
+    post:
+      summary: Adjust stock
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Stock adjusted }
+        "409": { description: Stock conflict }
+  /api/stock/alerts:
+    get:
+      summary: List low-stock drugs
+      responses:
+        "200": { description: Low-stock drug list }
+  /api/prescriptions:
+    get:
+      summary: List local prescription copies
+      parameters:
+        - { in: query, name: status, schema: { type: string } }
+        - { in: query, name: patientId, schema: { type: string } }
+      responses:
+        "200": { description: Prescription list }
+  /api/prescriptions/{id}:
+    get:
+      summary: Get a prescription copy
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Prescription details }
+        "404": { description: Not found }
+  /api/prescriptions/{id}/dispense:
+    post:
+      summary: Dispense prescription items
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string } }
+      responses:
+        "201": { description: Dispensed }
+        "409": { description: Insufficient stock or invalid state }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
