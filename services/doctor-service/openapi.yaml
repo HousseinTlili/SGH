@@ -1,0 +1,577 @@
+openapi: 3.0.3
+info:
+  title: SGH Consultation service (doctor-service)
+  version: 1.0.0
+  description: >-
+    Contract of Service 3 (port 8083, folder doctor-service, logical name consultation). Source: Consultation Service - API Spec, Domain Model and Business Rules (CON-1 to CON-10, X-1 to X-8), Seed Data and Fixtures, Event Catalogue. Publishes lab.request.created and prescription.created; consumes lab.result.ready. Every endpoint except /health needs a Keycloak JWT; roles are in the description
+    of each operation (and in x-roles). Errors use the shared body of API Contracts and Conventions.
+servers:
+  - url: http://localhost:8083
+security:
+  - bearerAuth: []
+tags:
+  - name: consultations
+  - name: vitals
+  - name: prescriptions
+  - name: lab
+  - name: health
+paths:
+  /health:
+    get:
+      tags: [health]
+      operationId: health
+      summary: Liveness of the process (never checks the database or the broker)
+      security: []
+      responses:
+        "200":
+          description: The service process is up
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Health" }
+              example: { status: UP }
+  /api/consultations:
+    get:
+      tags: [consultations]
+      operationId: listConsultations
+      summary: List consultations, newest first
+      description: "Roles: DOCTOR, NURSE, ADMIN (all); PATIENT (forced to the token patientId, CON-9). PHARMACIST gets 403 (CON-10, D20)."
+      x-roles: [DOCTOR, NURSE, ADMIN, PATIENT]
+      parameters:
+        - { name: patientId, in: query, schema: { type: string, format: uuid } }
+        - { name: doctorId, in: query, schema: { type: string, format: uuid } }
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/ConsultationStatus" } }
+        - { $ref: "#/components/parameters/page" }
+        - { $ref: "#/components/parameters/size" }
+      responses:
+        "200":
+          description: A page of consultations
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ConsultationPage" }
+              example:
+                content:
+                  - { id: f7f7f7f7-0000-4000-8000-000000000001, appointmentId: e5e5e5e5-0000-4000-8000-000000000004, patientId: a1a1a1a1-0000-4000-8000-000000000005, patientSnapshot: { fullName: Hatem Dridi, birthDate: "1965-05-18" }, doctorId: b2b2b2b2-0000-4000-8000-000000000002, subjective: Persistent cough for two weeks, objective: "Temperature 37.2, lungs clear on auscultation", assessment: Likely viral bronchitis, plan: "Rest, fluids, review if no improvement after one week", status: SIGNED, signedAt: "2026-10-10T11:40:00Z", createdAt: "2026-10-10T11:05:00Z", updatedAt: "2026-10-10T11:40:00Z" }
+                page: 0
+                size: 20
+                totalElements: 1
+                totalPages: 1
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+    post:
+      tags: [consultations]
+      operationId: createConsultation
+      summary: Open a consultation (CON-1, CON-2)
+      description: "Roles: DOCTOR. doctorId comes from the token claim staffId, never from the body; a DOCTOR token without staffId gets 403. Calls Patient /summary with a 2 s timeout: success stores patientSnapshot, 404 gives 422, timeout, connection error or 5xx stores patientSnapshot null and still creates it."
+      x-roles: [DOCTOR]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ConsultationInput" }
+            example: { patientId: a1a1a1a1-0000-4000-8000-000000000005, appointmentId: e5e5e5e5-0000-4000-8000-000000000004, subjective: Persistent cough for two weeks }
+      responses:
+        "201":
+          description: Created as DRAFT
+          headers:
+            Location: { description: "/api/consultations/{id}", schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Consultation" }
+              example: { id: f7f7f7f7-0000-4000-8000-000000000001, appointmentId: e5e5e5e5-0000-4000-8000-000000000004, patientId: a1a1a1a1-0000-4000-8000-000000000005, patientSnapshot: { fullName: Hatem Dridi, birthDate: "1965-05-18" }, doctorId: b2b2b2b2-0000-4000-8000-000000000002, subjective: Persistent cough for two weeks, objective: "Temperature 37.2, lungs clear on auscultation", assessment: Likely viral bronchitis, plan: "Rest, fluids, review if no improvement after one week", status: DRAFT, signedAt: null, createdAt: "2026-10-10T11:05:00Z", updatedAt: "2026-10-10T11:40:00Z" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/consultations/{id}:
+    parameters:
+      - { $ref: "#/components/parameters/id" }
+    get:
+      tags: [consultations]
+      operationId: getConsultation
+      summary: Get one consultation
+      description: "Roles: same visibility as the list. 403 outside the caller's visibility."
+      x-roles: [DOCTOR, NURSE, ADMIN, PATIENT]
+      responses:
+        "200":
+          description: The consultation
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Consultation" }
+              example: { id: f7f7f7f7-0000-4000-8000-000000000001, appointmentId: e5e5e5e5-0000-4000-8000-000000000004, patientId: a1a1a1a1-0000-4000-8000-000000000005, patientSnapshot: { fullName: Hatem Dridi, birthDate: "1965-05-18" }, doctorId: b2b2b2b2-0000-4000-8000-000000000002, subjective: Persistent cough for two weeks, objective: "Temperature 37.2, lungs clear on auscultation", assessment: Likely viral bronchitis, plan: "Rest, fluids, review if no improvement after one week", status: SIGNED, signedAt: "2026-10-10T11:40:00Z", createdAt: "2026-10-10T11:05:00Z", updatedAt: "2026-10-10T11:40:00Z" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+    put:
+      tags: [consultations]
+      operationId: updateConsultation
+      summary: Edit the SOAP notes of a DRAFT (CON-3), partial update (D30)
+      description: "Roles: DOCTOR, the consultation's own doctor only (403 for another doctor). A field missing from the body is unchanged. 409 when the consultation is SIGNED."
+      x-roles: [DOCTOR]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ConsultationUpdate" }
+            example: { assessment: Tension headache, plan: Rest and hydration }
+      responses:
+        "200":
+          description: The updated consultation
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Consultation" }
+              example: { id: f7f7f7f7-0000-4000-8000-000000000001, appointmentId: e5e5e5e5-0000-4000-8000-000000000004, patientId: a1a1a1a1-0000-4000-8000-000000000005, patientSnapshot: { fullName: Hatem Dridi, birthDate: "1965-05-18" }, doctorId: b2b2b2b2-0000-4000-8000-000000000002, subjective: Persistent cough for two weeks, objective: "Temperature 37.2, lungs clear on auscultation", assessment: Likely viral bronchitis, plan: "Rest, fluids, review if no improvement after one week", status: DRAFT, signedAt: null, createdAt: "2026-10-10T11:05:00Z", updatedAt: "2026-10-10T11:40:00Z" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/consultations/{id}/sign:
+    post:
+      tags: [consultations]
+      operationId: signConsultation
+      summary: Sign and lock (CON-4)
+      description: "Roles: DOCTOR, own consultation. 422 when assessment or plan is blank, 409 when already SIGNED. A signed consultation is immutable."
+      x-roles: [DOCTOR]
+      parameters:
+        - { $ref: "#/components/parameters/id" }
+      responses:
+        "200":
+          description: The signed consultation
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Consultation" }
+              example: { id: f7f7f7f7-0000-4000-8000-000000000001, appointmentId: e5e5e5e5-0000-4000-8000-000000000004, patientId: a1a1a1a1-0000-4000-8000-000000000005, patientSnapshot: { fullName: Hatem Dridi, birthDate: "1965-05-18" }, doctorId: b2b2b2b2-0000-4000-8000-000000000002, subjective: Persistent cough for two weeks, objective: "Temperature 37.2, lungs clear on auscultation", assessment: Likely viral bronchitis, plan: "Rest, fluids, review if no improvement after one week", status: SIGNED, signedAt: "2026-10-10T11:40:00Z", createdAt: "2026-10-10T11:05:00Z", updatedAt: "2026-10-10T11:40:00Z" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/vitals:
+    get:
+      tags: [vitals]
+      operationId: listVitals
+      summary: List vital signs, newest first
+      description: "Roles: NURSE, DOCTOR, ADMIN."
+      x-roles: [NURSE, DOCTOR, ADMIN]
+      parameters:
+        - { name: patientId, in: query, schema: { type: string, format: uuid } }
+        - { name: consultationId, in: query, schema: { type: string, format: uuid } }
+        - { $ref: "#/components/parameters/page" }
+        - { $ref: "#/components/parameters/size" }
+      responses:
+        "200":
+          description: A page of measurements
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/VitalSignsPage" }
+              example:
+                content:
+                  - { id: fafafafa-0000-4000-8000-000000000001, patientId: a1a1a1a1-0000-4000-8000-000000000005, consultationId: f7f7f7f7-0000-4000-8000-000000000001, recordedBy: b2b2b2b2-0000-4000-8000-000000000003, temperature: 37.2, heartRate: 78, systolic: 128, diastolic: 82, spo2: 98, weight: 82.5, recordedAt: "2026-10-10T10:45:00Z" }
+                page: 0
+                size: 20
+                totalElements: 1
+                totalPages: 1
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+    post:
+      tags: [vitals]
+      operationId: recordVitals
+      summary: Record vital signs (CON-8)
+      description: "Roles: NURSE, DOCTOR. At least one measurement; recordedBy comes from the token staffId; diastolic must be lower than systolic. 422 for an empty body or out-of-range values."
+      x-roles: [NURSE, DOCTOR]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/VitalSignsInput" }
+            example: { patientId: a1a1a1a1-0000-4000-8000-000000000005, consultationId: f7f7f7f7-0000-4000-8000-000000000001, temperature: 37.2, heartRate: 78, systolic: 128, diastolic: 82, spo2: 98, weight: 82.5 }
+      responses:
+        "201":
+          description: Recorded
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/VitalSigns" }
+              example: { id: fafafafa-0000-4000-8000-000000000001, patientId: a1a1a1a1-0000-4000-8000-000000000005, consultationId: f7f7f7f7-0000-4000-8000-000000000001, recordedBy: b2b2b2b2-0000-4000-8000-000000000003, temperature: 37.2, heartRate: 78, systolic: 128, diastolic: 82, spo2: 98, weight: 82.5, recordedAt: "2026-10-10T10:45:00Z" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/consultations/{id}/prescriptions:
+    parameters:
+      - { $ref: "#/components/parameters/id" }
+    get:
+      tags: [prescriptions]
+      operationId: listConsultationPrescriptions
+      summary: Prescriptions of one consultation (plain array, D19)
+      description: "Roles: DOCTOR, NURSE, ADMIN, PHARMACIST (the only endpoint a pharmacist may call, CON-10), PATIENT (own)."
+      x-roles: [DOCTOR, NURSE, ADMIN, PHARMACIST, PATIENT]
+      responses:
+        "200":
+          description: The prescriptions
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Prescription" }
+              example:
+                - { id: f8f8f8f8-0000-4000-8000-000000000001, consultationId: f7f7f7f7-0000-4000-8000-000000000001, patientId: a1a1a1a1-0000-4000-8000-000000000005, doctorId: b2b2b2b2-0000-4000-8000-000000000002, items: [{ drugName: Paracetamol 500 mg, dosage: 1 tablet, frequency: 3 per day, duration: 5 days }, { drugName: Cetirizine 10 mg, dosage: 1 tablet, frequency: 1 per day, duration: 7 days }], status: ISSUED, createdAt: "2026-10-10T11:35:00Z" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+    post:
+      tags: [prescriptions]
+      operationId: createPrescription
+      summary: Prescribe (CON-5)
+      description: "Roles: DOCTOR, own consultation. 1 to 20 items, every field non-blank, allowed on DRAFT and SIGNED. Publishes prescription.created after the commit."
+      x-roles: [DOCTOR]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PrescriptionInput" }
+            example: { items: [{ drugName: Paracetamol 500 mg, dosage: 1 tablet, frequency: 3 per day, duration: 5 days }] }
+      responses:
+        "201":
+          description: Issued
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Prescription" }
+              example: { id: f8f8f8f8-0000-4000-8000-000000000001, consultationId: f7f7f7f7-0000-4000-8000-000000000001, patientId: a1a1a1a1-0000-4000-8000-000000000005, doctorId: b2b2b2b2-0000-4000-8000-000000000002, items: [{ drugName: Paracetamol 500 mg, dosage: 1 tablet, frequency: 3 per day, duration: 5 days }, { drugName: Cetirizine 10 mg, dosage: 1 tablet, frequency: 1 per day, duration: 7 days }], status: ISSUED, createdAt: "2026-10-10T11:35:00Z" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/consultations/{id}/lab-orders:
+    parameters:
+      - { $ref: "#/components/parameters/id" }
+    get:
+      tags: [lab]
+      operationId: listLabOrders
+      summary: Lab orders of one consultation (plain array)
+      description: "Roles: DOCTOR, NURSE, ADMIN."
+      x-roles: [DOCTOR, NURSE, ADMIN]
+      responses:
+        "200":
+          description: The orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/LabOrder" }
+              example:
+                - { id: f9f9f9f9-0000-4000-8000-000000000002, consultationId: f7f7f7f7-0000-4000-8000-000000000002, patientId: a1a1a1a1-0000-4000-8000-000000000003, doctorId: b2b2b2b2-0000-4000-8000-000000000001, priority: URGENT, tests: [{ code: K, name: Potassium }, { code: CRE, name: Creatinine }], status: REQUESTED, createdAt: "2026-10-12T08:50:00Z" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+    post:
+      tags: [lab]
+      operationId: createLabOrder
+      summary: Order lab tests (CON-6)
+      description: "Roles: DOCTOR, own consultation. 1 to 10 tests with unique codes. Stores the order (its id is the labRequestId), publishes lab.request.created after the commit and returns at once. Works even when Lab is down."
+      x-roles: [DOCTOR]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LabOrderInput" }
+            example: { priority: URGENT, tests: [{ code: K, name: Potassium }, { code: CRE, name: Creatinine }] }
+      responses:
+        "201":
+          description: Requested
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LabOrder" }
+              example: { id: f9f9f9f9-0000-4000-8000-000000000002, consultationId: f7f7f7f7-0000-4000-8000-000000000002, patientId: a1a1a1a1-0000-4000-8000-000000000003, doctorId: b2b2b2b2-0000-4000-8000-000000000001, priority: URGENT, tests: [{ code: K, name: Potassium }, { code: CRE, name: Creatinine }], status: REQUESTED, createdAt: "2026-10-12T08:50:00Z" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/consultations/{id}/lab-results:
+    parameters:
+      - { $ref: "#/components/parameters/id" }
+    get:
+      tags: [lab]
+      operationId: listLabResults
+      summary: Validated lab results received for this consultation (plain array, empty until they arrive)
+      description: "Roles: DOCTOR, NURSE, ADMIN, PATIENT (own)."
+      x-roles: [DOCTOR, NURSE, ADMIN, PATIENT]
+      responses:
+        "200":
+          description: The result copies
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/LabResultCopy" }
+              example:
+                - { labRequestId: f9f9f9f9-0000-4000-8000-000000000001, consultationId: f7f7f7f7-0000-4000-8000-000000000001, patientId: a1a1a1a1-0000-4000-8000-000000000005, results: [{ testCode: HGB, value: 14.2, unit: g/dL, referenceRange: "12.0-17.0", flag: NORMAL }, { testCode: WBC, value: 12.5, unit: 10^9/L, referenceRange: "4.0-11.0", flag: HIGH }], validatedAt: "2026-10-10T15:00:00Z" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    id:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 0, default: 0 }
+    size:
+      name: size
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+  responses:
+    Unauthorized:
+      description: Missing or invalid token
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 401, error: Unauthorized, message: Missing or invalid token, path: /api/consultations, correlationId: b3f1c2d4 }
+    Forbidden:
+      description: Valid token, role or record not allowed
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 403, error: Forbidden, message: Your role is not allowed to do this, path: /api/consultations, correlationId: b3f1c2d4 }
+    NotFound:
+      description: Unknown resource
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 404, error: Not Found, message: Resource not found, path: /api/consultations/unknown, correlationId: b3f1c2d4 }
+    Conflict:
+      description: Duplicate, business conflict or invalid state move
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 409, error: Conflict, message: This consultation is already signed, path: /api/consultations, correlationId: b3f1c2d4 }
+    Unprocessable:
+      description: Validation failed (details name the fields)
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example:
+            timestamp: "2026-10-12T09:30:00Z"
+            status: 422
+            error: Unprocessable Entity
+            message: Validation failed
+            path: /api/consultations
+            correlationId: b3f1c2d4
+            details:
+              - { field: assessment, problem: must not be blank }
+    DatabaseUnavailable:
+      description: The database is not reachable yet (X-8); the service itself is up
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 503, error: Service Unavailable, message: Database unavailable, path: /api/consultations, correlationId: b3f1c2d4 }
+  schemas:
+    Health:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [UP] }
+    ApiError:
+      type: object
+      required: [status, error, message]
+      properties:
+        timestamp: { type: string, format: date-time }
+        status: { type: integer }
+        error: { type: string }
+        message: { type: string }
+        path: { type: string }
+        correlationId: { type: string }
+        service: { type: string, description: "Only on gateway 503 bodies" }
+        details:
+          type: array
+          items:
+            type: object
+            required: [field, problem]
+            properties:
+              field: { type: string }
+              problem: { type: string }
+    ConsultationStatus:
+      type: string
+      enum: [DRAFT, SIGNED]
+    ConsultationInput:
+      type: object
+      required: [patientId]
+      properties:
+        patientId: { type: string, format: uuid }
+        appointmentId: { type: string, format: uuid, nullable: true }
+        subjective: { type: string, maxLength: 4000, nullable: true }
+        objective: { type: string, maxLength: 4000, nullable: true }
+        assessment: { type: string, maxLength: 4000, nullable: true }
+        plan: { type: string, maxLength: 4000, nullable: true }
+    ConsultationUpdate:
+      type: object
+      properties:
+        subjective: { type: string, maxLength: 4000, nullable: true }
+        objective: { type: string, maxLength: 4000, nullable: true }
+        assessment: { type: string, maxLength: 4000, nullable: true }
+        plan: { type: string, maxLength: 4000, nullable: true }
+    Consultation:
+      type: object
+      required: [id, patientId, doctorId, status, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        appointmentId: { type: string, format: uuid, nullable: true }
+        patientId: { type: string, format: uuid }
+        patientSnapshot:
+          type: object
+          nullable: true
+          required: [fullName, birthDate]
+          properties:
+            fullName: { type: string }
+            birthDate: { type: string, format: date }
+        doctorId: { type: string, format: uuid }
+        subjective: { type: string, nullable: true }
+        objective: { type: string, nullable: true }
+        assessment: { type: string, nullable: true }
+        plan: { type: string, nullable: true }
+        status: { $ref: "#/components/schemas/ConsultationStatus" }
+        signedAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    VitalSignsInput:
+      type: object
+      required: [patientId]
+      description: At least one measurement is required (CON-8).
+      properties:
+        patientId: { type: string, format: uuid }
+        consultationId: { type: string, format: uuid, nullable: true }
+        temperature: { type: number, minimum: 30.0, maximum: 45.0, description: Celsius }
+        heartRate: { type: integer, minimum: 20, maximum: 250 }
+        systolic: { type: integer, minimum: 50, maximum: 260 }
+        diastolic: { type: integer, minimum: 30, maximum: 160, description: Lower than systolic }
+        spo2: { type: integer, minimum: 50, maximum: 100 }
+        weight: { type: number, minimum: 0.5, maximum: 400, description: kg }
+    VitalSigns:
+      allOf:
+        - $ref: "#/components/schemas/VitalSignsInput"
+        - type: object
+          required: [id, recordedBy, recordedAt]
+          properties:
+            id: { type: string, format: uuid }
+            recordedBy: { type: string, format: uuid }
+            recordedAt: { type: string, format: date-time }
+    PrescriptionItem:
+      type: object
+      required: [drugName, dosage, frequency, duration]
+      properties:
+        drugName: { type: string, minLength: 1, maxLength: 120 }
+        dosage: { type: string, minLength: 1, maxLength: 60 }
+        frequency: { type: string, minLength: 1, maxLength: 60 }
+        duration: { type: string, minLength: 1, maxLength: 60 }
+    PrescriptionInput:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items: { $ref: "#/components/schemas/PrescriptionItem" }
+    Prescription:
+      type: object
+      required: [id, consultationId, patientId, doctorId, items, status, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        consultationId: { type: string, format: uuid }
+        patientId: { type: string, format: uuid }
+        doctorId: { type: string, format: uuid }
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/PrescriptionItem" }
+        status: { type: string, enum: [ISSUED] }
+        createdAt: { type: string, format: date-time }
+    LabTestRef:
+      type: object
+      required: [code, name]
+      properties:
+        code: { type: string, maxLength: 10 }
+        name: { type: string, maxLength: 100 }
+    LabOrderInput:
+      type: object
+      required: [priority, tests]
+      properties:
+        priority: { type: string, enum: [ROUTINE, URGENT] }
+        tests:
+          type: array
+          minItems: 1
+          maxItems: 10
+          items: { $ref: "#/components/schemas/LabTestRef" }
+    LabOrder:
+      type: object
+      required: [id, consultationId, patientId, doctorId, priority, tests, status, createdAt]
+      properties:
+        id: { type: string, format: uuid, description: Equals the labRequestId of the event }
+        consultationId: { type: string, format: uuid }
+        patientId: { type: string, format: uuid }
+        doctorId: { type: string, format: uuid }
+        priority: { type: string, enum: [ROUTINE, URGENT] }
+        tests:
+          type: array
+          items: { $ref: "#/components/schemas/LabTestRef" }
+        status: { type: string, enum: [REQUESTED, VALIDATED] }
+        createdAt: { type: string, format: date-time }
+    LabResultLine:
+      type: object
+      required: [testCode, value, unit, referenceRange, flag]
+      properties:
+        testCode: { type: string }
+        value: { type: number }
+        unit: { type: string }
+        referenceRange: { type: string }
+        flag: { type: string, enum: [NORMAL, HIGH, LOW, CRITICAL] }
+    LabResultCopy:
+      type: object
+      required: [labRequestId, consultationId, patientId, results, validatedAt]
+      properties:
+        labRequestId: { type: string, format: uuid }
+        consultationId: { type: string, format: uuid }
+        patientId: { type: string, format: uuid }
+        results:
+          type: array
+          items: { $ref: "#/components/schemas/LabResultLine" }
+        validatedAt: { type: string, format: date-time }
+    ConsultationPage:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content:
+          type: array
+          items: { $ref: "#/components/schemas/Consultation" }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+    VitalSignsPage:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content:
+          type: array
+          items: { $ref: "#/components/schemas/VitalSigns" }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
