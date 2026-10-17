@@ -14,6 +14,7 @@ def app():
             "JWT_ISSUER": "test-issuer",
             "JWT_SECRET": "test-secret",
             "RABBITMQ_URL": "",
+            "AUTO_CREATE_SCHEMA": True,
         }
     )
     with app.app_context():

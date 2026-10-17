@@ -15,6 +15,12 @@ flask --app run.py --debug run --port 8085
 The default database is PostgreSQL. Set `DATABASE_URL` in `.env` or the environment before starting.
 For isolated tests, the application factory accepts a SQLite URL.
 
+Initialize or upgrade the database before starting the service:
+
+```powershell
+alembic upgrade head
+```
+
 The service exposes `GET /health` without authentication and all `/api/**` endpoints require a
 Bearer token. The gateway remains responsible for the public entry point and routing.
 

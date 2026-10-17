@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
 from uuid import uuid4
 
+from sqlalchemy import CheckConstraint, Index
+
 from .extensions import db
 
 
@@ -10,6 +12,11 @@ def utc_now():
 
 class Drug(db.Model):
     __tablename__ = "drugs"
+    __table_args__ = (
+        CheckConstraint("stock >= 0", name="ck_drugs_stock_nonnegative"),
+        CheckConstraint("reorder_threshold >= 0", name="ck_drugs_reorder_nonnegative"),
+        Index("ix_drugs_name_strength", "name", "strength"),
+    )
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid4()))
     name = db.Column(db.String(160), nullable=False)
@@ -39,6 +46,13 @@ class Drug(db.Model):
 
 class PrescriptionCopy(db.Model):
     __tablename__ = "prescription_copies"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('ISSUED', 'PARTIALLY_DISPENSED', 'DISPENSED', 'CANCELLED')",
+            name="ck_prescriptions_status",
+        ),
+        Index("ix_prescriptions_patient_status", "patient_id", "status"),
+    )
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid4()))
     prescription_id = db.Column(db.String(36), nullable=False, unique=True, index=True)
@@ -72,6 +86,7 @@ class PrescriptionItem(db.Model):
     __tablename__ = "prescription_items"
     __table_args__ = (
         db.UniqueConstraint("prescription_id", "item_index", name="uq_prescription_item_index"),
+        CheckConstraint("dispensed_quantity >= 0", name="ck_items_dispensed_nonnegative"),
     )
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid4()))
@@ -130,6 +145,9 @@ class DispensingItem(db.Model):
     drug_id = db.Column(db.String(36), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     dispensing = db.relationship("Dispensing", back_populates="items")
+    __table_args__ = (
+        CheckConstraint("quantity > 0", name="ck_dispensing_items_quantity_positive"),
+    )
 
     def to_dict(self):
         return {
