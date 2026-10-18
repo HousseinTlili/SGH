@@ -3,7 +3,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, field_serializer
+from pydantic import BaseModel, ConfigDict, Field, field_serializer
 
 Status = Literal["REQUESTED", "IN_PROGRESS", "RESULT_ENTERED", "VALIDATED"]
 Flag = Literal["NORMAL", "HIGH", "LOW", "CRITICAL"]
@@ -67,3 +67,13 @@ class Page(BaseModel):
 
 class LabRequestPage(Page):
     content: list[LabRequestDto]
+
+class ResultItem(BaseModel):
+    testCode: str
+    value: Decimal
+    unit: str | None = None
+
+
+class ResultsInput(BaseModel):
+    results: list[ResultItem] = Field(min_length=1)
+    

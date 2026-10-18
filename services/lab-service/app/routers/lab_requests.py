@@ -10,8 +10,13 @@ from app.db import get_session
 from app.errors import ApiError
 from app.models import LabRequest
 from app.schemas import (
-    LabRequestDto, LabRequestPage, LabResultLine, LabTestRef,
+    LabRequestDto,
+    LabRequestPage,
+    LabResultLine,
+    LabTestRef,
+    ResultsInput,
 )
+from app.services import workflow
 
 router = APIRouter(prefix="/api", tags=["lab-requests"])
 
@@ -27,8 +32,11 @@ def to_dto(r: LabRequest) -> LabRequestDto:
         tests=[LabTestRef(code=t.code, name=t.name) for t in r.tests],
         results=[
             LabResultLine(
-                testCode=x.test_code, value=x.value, unit=x.unit,
-                referenceRange=x.reference_range, flag=x.flag,
+                testCode=x.test_code,
+                value=x.value,
+                unit=x.unit,
+                referenceRange=x.reference_range,
+                flag=x.flag,
             )
             for x in r.results
         ],
@@ -70,7 +78,8 @@ def list_lab_requests(
 
     return LabRequestPage(
         content=[to_dto(r) for r in rows],
-        page=page, size=size,
+        page=page,
+        size=size,
         totalElements=total,
         totalPages=math.ceil(total / size) if total else 0,
     )
@@ -82,3 +91,18 @@ def get_lab_request(id: uuid.UUID, session: Session = Depends(get_session)):
     if r is None:
         raise ApiError(404, "Resource not found")
     return to_dto(r)
+
+
+@router.post("/lab-requests/{id}/start", response_model=LabRequestDto)
+def start_request(id: uuid.UUID, session: Session = Depends(get_session)):
+    return to_dto(workflow.start(session, id))
+
+
+@router.post("/lab-requests/{id}/results", response_model=LabRequestDto)
+def enter_results(id: uuid.UUID, body: ResultsInput, session: Session = Depends(get_session)):
+    return to_dto(workflow.enter_results(session, id, body.results, None))
+
+
+@router.post("/lab-requests/{id}/validate", response_model=LabRequestDto)
+def validate_request(id: uuid.UUID, session: Session = Depends(get_session)):
+    return to_dto(workflow.validate(session, id, None))
