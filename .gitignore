@@ -22,3 +22,7 @@ Thumbs.db
 
 # local Claude Code state
 .claude/settings.local.json
+
+.venv/
+__pycache__/
+.env
