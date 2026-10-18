@@ -1,5 +1,7 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
@@ -12,6 +14,5 @@ class Settings(BaseSettings):
     rabbitmq_url: str = "amqp://sgh:sgh_dev_password@localhost:5672/"
     keycloak_issuer: str = "http://localhost:8180/realms/sgh"
     keycloak_jwks_url: str = "http://localhost:8180/realms/sgh/protocol/openid-connect/certs"
-
 
 settings = Settings()
