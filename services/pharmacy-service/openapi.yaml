@@ -1,0 +1,448 @@
+openapi: 3.0.3
+info:
+  title: SGH Pharmacy service
+  version: 1.0.0
+  description: >-
+    Contract of Service 5 (port 8085). Source: Pharmacy Service - API Spec, Domain Model and Business Rules (PHA-1 to PHA-9, X-1 to X-8), Seed Data and Fixtures, Event Catalogue. The gateway routes /api/prescriptions/**, /api/drugs/** and /api/stock/** here (D11). Consumes prescription.created; publishes prescription.dispensed. Every endpoint except /health needs a Keycloak JWT; roles are in the description
+    of each operation (and in x-roles). Errors use the shared body of API Contracts and Conventions.
+servers:
+  - url: http://localhost:8085
+security:
+  - bearerAuth: []
+tags:
+  - name: drugs
+  - name: stock
+  - name: prescriptions
+  - name: health
+paths:
+  /health:
+    get:
+      tags: [health]
+      operationId: health
+      summary: Liveness of the process (never checks the database or the broker)
+      security: []
+      responses:
+        "200":
+          description: The service process is up
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Health" }
+              example: { status: UP }
+  /api/drugs:
+    get:
+      tags: [drugs]
+      operationId: listDrugs
+      summary: List drugs by name (case-insensitive contains on name)
+      description: "Roles: PHARMACIST, DOCTOR, ADMIN."
+      x-roles: [PHARMACIST, DOCTOR, ADMIN]
+      parameters:
+        - { name: search, in: query, schema: { type: string } }
+        - { $ref: "#/components/parameters/page" }
+        - { $ref: "#/components/parameters/size" }
+      responses:
+        "200":
+          description: A page of drugs
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DrugPage" }
+              example:
+                content:
+                  - { id: d4d4d4d4-0000-4000-8000-000000000003, name: Amoxicillin, form: CAPSULE, strength: 500 mg, unit: capsule, stock: 55, reorderThreshold: 60, createdAt: "2026-10-12T08:00:00Z", updatedAt: "2026-10-12T08:00:00Z" }
+                  - { id: d4d4d4d4-0000-4000-8000-000000000001, name: Paracetamol, form: TABLET, strength: 500 mg, unit: tablet, stock: 500, reorderThreshold: 100, createdAt: "2026-10-12T08:00:00Z", updatedAt: "2026-10-12T08:00:00Z" }
+                page: 0
+                size: 20
+                totalElements: 2
+                totalPages: 1
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+    post:
+      tags: [drugs]
+      operationId: createDrug
+      summary: Add a drug (PHA-2)
+      description: "Roles: PHARMACIST. 409 when name plus strength already exist (case-insensitive)."
+      x-roles: [PHARMACIST]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DrugInput" }
+            example: { name: Amoxicillin, form: CAPSULE, strength: 500 mg, unit: capsule, stock: 55, reorderThreshold: 60 }
+      responses:
+        "201":
+          description: Created
+          headers:
+            Location: { description: "/api/drugs/{id}", schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Drug" }
+              example: { id: d4d4d4d4-0000-4000-8000-000000000003, name: Amoxicillin, form: CAPSULE, strength: 500 mg, unit: capsule, stock: 55, reorderThreshold: 60, createdAt: "2026-10-12T08:00:00Z", updatedAt: "2026-10-12T08:00:00Z" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/drugs/{id}:
+    put:
+      tags: [drugs]
+      operationId: updateDrug
+      summary: Edit a drug (the stock value is ignored, use the stock endpoint)
+      description: "Roles: PHARMACIST."
+      x-roles: [PHARMACIST]
+      parameters:
+        - { $ref: "#/components/parameters/id" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DrugInput" }
+            example: { name: Amoxicillin, form: CAPSULE, strength: 500 mg, unit: capsule, stock: 55, reorderThreshold: 70 }
+      responses:
+        "200":
+          description: The updated drug
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Drug" }
+              example: { id: d4d4d4d4-0000-4000-8000-000000000003, name: Amoxicillin, form: CAPSULE, strength: 500 mg, unit: capsule, stock: 55, reorderThreshold: 60, createdAt: "2026-10-12T08:00:00Z", updatedAt: "2026-10-12T08:00:00Z" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/drugs/{id}/stock:
+    post:
+      tags: [stock]
+      operationId: adjustStock
+      summary: Adjust stock by a signed delta (PHA-3)
+      description: "Roles: PHARMACIST. delta is a non-zero integer, reason 1 to 200 characters. 409 and no change when the result would be below zero."
+      x-roles: [PHARMACIST]
+      parameters:
+        - { $ref: "#/components/parameters/id" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/StockAdjustment" }
+            example: { delta: -10, reason: damaged boxes }
+      responses:
+        "200":
+          description: The drug with its new stock
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Drug" }
+              example: { id: d4d4d4d4-0000-4000-8000-000000000001, name: Paracetamol, form: TABLET, strength: 500 mg, unit: tablet, stock: 490, reorderThreshold: 100, createdAt: "2026-10-12T08:00:00Z", updatedAt: "2026-10-12T08:00:00Z" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/stock/alerts:
+    get:
+      tags: [stock]
+      operationId: listStockAlerts
+      summary: Drugs whose stock is at or below the reorder threshold (PHA-8, plain array)
+      description: "Roles: PHARMACIST, DOCTOR, ADMIN. On a fresh seed only Amoxicillin."
+      x-roles: [PHARMACIST, DOCTOR, ADMIN]
+      responses:
+        "200":
+          description: The drugs to reorder
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Drug" }
+              example:
+                - { id: d4d4d4d4-0000-4000-8000-000000000003, name: Amoxicillin, form: CAPSULE, strength: 500 mg, unit: capsule, stock: 55, reorderThreshold: 60, createdAt: "2026-10-12T08:00:00Z", updatedAt: "2026-10-12T08:00:00Z" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/prescriptions:
+    get:
+      tags: [prescriptions]
+      operationId: listPrescriptions
+      summary: Prescription queue, ISSUED and PARTIALLY_DISPENSED first, then oldest
+      description: "Roles: PHARMACIST, DOCTOR, ADMIN. status accepts one value or several separated by commas (D31)."
+      x-roles: [PHARMACIST, DOCTOR, ADMIN]
+      parameters:
+        - { name: status, in: query, schema: { type: string }, example: "ISSUED,PARTIALLY_DISPENSED" }
+        - { name: patientId, in: query, schema: { type: string, format: uuid } }
+        - { $ref: "#/components/parameters/page" }
+        - { $ref: "#/components/parameters/size" }
+      responses:
+        "200":
+          description: A page of prescriptions
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PharmacyPrescriptionPage" }
+              example:
+                content:
+                  - { id: f8f8f8f8-0000-4000-8000-000000000001, consultationId: f7f7f7f7-0000-4000-8000-000000000001, patientId: a1a1a1a1-0000-4000-8000-000000000005, doctorId: b2b2b2b2-0000-4000-8000-000000000002, status: ISSUED, items: [{ index: 0, drugName: Paracetamol 500 mg, dosage: 1 tablet, frequency: 3 per day, duration: 5 days, dispensed: false }, { index: 1, drugName: Cetirizine 10 mg, dosage: 1 tablet, frequency: 1 per day, duration: 7 days, dispensed: false }], createdAt: "2026-10-10T11:35:00Z" }
+                page: 0
+                size: 20
+                totalElements: 1
+                totalPages: 1
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/prescriptions/{id}:
+    parameters:
+      - { $ref: "#/components/parameters/id" }
+    get:
+      tags: [prescriptions]
+      operationId: getPrescription
+      summary: One prescription with its dispensing status
+      description: "Roles: PHARMACIST, DOCTOR, ADMIN."
+      x-roles: [PHARMACIST, DOCTOR, ADMIN]
+      responses:
+        "200":
+          description: The prescription
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PharmacyPrescription" }
+              example: { id: f8f8f8f8-0000-4000-8000-000000000001, consultationId: f7f7f7f7-0000-4000-8000-000000000001, patientId: a1a1a1a1-0000-4000-8000-000000000005, doctorId: b2b2b2b2-0000-4000-8000-000000000002, status: ISSUED, items: [{ index: 0, drugName: Paracetamol 500 mg, dosage: 1 tablet, frequency: 3 per day, duration: 5 days, dispensed: false }, { index: 1, drugName: Cetirizine 10 mg, dosage: 1 tablet, frequency: 1 per day, duration: 7 days, dispensed: false }], createdAt: "2026-10-10T11:35:00Z" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/prescriptions/{id}/dispense:
+    post:
+      tags: [prescriptions]
+      operationId: dispensePrescription
+      summary: Dispense items (PHA-3 to PHA-7)
+      description: "Roles: PHARMACIST. All lines are validated first (item exists and is not dispensed, drug exists, enough stock), then stock and the dispensing record are saved in one transaction with row locking. Before dispensing, Consultation is asked for the prescription with the caller's token; if reachable and the id is missing the answer is 409; if unreachable the local copy is used (PHA-7). Publishes prescription.dispensed after the commit. 409 when DISPENSED, an item was already dispensed, or stock is insufficient (nothing changes). 422 for an invalid itemIndex, quantity below 1 or an unknown drug."
+      x-roles: [PHARMACIST]
+      parameters:
+        - { $ref: "#/components/parameters/id" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DispenseRequest" }
+            example: { lines: [{ itemIndex: 0, drugId: d4d4d4d4-0000-4000-8000-000000000001, quantity: 15 }] }
+      responses:
+        "200":
+          description: The prescription with updated items and status
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PharmacyPrescription" }
+              example: { id: f8f8f8f8-0000-4000-8000-000000000001, consultationId: f7f7f7f7-0000-4000-8000-000000000001, patientId: a1a1a1a1-0000-4000-8000-000000000005, doctorId: b2b2b2b2-0000-4000-8000-000000000002, status: PARTIALLY_DISPENSED, items: [{ index: 0, drugName: Paracetamol 500 mg, dosage: 1 tablet, frequency: 3 per day, duration: 5 days, dispensed: true }, { index: 1, drugName: Cetirizine 10 mg, dosage: 1 tablet, frequency: 1 per day, duration: 7 days, dispensed: false }], createdAt: "2026-10-10T11:35:00Z" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/prescriptions/{id}/dispensings:
+    get:
+      tags: [prescriptions]
+      operationId: listDispensings
+      summary: Dispensing history of one prescription (plain array)
+      description: "Roles: PHARMACIST, DOCTOR, ADMIN."
+      x-roles: [PHARMACIST, DOCTOR, ADMIN]
+      parameters:
+        - { $ref: "#/components/parameters/id" }
+      responses:
+        "200":
+          description: The dispensing events
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Dispensing" }
+              example:
+                - { id: 5c2d7a10-3f4b-4c1e-9a7d-0000000000a1, prescriptionId: f8f8f8f8-0000-4000-8000-000000000001, pharmacistId: b2b2b2b2-0000-4000-8000-000000000005, lines: [{ itemIndex: 0, drugId: d4d4d4d4-0000-4000-8000-000000000001, quantity: 15 }], dispensedAt: "2026-10-12T10:00:00Z" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    id:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 0, default: 0 }
+    size:
+      name: size
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+  responses:
+    Unauthorized:
+      description: Missing or invalid token
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 401, error: Unauthorized, message: Missing or invalid token, path: /api/drugs, correlationId: b3f1c2d4 }
+    Forbidden:
+      description: Valid token, role or record not allowed
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 403, error: Forbidden, message: Your role is not allowed to do this, path: /api/drugs, correlationId: b3f1c2d4 }
+    NotFound:
+      description: Unknown resource
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 404, error: Not Found, message: Resource not found, path: /api/drugs/unknown, correlationId: b3f1c2d4 }
+    Conflict:
+      description: Duplicate, business conflict or invalid state move
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 409, error: Conflict, message: Insufficient stock, path: /api/drugs, correlationId: b3f1c2d4 }
+    Unprocessable:
+      description: Validation failed (details name the fields)
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example:
+            timestamp: "2026-10-12T09:30:00Z"
+            status: 422
+            error: Unprocessable Entity
+            message: Validation failed
+            path: /api/drugs
+            correlationId: b3f1c2d4
+            details:
+              - { field: quantity, problem: must be at least 1 }
+    DatabaseUnavailable:
+      description: The database is not reachable yet (X-8); the service itself is up
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 503, error: Service Unavailable, message: Database unavailable, path: /api/drugs, correlationId: b3f1c2d4 }
+  schemas:
+    Health:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [UP] }
+    ApiError:
+      type: object
+      required: [status, error, message]
+      properties:
+        timestamp: { type: string, format: date-time }
+        status: { type: integer }
+        error: { type: string }
+        message: { type: string }
+        path: { type: string }
+        correlationId: { type: string }
+        service: { type: string, description: "Only on gateway 503 bodies" }
+        details:
+          type: array
+          items:
+            type: object
+            required: [field, problem]
+            properties:
+              field: { type: string }
+              problem: { type: string }
+    DrugForm:
+      type: string
+      enum: [TABLET, CAPSULE, SYRUP, INJECTION, CREAM, DROPS, INHALER]
+    DrugInput:
+      type: object
+      required: [name, form, strength, unit, stock, reorderThreshold]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+        form: { $ref: "#/components/schemas/DrugForm" }
+        strength: { type: string, maxLength: 40 }
+        unit: { type: string, maxLength: 30 }
+        stock: { type: integer, minimum: 0 }
+        reorderThreshold: { type: integer, minimum: 0 }
+    Drug:
+      allOf:
+        - $ref: "#/components/schemas/DrugInput"
+        - type: object
+          required: [id, createdAt, updatedAt]
+          properties:
+            id: { type: string, format: uuid }
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time }
+    StockAdjustment:
+      type: object
+      required: [delta, reason]
+      properties:
+        delta: { type: integer, description: "Non-zero, negative to remove stock" }
+        reason: { type: string, minLength: 1, maxLength: 200 }
+    PharmacyItem:
+      type: object
+      required: [index, drugName, dosage, frequency, duration, dispensed]
+      properties:
+        index: { type: integer, minimum: 0, description: Numbered from 0 in the order received }
+        drugName: { type: string }
+        dosage: { type: string }
+        frequency: { type: string }
+        duration: { type: string }
+        dispensed: { type: boolean }
+    PharmacyPrescription:
+      type: object
+      required: [id, consultationId, patientId, doctorId, status, items, createdAt]
+      properties:
+        id: { type: string, format: uuid, description: Equals the prescriptionId of the event }
+        consultationId: { type: string, format: uuid }
+        patientId: { type: string, format: uuid }
+        doctorId: { type: string, format: uuid }
+        status: { type: string, enum: [ISSUED, PARTIALLY_DISPENSED, DISPENSED] }
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/PharmacyItem" }
+        createdAt: { type: string, format: date-time }
+    DispenseLine:
+      type: object
+      required: [itemIndex, drugId, quantity]
+      properties:
+        itemIndex: { type: integer, minimum: 0 }
+        drugId: { type: string, format: uuid }
+        quantity: { type: integer, minimum: 1 }
+    DispenseRequest:
+      type: object
+      required: [lines]
+      properties:
+        lines:
+          type: array
+          minItems: 1
+          items: { $ref: "#/components/schemas/DispenseLine" }
+    Dispensing:
+      type: object
+      required: [id, prescriptionId, pharmacistId, lines, dispensedAt]
+      properties:
+        id: { type: string, format: uuid }
+        prescriptionId: { type: string, format: uuid }
+        pharmacistId: { type: string, format: uuid }
+        lines:
+          type: array
+          items: { $ref: "#/components/schemas/DispenseLine" }
+        dispensedAt: { type: string, format: date-time }
+    DrugPage:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content:
+          type: array
+          items: { $ref: "#/components/schemas/Drug" }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+    PharmacyPrescriptionPage:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content:
+          type: array
+          items: { $ref: "#/components/schemas/PharmacyPrescription" }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
