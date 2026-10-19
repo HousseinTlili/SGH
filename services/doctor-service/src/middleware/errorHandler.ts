@@ -14,6 +14,11 @@ function isDatabaseDown(err: any): boolean {
   );
 }
 
+/** Unknown routes answer in the shared error body instead of Express' HTML page. */
+export function notFoundHandler(req: Request, res: Response): void {
+  sendError(req, res, new ApiError(404, `No route for ${req.method} ${req.path}`));
+}
+
 export function errorHandler(
   err: any,
   req: Request,

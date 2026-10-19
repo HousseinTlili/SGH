@@ -47,6 +47,22 @@ SGH orchestrates the full patient care lifecycle across specialized clinical and
 
 ---
 
+## Implementation status
+
+| Part | Status |
+|---|---|
+| `contracts/` (6 OpenAPI files, event schemas) | Done |
+| `infra/` (Postgres, RabbitMQ topology, Keycloak realm) | Done |
+| `frontend/` Angular app | Built against the mock servers; real Keycloak sign-in is a placeholder (`pending-keycloak.backend.ts`) |
+| `services/doctor-service` | Implemented and tested |
+| `services/patient-service`, `reception-service`, `lab-service`, `pharmacy-service`, `staff-service` | Not started (folder holds the README and rules only) |
+| `gateway/` | Not started |
+| End-to-end and resilience scripts | `scripts/e2e.sh` and `scripts/stub-check.sh` not written yet |
+
+Until the remaining services exist, run the front end with `npm run mock` / `npm run start:mock` (see `tools/mock/README.md`).
+
+---
+
 ## 2. High-Level Architecture
 
 The system strictly follows the **Database-per-Service** pattern, centralized OAuth2/OIDC security, and asynchronous message broker decoupling:
@@ -206,14 +222,14 @@ Authentication and role-based access control (RBAC) are centralized using **Keyc
 
 | Username | Role | Associated Entity ID | Description |
 |---|---|---|---|
-| `doctor1` | `DOCTOR` | `staffId: b2b2b2b2-0000-4000-8000-000000000001` | Dr. Alice Martin (General Practitioner) |
-| `doctor2` | `DOCTOR` | `staffId: b2b2b2b2-0000-4000-8000-000000000002` | Dr. Bernard Dupont (Cardiologist) |
-| `nurse1` | `NURSE` | `staffId: b2b2b2b2-0000-4000-8000-000000000003` | Clara Nurse (Triage & Vital Signs) |
-| `patient1` | `PATIENT` | `patientId: a1a1a1a1-0000-4000-8000-000000000001` | Jean Dupont (Restricted to own records) |
-| `pharmacist1` | `PHARMACIST` | `staffId: b2b2b2b2-0000-4000-8000-000000000004` | Pharmacist Denis |
-| `lab1` | `LAB_TECH` | `staffId: b2b2b2b2-0000-4000-8000-000000000005` | Laboratory Technician Emma |
-| `reception1` | `RECEPTIONIST` | `staffId: b2b2b2b2-0000-4000-8000-000000000006` | Front Desk Receptionist |
-| `admin1` | `ADMIN` | — | System Administrator |
+| `doctor1` | `DOCTOR` | `staffId: b2b2b2b2-0000-4000-8000-000000000001` | Amel Trabelsi (Cardiology) |
+| `doctor2` | `DOCTOR` | `staffId: b2b2b2b2-0000-4000-8000-000000000002` | Karim Jlassi (General practice) |
+| `nurse1` | `NURSE` | `staffId: b2b2b2b2-0000-4000-8000-000000000003` | Sonia Gharbi (Triage & vital signs) |
+| `lab1` | `LAB_TECHNICIAN` | `staffId: b2b2b2b2-0000-4000-8000-000000000004` | Walid Mansouri (Laboratory) |
+| `pharmacist1` | `PHARMACIST` | `staffId: b2b2b2b2-0000-4000-8000-000000000005` | Ines Chaabane (Pharmacy) |
+| `reception1` | `RECEPTIONIST` | `staffId: b2b2b2b2-0000-4000-8000-000000000006` | Rim Bouazizi (Front desk) |
+| `admin1` | `ADMIN` | `staffId: b2b2b2b2-0000-4000-8000-000000000007` | Sami Hamdi (IT) |
+| `patient1` | `PATIENT` | `patientId: a1a1a1a1-0000-4000-8000-000000000001` | Youssef Ben Salah (restricted to own records) |
 
 ---
 
@@ -286,7 +302,7 @@ The infrastructure exposes:
 # Check connectivity and health
 ./scripts/health.sh
 
-# Generate a JWT for Dr. Alice Martin
+# Generate a JWT for doctor1 (Amel Trabelsi)
 ./scripts/token.sh doctor1
 ```
 
@@ -334,8 +350,8 @@ Each service includes standalone unit and integration suites that test domain ru
 # Verify contracts are byte-identical across services
 ./scripts/check-contracts.sh
 
-# Run Doctor Service test suite (29 integration tests)
-cd services/doctor-service && npm test
+# Run the Doctor Service suite (needs Postgres; Keycloak is simulated, RabbitMQ tests are skipped if no broker)
+cd services/doctor-service && npm run typecheck && npm test
 
 # Run Frontend unit test suite (266 tests)
 cd frontend && npm test
@@ -360,3 +376,4 @@ This project strictly adheres to the course collaboration rules:
    * [x] Asynchronous event publisher and consumer with idempotency (`processed_events`).
    * [x] 100% passing automated test suite covering success, validation, and error paths.
    * [x] Resilience verified: Starts up cleanly even if DB or Broker is down (Rule X-6/X-8).
+   * [ ] `scripts/stub-check.sh` stub acceptance list passes (script not written yet).

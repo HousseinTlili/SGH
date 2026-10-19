@@ -4,7 +4,7 @@ import { z } from "zod";
 import { authenticateToken } from "../auth/jwt.js";
 import { requireRoles } from "../auth/roles.js";
 import { pool } from "../db/pool.js";
-import { forbidden, isUuid, pageOf, parseOrThrow, parsePaging, validationFailed } from "../http/errors.js";
+import { badRequest, forbidden, isUuid, pageOf, parseOrThrow, parsePaging, validationFailed } from "../http/errors.js";
 
 export const vitalsRouter = Router();
 
@@ -114,7 +114,7 @@ vitalsRouter.get(
     const problems = (["patientId", "consultationId"] as const)
       .filter((f) => req.query[f] !== undefined && !isUuid(req.query[f]))
       .map((field) => ({ field, problem: `${field} must be a valid UUID` }));
-    if (problems.length > 0) throw validationFailed(problems);
+    if (problems.length > 0) throw badRequest("Invalid query parameter", problems);
 
     const conditions: string[] = [];
     const values: unknown[] = [];

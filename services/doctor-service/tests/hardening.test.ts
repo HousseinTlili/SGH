@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeAll, afterEach, vi } from "vitest";
 import request from "supertest";
+import fs from "node:fs";
+import YAML from "yamljs";
 import crypto from "crypto";
 import type { Channel, ConsumeMessage } from "amqplib";
 import { app } from "../src/app.js";
@@ -19,31 +21,46 @@ describe("Input handling", () => {
     nurse = await getToken("nurse1");
   });
 
-  it("answers 404 for a path id that is not a UUID", async () => {
+  it("answers 400 for a path id that is not a UUID", async () => {
     const res = await request(app)
       .get("/api/consultations/not-a-uuid")
       .set("Authorization", `Bearer ${doctor}`);
-    expect(res.status).toBe(404);
-    expect(res.body).toMatchObject({ status: 404, error: "Not Found" });
+    expect(res.status).toBe(400);
+    expect(res.body).toMatchObject({ status: 400, error: "Bad Request" });
+    expect(res.body.details).toEqual([{ field: "id", problem: "must be a valid UUID" }]);
     expect(res.body.correlationId).toBeTruthy();
   });
 
   it.each(["prescriptions", "lab-orders", "lab-results"])(
-    "answers 404 for a malformed id on /%s",
+    "answers 400 for a malformed id on /%s",
     async (sub) => {
       const res = await request(app)
         .get(`/api/consultations/123/${sub}`)
         .set("Authorization", `Bearer ${doctor}`);
-      expect(res.status).toBe(404);
+      expect(res.status).toBe(400);
     }
   );
 
-  it("falls back to default paging for non-numeric page and size", async () => {
+  it("answers 404 for a well-formed id that does not exist", async () => {
+    const res = await request(app)
+      .get(`/api/consultations/${crypto.randomUUID()}`)
+      .set("Authorization", `Bearer ${doctor}`);
+    expect(res.status).toBe(404);
+  });
+
+  it("uses the default paging when page and size are absent", async () => {
+    const res = await request(app)
+      .get("/api/consultations")
+      .set("Authorization", `Bearer ${doctor}`);
+    expect(res.body).toMatchObject({ page: 0, size: 20 });
+  });
+
+  it("answers 400 for a non-numeric page or size", async () => {
     const res = await request(app)
       .get("/api/consultations?page=abc&size=xyz")
       .set("Authorization", `Bearer ${doctor}`);
-    expect(res.status).toBe(200);
-    expect(res.body).toMatchObject({ page: 0, size: 20 });
+    expect(res.status).toBe(400);
+    expect(res.body.details.map((d: { field: string }) => d.field)).toEqual(["page"]);
   });
 
   it("caps size at 100 and floors page at 0", async () => {
@@ -54,22 +71,22 @@ describe("Input handling", () => {
     expect(res.body).toMatchObject({ page: 0, size: 100 });
   });
 
-  it("answers 422 for a malformed filter instead of a database error", async () => {
+  it("answers 400 for a malformed filter instead of a database error", async () => {
     const res = await request(app)
       .get("/api/consultations?patientId=oops&status=WHATEVER")
       .set("Authorization", `Bearer ${doctor}`);
-    expect(res.status).toBe(422);
+    expect(res.status).toBe(400);
     expect(res.body.details.map((d: { field: string }) => d.field).sort()).toEqual([
       "patientId",
       "status"
     ]);
   });
 
-  it("answers 422 for a malformed vitals filter", async () => {
+  it("answers 400 for a malformed vitals filter", async () => {
     const res = await request(app)
       .get("/api/vitals?patientId=oops")
       .set("Authorization", `Bearer ${nurse}`);
-    expect(res.status).toBe(422);
+    expect(res.status).toBe(400);
   });
 
   it("answers 422 when vitals reference an unknown consultation", async () => {
@@ -95,6 +112,32 @@ describe("Input handling", () => {
       .send("{ not json");
     expect(res.status).toBe(400);
     expect(res.body.message).toBe("Malformed JSON body");
+    expect(res.body.correlationId).toBeTruthy();
+  });
+
+  it("answers an unknown route in the shared error body", async () => {
+    const res = await request(app).get("/api/nothing-here").set("X-Correlation-Id", "abc12345");
+    expect(res.status).toBe(404);
+    expect(res.headers["content-type"]).toMatch(/json/);
+    expect(res.body).toMatchObject({
+      status: 404,
+      error: "Not Found",
+      path: "/api/nothing-here",
+      correlationId: "abc12345"
+    });
+  });
+
+  it("serves every path of the committed openapi.yaml", async () => {
+    const committed = YAML.parse(
+      fs.readFileSync(new URL("../openapi.yaml", import.meta.url), "utf8")
+    );
+    const served = (await request(app).get("/openapi.json")).body;
+    expect(Object.keys(served.paths).sort()).toEqual(Object.keys(committed.paths).sort());
+    for (const path of Object.keys(committed.paths)) {
+      expect(Object.keys(served.paths[path]).sort()).toEqual(
+        Object.keys(committed.paths[path]).sort()
+      );
+    }
   });
 
   it("checks the role before validating the body", async () => {
@@ -240,5 +283,15 @@ describe("Event publishing without a broker", () => {
     const before = pendingEventCount();
     expect(() => publishEventAsync("prescription.created", { x: 1 }, "corr")).not.toThrow();
     expect(pendingEventCount()).toBe(before + 1);
+  });
+});
+
+describe("Migrations", () => {
+  it("are recorded once and re-running them changes nothing", async () => {
+    const { runMigrations } = await import("../src/db/migrate.js");
+    await runMigrations();
+    await runMigrations();
+    const applied = await pool.query("SELECT filename FROM schema_migrations ORDER BY filename");
+    expect(applied.rows.map((r) => r.filename)).toEqual(["001_init.sql"]);
   });
 });

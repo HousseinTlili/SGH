@@ -34,6 +34,8 @@ export class ApiError extends Error {
   }
 }
 
+export const badRequest = (message: string, details?: ErrorDetail[]) =>
+  new ApiError(400, message, details);
 export const unauthorized = () => new ApiError(401, "Missing or invalid token");
 export const forbidden = (message = "Your role is not allowed to do this") =>
   new ApiError(403, message);
@@ -77,13 +79,26 @@ export function isUuid(value: unknown): value is string {
   return uuidSchema.safeParse(value).success;
 }
 
-/**
- * Path ids that are not UUIDs cannot match any row, so they answer 404 instead of
- * letting Postgres reject the cast with a 500.
- */
-export function uuidParam(value: string | undefined, what: string): string {
-  if (!isUuid(value)) throw notFound(`${what} not found`);
+/** A path id of the wrong type is a 400 (Stack Templates), not a Postgres cast error. */
+export function uuidParam(value: string | undefined, name = "id"): string {
+  if (!isUuid(value)) {
+    throw badRequest(`Parameter '${name}' must be a valid UUID`, [
+      { field: name, problem: "must be a valid UUID" }
+    ]);
+  }
   return value;
+}
+
+/** Query filters of the wrong type are a 400 as well; every offending field is listed. */
+export function parseQueryOrThrow<S extends z.ZodTypeAny>(
+  schema: S,
+  query: unknown
+): z.infer<S> {
+  const result = schema.safeParse(query);
+  if (!result.success) {
+    throw badRequest("Invalid query parameter", zodDetails(result.error));
+  }
+  return result.data;
 }
 
 export interface Paging {
@@ -92,14 +107,22 @@ export interface Paging {
   offset: number;
 }
 
-/** `?page=0&size=20`, size capped at 100. Missing or non-numeric values fall back to the defaults. */
+/**
+ * `?page=0&size=20`. Missing values use the defaults, out-of-range values are clamped
+ * (page >= 0, 1 <= size <= 100) and non-numeric values are a 400.
+ */
 export function parsePaging(query: Request["query"]): Paging {
-  const toInt = (raw: unknown, fallback: number) => {
-    const n = typeof raw === "string" ? Number.parseInt(raw, 10) : NaN;
-    return Number.isFinite(n) ? n : fallback;
+  const toInt = (name: string, raw: unknown, fallback: number) => {
+    if (raw === undefined || raw === "") return fallback;
+    if (typeof raw !== "string" || !/^-?\d+$/.test(raw)) {
+      throw badRequest(`Parameter '${name}' must be an integer`, [
+        { field: name, problem: "must be an integer" }
+      ]);
+    }
+    return Number.parseInt(raw, 10);
   };
-  const page = Math.max(0, toInt(query.page, 0));
-  const size = Math.min(100, Math.max(1, toInt(query.size, 20)));
+  const page = Math.max(0, toInt("page", query.page, 0));
+  const size = Math.min(100, Math.max(1, toInt("size", query.size, 20)));
   return { page, size, offset: page * size };
 }
 
