@@ -3,7 +3,8 @@ import crypto from "crypto";
 import { z } from "zod";
 import { authenticateToken } from "../auth/jwt.js";
 import { requireRoles, requireDoctorWithStaffId } from "../auth/roles.js";
-import { pool } from "../db/pool.js";
+import { pool, withTransaction } from "../db/pool.js";
+import { forbidden, notFound, parseOrThrow, uuidParam } from "../http/errors.js";
 import { publishEventAsync } from "../events/amqp.js";
 
 export const labRouter = Router();
@@ -36,54 +37,34 @@ labRouter.get(
   authenticateToken,
   requireRoles("DOCTOR", "NURSE", "ADMIN"),
   async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const client = await pool.connect();
-    try {
-      const consultRes = await client.query(
-        "SELECT id FROM consultations WHERE id = $1",
-        [id]
-      );
+    const id = uuidParam(req.params.id as string, "Consultation");
+    const consultation = await pool.query("SELECT id FROM consultations WHERE id = $1", [id]);
+    if (consultation.rows.length === 0) throw notFound("Consultation not found");
 
-      if (consultRes.rows.length === 0) {
-        res.status(404).json({
-          timestamp: new Date().toISOString(),
-          status: 404,
-          error: "Not Found",
-          message: "Consultation not found",
-          path: req.originalUrl || req.url,
-          correlationId: req.correlationId
-        });
-        return;
-      }
+    const orders = await pool.query(
+      "SELECT * FROM lab_orders WHERE consultation_id = $1 ORDER BY created_at ASC",
+      [id]
+    );
+    const tests = await pool.query(
+      `SELECT lab_order_id, code, name FROM lab_order_tests
+        WHERE lab_order_id = ANY($1::uuid[])`,
+      [orders.rows.map((o) => o.id)]
+    );
 
-      const ordersRes = await client.query(
-        "SELECT * FROM lab_orders WHERE consultation_id = $1 ORDER BY created_at ASC",
-        [id]
-      );
-
-      const orders = [];
-      for (const order of ordersRes.rows) {
-        const testsRes = await client.query(
-          "SELECT code, name FROM lab_order_tests WHERE lab_order_id = $1",
-          [order.id]
-        );
-
-        orders.push({
-          id: order.id,
-          consultationId: order.consultation_id,
-          patientId: order.patient_id,
-          doctorId: order.doctor_id,
-          priority: order.priority,
-          tests: testsRes.rows.map((t) => ({ code: t.code, name: t.name })),
-          status: order.status,
-          createdAt: new Date(order.created_at).toISOString()
-        });
-      }
-
-      res.status(200).json(orders);
-    } finally {
-      client.release();
-    }
+    res.status(200).json(
+      orders.rows.map((order) => ({
+        id: order.id,
+        consultationId: order.consultation_id,
+        patientId: order.patient_id,
+        doctorId: order.doctor_id,
+        priority: order.priority,
+        tests: tests.rows
+          .filter((t) => t.lab_order_id === order.id)
+          .map((t) => ({ code: t.code, name: t.name })),
+        status: order.status,
+        createdAt: new Date(order.created_at).toISOString()
+      }))
+    );
   }
 );
 
@@ -93,113 +74,53 @@ labRouter.post(
   authenticateToken,
   requireDoctorWithStaffId,
   async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const client = await pool.connect();
-    try {
-      // 1. Check consultation exists
-      const consultRes = await client.query(
-        "SELECT patient_id, doctor_id FROM consultations WHERE id = $1",
-        [id]
-      );
+    const id = uuidParam(req.params.id as string, "Consultation");
+    const consultation = await pool.query(
+      "SELECT patient_id, doctor_id FROM consultations WHERE id = $1",
+      [id]
+    );
+    if (consultation.rows.length === 0) throw notFound("Consultation not found");
 
-      if (consultRes.rows.length === 0) {
-        res.status(404).json({
-          timestamp: new Date().toISOString(),
-          status: 404,
-          error: "Not Found",
-          message: "Consultation not found",
-          path: req.originalUrl || req.url,
-          correlationId: req.correlationId
-        });
-        return;
-      }
+    const { patient_id: patientId, doctor_id: ownerId } = consultation.rows[0];
+    const doctorId = req.user!.staffId!;
+    if (ownerId !== doctorId) {
+      throw forbidden("You can only order lab tests for your own consultations");
+    }
 
-      const consultation = consultRes.rows[0];
-
-      // Must be own doctor
-      if (consultation.doctor_id !== req.user!.staffId) {
-        res.status(403).json({
-          timestamp: new Date().toISOString(),
-          status: 403,
-          error: "Forbidden",
-          message: "You can only order lab tests for your own consultations",
-          path: req.originalUrl || req.url,
-          correlationId: req.correlationId
-        });
-        return;
-      }
-
-      // 2. Validate input
-      const parseResult = LabOrderInputSchema.safeParse(req.body);
-      if (!parseResult.success) {
-        const details = parseResult.error.issues.map((err) => ({
-          field: err.path.join("."),
-          problem: err.message
-        }));
-        res.status(422).json({
-          timestamp: new Date().toISOString(),
-          status: 422,
-          error: "Unprocessable Entity",
-          message: "Validation failed",
-          path: req.originalUrl || req.url,
-          correlationId: req.correlationId,
-          details
-        });
-        return;
-      }
-
-      const { priority, tests } = parseResult.data;
-      const labOrderId = crypto.randomUUID();
-      const now = new Date().toISOString();
-
-      await client.query("BEGIN");
-
-      await client.query(
+    const { priority, tests } = parseOrThrow(LabOrderInputSchema, req.body);
+    const labOrderId = crypto.randomUUID();
+    const createdAt = await withTransaction(async (client) => {
+      const inserted = await client.query(
         `INSERT INTO lab_orders (id, consultation_id, patient_id, doctor_id, priority, status, created_at)
-         VALUES ($1, $2, $3, $4, $5, 'REQUESTED', $6)`,
-        [labOrderId, id, consultation.patient_id, req.user!.staffId, priority, now]
+         VALUES ($1, $2, $3, $4, $5, 'REQUESTED', now())
+         RETURNING created_at`,
+        [labOrderId, id, patientId, doctorId, priority]
       );
-
-      for (const t of tests) {
+      for (const test of tests) {
         await client.query(
-          `INSERT INTO lab_order_tests (id, lab_order_id, code, name)
-           VALUES ($1, $2, $3, $4)`,
-          [crypto.randomUUID(), labOrderId, t.code, t.name]
+          `INSERT INTO lab_order_tests (id, lab_order_id, code, name) VALUES ($1, $2, $3, $4)`,
+          [crypto.randomUUID(), labOrderId, test.code, test.name]
         );
       }
+      return new Date(inserted.rows[0].created_at).toISOString();
+    });
 
-      await client.query("COMMIT");
+    publishEventAsync(
+      "lab.request.created",
+      { labRequestId: labOrderId, consultationId: id, patientId, doctorId, priority, tests },
+      req.correlationId
+    );
 
-      // Publish event asynchronously after commit (CON-6)
-      publishEventAsync(
-        "lab.request.created",
-        {
-          labRequestId: labOrderId,
-          consultationId: id,
-          patientId: consultation.patient_id,
-          doctorId: req.user!.staffId,
-          priority,
-          tests
-        },
-        req.correlationId
-      );
-
-      res.status(201).json({
-        id: labOrderId,
-        consultationId: id,
-        patientId: consultation.patient_id,
-        doctorId: req.user!.staffId,
-        priority,
-        tests,
-        status: "REQUESTED",
-        createdAt: now
-      });
-    } catch (err) {
-      await client.query("ROLLBACK");
-      throw err;
-    } finally {
-      client.release();
-    }
+    res.status(201).json({
+      id: labOrderId,
+      consultationId: id,
+      patientId,
+      doctorId,
+      priority,
+      tests,
+      status: "REQUESTED",
+      createdAt
+    });
   }
 );
 
@@ -209,57 +130,32 @@ labRouter.get(
   authenticateToken,
   requireRoles("DOCTOR", "NURSE", "ADMIN", "PATIENT"),
   async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const client = await pool.connect();
-    try {
-      const consultRes = await client.query(
-        "SELECT patient_id FROM consultations WHERE id = $1",
-        [id]
-      );
+    const id = uuidParam(req.params.id as string, "Consultation");
+    const consultation = await pool.query(
+      "SELECT patient_id FROM consultations WHERE id = $1",
+      [id]
+    );
+    if (consultation.rows.length === 0) throw notFound("Consultation not found");
 
-      if (consultRes.rows.length === 0) {
-        res.status(404).json({
-          timestamp: new Date().toISOString(),
-          status: 404,
-          error: "Not Found",
-          message: "Consultation not found",
-          path: req.originalUrl || req.url,
-          correlationId: req.correlationId
-        });
-        return;
-      }
+    if (
+      req.user!.roles.includes("PATIENT") &&
+      consultation.rows[0].patient_id !== req.user!.patientId
+    ) {
+      throw forbidden();
+    }
 
-      if (
-        req.user?.roles.includes("PATIENT") &&
-        consultRes.rows[0].patient_id !== req.user.patientId
-      ) {
-        res.status(403).json({
-          timestamp: new Date().toISOString(),
-          status: 403,
-          error: "Forbidden",
-          message: "Your role is not allowed to do this",
-          path: req.originalUrl || req.url,
-          correlationId: req.correlationId
-        });
-        return;
-      }
-
-      const resultsRes = await client.query(
-        "SELECT * FROM lab_result_copies WHERE consultation_id = $1 ORDER BY validated_at ASC",
-        [id]
-      );
-
-      const copies = resultsRes.rows.map((row) => ({
+    const copies = await pool.query(
+      "SELECT * FROM lab_result_copies WHERE consultation_id = $1 ORDER BY validated_at ASC",
+      [id]
+    );
+    res.status(200).json(
+      copies.rows.map((row) => ({
         labRequestId: row.lab_request_id,
         consultationId: row.consultation_id,
         patientId: row.patient_id,
         results: row.results,
         validatedAt: new Date(row.validated_at).toISOString()
-      }));
-
-      res.status(200).json(copies);
-    } finally {
-      client.release();
-    }
+      }))
+    );
   }
 );

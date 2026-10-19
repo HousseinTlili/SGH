@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { config } from "../config/index.js";
+import { unauthorized } from "../http/errors.js";
 
 const SGH_ROLES = [
   "PATIENT",
@@ -46,14 +47,7 @@ export async function authenticateToken(
 ): Promise<void> {
   const authHeader = req.header("Authorization");
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    res.status(401).json({
-      timestamp: new Date().toISOString(),
-      status: 401,
-      error: "Unauthorized",
-      message: "Missing or invalid token",
-      path: req.originalUrl || req.url,
-      correlationId: req.correlationId
-    });
+    next(unauthorized());
     return;
   }
 
@@ -86,15 +80,7 @@ export async function authenticateToken(
     };
 
     next();
-  } catch (err) {
-    res.status(401).json({
-      timestamp: new Date().toISOString(),
-      status: 401,
-      error: "Unauthorized",
-      message: "Missing or invalid token",
-      path: req.originalUrl || req.url,
-      correlationId: req.correlationId
-    });
-    return;
+  } catch {
+    next(unauthorized());
   }
 }

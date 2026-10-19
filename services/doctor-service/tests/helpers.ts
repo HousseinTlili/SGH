@@ -2,6 +2,7 @@ import { config } from "../src/config/index.js";
 import { runMigrations } from "../src/db/migrate.js";
 import { runSeed } from "../src/db/seed.js";
 import { pool, setDatabaseReady } from "../src/db/pool.js";
+import { signToken } from "./fake-idp.js";
 
 const tokenCache = new Map<string, string>();
 
@@ -11,6 +12,12 @@ export async function getToken(
 ): Promise<string> {
   const cached = tokenCache.get(username);
   if (cached) return cached;
+
+  if (!process.env.TEST_KEYCLOAK) {
+    const token = await signToken(username);
+    tokenCache.set(username, token);
+    return token;
+  }
 
   const res = await fetch(
     `${config.keycloakIssuer}/protocol/openid-connect/token`,

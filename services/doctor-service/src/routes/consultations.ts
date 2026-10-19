@@ -4,11 +4,37 @@ import { z } from "zod";
 import { authenticateToken } from "../auth/jwt.js";
 import { requireRoles, requireDoctorWithStaffId } from "../auth/roles.js";
 import { pool } from "../db/pool.js";
+import {
+  conflict,
+  forbidden,
+  notFound,
+  pageOf,
+  parseOrThrow,
+  parsePaging,
+  uuidParam,
+  validationFailed
+} from "../http/errors.js";
 import { fetchPatientSummary } from "../services/patientClient.js";
 
 export const consultationsRouter = Router();
 
-function formatConsultation(row: any) {
+interface ConsultationRow {
+  id: string;
+  appointment_id: string | null;
+  patient_id: string;
+  patient_snapshot: unknown;
+  doctor_id: string;
+  subjective: string | null;
+  objective: string | null;
+  assessment: string | null;
+  plan: string | null;
+  status: "DRAFT" | "SIGNED";
+  signed_at: Date | null;
+  created_at: Date;
+  updated_at: Date;
+}
+
+function formatConsultation(row: ConsultationRow) {
   return {
     id: row.id,
     appointmentId: row.appointment_id || null,
@@ -26,82 +52,62 @@ function formatConsultation(row: any) {
   };
 }
 
-// GET /api/consultations
+const ListQuerySchema = z.object({
+  patientId: z.string().uuid("patientId must be a valid UUID").optional(),
+  doctorId: z.string().uuid("doctorId must be a valid UUID").optional(),
+  status: z.enum(["DRAFT", "SIGNED"]).optional()
+});
+
+// GET /api/consultations (CON-9)
 consultationsRouter.get(
   "/api/consultations",
   authenticateToken,
   requireRoles("DOCTOR", "NURSE", "ADMIN", "PATIENT"),
   async (req: Request, res: Response) => {
-    const isPatient = req.user?.roles.includes("PATIENT");
-    let patientId = req.query.patientId as string | undefined;
+    const filters = parseOrThrow(ListQuerySchema, {
+      patientId: req.query.patientId,
+      doctorId: req.query.doctorId,
+      status: req.query.status
+    });
 
-    if (isPatient) {
-      if (patientId && patientId !== req.user?.patientId) {
-        res.status(403).json({
-          timestamp: new Date().toISOString(),
-          status: 403,
-          error: "Forbidden",
-          message: "Patients may only access their own consultations",
-          path: req.originalUrl || req.url,
-          correlationId: req.correlationId
-        });
-        return;
+    let { patientId } = filters;
+    if (req.user!.roles.includes("PATIENT")) {
+      if (patientId && patientId !== req.user!.patientId) {
+        throw forbidden("Patients may only access their own consultations");
       }
-      patientId = req.user?.patientId || undefined;
+      patientId = req.user!.patientId ?? undefined;
     }
-
-    const doctorId = req.query.doctorId as string | undefined;
-    const status = req.query.status as string | undefined;
-
-    const page = Math.max(0, parseInt((req.query.page as string) || "0", 10));
-    const size = Math.min(
-      100,
-      Math.max(1, parseInt((req.query.size as string) || "20", 10))
-    );
-    const offset = page * size;
 
     const conditions: string[] = [];
-    const values: any[] = [];
-    let idx = 1;
-
+    const values: unknown[] = [];
     if (patientId) {
-      conditions.push(`patient_id = $${idx++}`);
       values.push(patientId);
+      conditions.push(`patient_id = $${values.length}`);
     }
-    if (doctorId) {
-      conditions.push(`doctor_id = $${idx++}`);
-      values.push(doctorId);
+    if (filters.doctorId) {
+      values.push(filters.doctorId);
+      conditions.push(`doctor_id = $${values.length}`);
     }
-    if (status) {
-      conditions.push(`status = $${idx++}`);
-      values.push(status);
+    if (filters.status) {
+      values.push(filters.status);
+      conditions.push(`status = $${values.length}`);
     }
+    const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
-    const whereClause =
-      conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    const paging = parsePaging(req.query);
+    const count = await pool.query(
+      `SELECT COUNT(*)::int AS total FROM consultations ${where}`,
+      values
+    );
+    const data = await pool.query<ConsultationRow>(
+      `SELECT * FROM consultations ${where} ORDER BY created_at DESC
+       LIMIT $${values.length + 1} OFFSET $${values.length + 2}`,
+      [...values, paging.size, paging.offset]
+    );
 
-    const countQuery = `SELECT COUNT(*) AS total FROM consultations ${whereClause}`;
-    const dataQuery = `SELECT * FROM consultations ${whereClause} ORDER BY created_at DESC LIMIT $${idx++} OFFSET $${idx++}`;
-
-    const client = await pool.connect();
-    try {
-      const countRes = await client.query(countQuery, values);
-      const totalElements = parseInt(countRes.rows[0].total, 10);
-      const totalPages = Math.ceil(totalElements / size);
-
-      const dataRes = await client.query(dataQuery, [...values, size, offset]);
-      const content = dataRes.rows.map(formatConsultation);
-
-      res.status(200).json({
-        content,
-        page,
-        size,
-        totalElements,
-        totalPages
-      });
-    } finally {
-      client.release();
-    }
+    res
+      .status(200)
+      .json(pageOf(data.rows.map(formatConsultation), count.rows[0].total, paging));
   }
 );
 
@@ -114,90 +120,46 @@ const CreateConsultationSchema = z.object({
   plan: z.string().max(4000).nullable().optional()
 });
 
-// POST /api/consultations
+// POST /api/consultations (CON-1, CON-2)
 consultationsRouter.post(
   "/api/consultations",
   authenticateToken,
   requireDoctorWithStaffId,
   async (req: Request, res: Response) => {
-    const parseResult = CreateConsultationSchema.safeParse(req.body);
-    if (!parseResult.success) {
-      const details = parseResult.error.issues.map((err) => ({
-        field: err.path.join("."),
-        problem: err.message
-      }));
-      res.status(422).json({
-        timestamp: new Date().toISOString(),
-        status: 422,
-        error: "Unprocessable Entity",
-        message: "Validation failed",
-        path: req.originalUrl || req.url,
-        correlationId: req.correlationId,
-        details
-      });
-      return;
-    }
+    const body = parseOrThrow(CreateConsultationSchema, req.body);
 
-    const { patientId, appointmentId, subjective, objective, assessment, plan } =
-      parseResult.data;
-
-    // Call Patient service (CON-1, CON-2)
     const patientLookup = await fetchPatientSummary(
-      patientId,
+      body.patientId,
       req.token,
       req.correlationId
     );
-
-    if ("notFound" in patientLookup && patientLookup.notFound) {
-      res.status(422).json({
-        timestamp: new Date().toISOString(),
-        status: 422,
-        error: "Unprocessable Entity",
-        message: "Validation failed",
-        path: req.originalUrl || req.url,
-        correlationId: req.correlationId,
-        details: [{ field: "patientId", problem: "Patient not found" }]
-      });
-      return;
+    if ("notFound" in patientLookup) {
+      throw validationFailed([{ field: "patientId", problem: "Patient not found" }]);
     }
-
-    const patientSnapshot =
-      "snapshot" in patientLookup && patientLookup.snapshot
-        ? patientLookup.snapshot
-        : null;
+    const patientSnapshot = "success" in patientLookup ? patientLookup.snapshot : null;
 
     const id = crypto.randomUUID();
-    const doctorId = req.user!.staffId!;
-    const now = new Date().toISOString();
-
-    const client = await pool.connect();
-    try {
-      const insertQuery = `
-        INSERT INTO consultations (
-          id, appointment_id, patient_id, patient_snapshot, doctor_id,
-          subjective, objective, assessment, plan, status, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'DRAFT', $10, $10)
-        RETURNING *
-      `;
-      const result = await client.query(insertQuery, [
+    const result = await pool.query<ConsultationRow>(
+      `INSERT INTO consultations (
+         id, appointment_id, patient_id, patient_snapshot, doctor_id,
+         subjective, objective, assessment, plan, status, created_at, updated_at
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'DRAFT', now(), now())
+       RETURNING *`,
+      [
         id,
-        appointmentId || null,
-        patientId,
+        body.appointmentId || null,
+        body.patientId,
         patientSnapshot ? JSON.stringify(patientSnapshot) : null,
-        doctorId,
-        subjective || null,
-        objective || null,
-        assessment || null,
-        plan || null,
-        now
-      ]);
+        req.user!.staffId,
+        body.subjective || null,
+        body.objective || null,
+        body.assessment || null,
+        body.plan || null
+      ]
+    );
 
-      const created = formatConsultation(result.rows[0]);
-      res.setHeader("Location", `/api/consultations/${id}`);
-      res.status(201).json(created);
-    } finally {
-      client.release();
-    }
+    res.setHeader("Location", `/api/consultations/${id}`);
+    res.status(201).json(formatConsultation(result.rows[0]));
   }
 );
 
@@ -207,45 +169,21 @@ consultationsRouter.get(
   authenticateToken,
   requireRoles("DOCTOR", "NURSE", "ADMIN", "PATIENT"),
   async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const client = await pool.connect();
-    try {
-      const result = await client.query(
-        "SELECT * FROM consultations WHERE id = $1",
-        [id]
-      );
-      if (result.rows.length === 0) {
-        res.status(404).json({
-          timestamp: new Date().toISOString(),
-          status: 404,
-          error: "Not Found",
-          message: "Consultation not found",
-          path: req.originalUrl || req.url,
-          correlationId: req.correlationId
-        });
-        return;
-      }
+    const id = uuidParam(req.params.id as string, "Consultation");
+    const result = await pool.query<ConsultationRow>(
+      "SELECT * FROM consultations WHERE id = $1",
+      [id]
+    );
+    if (result.rows.length === 0) throw notFound("Consultation not found");
 
-      const consultation = result.rows[0];
-      if (
-        req.user?.roles.includes("PATIENT") &&
-        consultation.patient_id !== req.user.patientId
-      ) {
-        res.status(403).json({
-          timestamp: new Date().toISOString(),
-          status: 403,
-          error: "Forbidden",
-          message: "Your role is not allowed to do this",
-          path: req.originalUrl || req.url,
-          correlationId: req.correlationId
-        });
-        return;
-      }
-
-      res.status(200).json(formatConsultation(consultation));
-    } finally {
-      client.release();
+    const consultation = result.rows[0];
+    if (
+      req.user!.roles.includes("PATIENT") &&
+      consultation.patient_id !== req.user!.patientId
+    ) {
+      throw forbidden();
     }
+    res.status(200).json(formatConsultation(consultation));
   }
 );
 
@@ -262,93 +200,37 @@ consultationsRouter.put(
   authenticateToken,
   requireDoctorWithStaffId,
   async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const client = await pool.connect();
-    try {
-      const findRes = await client.query(
-        "SELECT * FROM consultations WHERE id = $1",
-        [id]
-      );
+    const id = uuidParam(req.params.id as string, "Consultation");
+    const found = await pool.query<ConsultationRow>(
+      "SELECT * FROM consultations WHERE id = $1",
+      [id]
+    );
+    if (found.rows.length === 0) throw notFound("Consultation not found");
 
-      if (findRes.rows.length === 0) {
-        res.status(404).json({
-          timestamp: new Date().toISOString(),
-          status: 404,
-          error: "Not Found",
-          message: "Consultation not found",
-          path: req.originalUrl || req.url,
-          correlationId: req.correlationId
-        });
-        return;
-      }
-
-      const existing = findRes.rows[0];
-
-      // Must be own doctor
-      if (existing.doctor_id !== req.user!.staffId) {
-        res.status(403).json({
-          timestamp: new Date().toISOString(),
-          status: 403,
-          error: "Forbidden",
-          message: "You can only edit your own consultations",
-          path: req.originalUrl || req.url,
-          correlationId: req.correlationId
-        });
-        return;
-      }
-
-      // Check not SIGNED (CON-3)
-      if (existing.status === "SIGNED") {
-        res.status(409).json({
-          timestamp: new Date().toISOString(),
-          status: 409,
-          error: "Conflict",
-          message: "This consultation is already signed",
-          path: req.originalUrl || req.url,
-          correlationId: req.correlationId
-        });
-        return;
-      }
-
-      const parseResult = UpdateConsultationSchema.safeParse(req.body);
-      if (!parseResult.success) {
-        const details = parseResult.error.issues.map((err) => ({
-          field: err.path.join("."),
-          problem: err.message
-        }));
-        res.status(422).json({
-          timestamp: new Date().toISOString(),
-          status: 422,
-          error: "Unprocessable Entity",
-          message: "Validation failed",
-          path: req.originalUrl || req.url,
-          correlationId: req.correlationId,
-          details
-        });
-        return;
-      }
-
-      const updates = parseResult.data;
-      const subjective =
-        updates.subjective !== undefined ? updates.subjective : existing.subjective;
-      const objective =
-        updates.objective !== undefined ? updates.objective : existing.objective;
-      const assessment =
-        updates.assessment !== undefined ? updates.assessment : existing.assessment;
-      const plan = updates.plan !== undefined ? updates.plan : existing.plan;
-      const now = new Date().toISOString();
-
-      const updateRes = await client.query(
-        `UPDATE consultations SET
-          subjective = $1, objective = $2, assessment = $3, plan = $4, updated_at = $5
-         WHERE id = $6 RETURNING *`,
-        [subjective, objective, assessment, plan, now, id]
-      );
-
-      res.status(200).json(formatConsultation(updateRes.rows[0]));
-    } finally {
-      client.release();
+    const existing = found.rows[0];
+    if (existing.doctor_id !== req.user!.staffId) {
+      throw forbidden("You can only edit your own consultations");
     }
+    if (existing.status === "SIGNED") {
+      throw conflict("This consultation is already signed");
+    }
+
+    const updates = parseOrThrow(UpdateConsultationSchema, req.body);
+    // Partial update: a field that is absent keeps its value, an explicit null clears it.
+    const pick = <K extends keyof typeof updates>(key: K) =>
+      updates[key] !== undefined ? updates[key] : existing[key];
+
+    // The status guard in the WHERE clause closes the race with a concurrent sign.
+    const updated = await pool.query<ConsultationRow>(
+      `UPDATE consultations
+          SET subjective = $1, objective = $2, assessment = $3, plan = $4, updated_at = now()
+        WHERE id = $5 AND status = 'DRAFT'
+        RETURNING *`,
+      [pick("subjective"), pick("objective"), pick("assessment"), pick("plan"), id]
+    );
+    if (updated.rows.length === 0) throw conflict("This consultation is already signed");
+
+    res.status(200).json(formatConsultation(updated.rows[0]));
   }
 );
 
@@ -358,86 +240,35 @@ consultationsRouter.post(
   authenticateToken,
   requireDoctorWithStaffId,
   async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const client = await pool.connect();
-    try {
-      const findRes = await client.query(
-        "SELECT * FROM consultations WHERE id = $1",
-        [id]
-      );
+    const id = uuidParam(req.params.id as string, "Consultation");
+    const found = await pool.query<ConsultationRow>(
+      "SELECT * FROM consultations WHERE id = $1",
+      [id]
+    );
+    if (found.rows.length === 0) throw notFound("Consultation not found");
 
-      if (findRes.rows.length === 0) {
-        res.status(404).json({
-          timestamp: new Date().toISOString(),
-          status: 404,
-          error: "Not Found",
-          message: "Consultation not found",
-          path: req.originalUrl || req.url,
-          correlationId: req.correlationId
-        });
-        return;
-      }
-
-      const existing = findRes.rows[0];
-
-      // Must be own doctor
-      if (existing.doctor_id !== req.user!.staffId) {
-        res.status(403).json({
-          timestamp: new Date().toISOString(),
-          status: 403,
-          error: "Forbidden",
-          message: "You can only sign your own consultations",
-          path: req.originalUrl || req.url,
-          correlationId: req.correlationId
-        });
-        return;
-      }
-
-      // Already signed
-      if (existing.status === "SIGNED") {
-        res.status(409).json({
-          timestamp: new Date().toISOString(),
-          status: 409,
-          error: "Conflict",
-          message: "This consultation is already signed",
-          path: req.originalUrl || req.url,
-          correlationId: req.correlationId
-        });
-        return;
-      }
-
-      // Assessment and plan must not be blank
-      const errors: Array<{ field: string; problem: string }> = [];
-      if (!existing.assessment || existing.assessment.trim() === "") {
-        errors.push({ field: "assessment", problem: "must not be blank" });
-      }
-      if (!existing.plan || existing.plan.trim() === "") {
-        errors.push({ field: "plan", problem: "must not be blank" });
-      }
-
-      if (errors.length > 0) {
-        res.status(422).json({
-          timestamp: new Date().toISOString(),
-          status: 422,
-          error: "Unprocessable Entity",
-          message: "Validation failed",
-          path: req.originalUrl || req.url,
-          correlationId: req.correlationId,
-          details: errors
-        });
-        return;
-      }
-
-      const now = new Date().toISOString();
-      const updateRes = await client.query(
-        `UPDATE consultations SET status = 'SIGNED', signed_at = $1, updated_at = $1
-         WHERE id = $2 RETURNING *`,
-        [now, id]
-      );
-
-      res.status(200).json(formatConsultation(updateRes.rows[0]));
-    } finally {
-      client.release();
+    const existing = found.rows[0];
+    if (existing.doctor_id !== req.user!.staffId) {
+      throw forbidden("You can only sign your own consultations");
     }
+    if (existing.status === "SIGNED") {
+      throw conflict("This consultation is already signed");
+    }
+
+    const problems = (["assessment", "plan"] as const)
+      .filter((field) => !existing[field] || existing[field]!.trim() === "")
+      .map((field) => ({ field, problem: "must not be blank" }));
+    if (problems.length > 0) throw validationFailed(problems);
+
+    const signed = await pool.query<ConsultationRow>(
+      `UPDATE consultations
+          SET status = 'SIGNED', signed_at = now(), updated_at = now()
+        WHERE id = $1 AND status = 'DRAFT'
+        RETURNING *`,
+      [id]
+    );
+    if (signed.rows.length === 0) throw conflict("This consultation is already signed");
+
+    res.status(200).json(formatConsultation(signed.rows[0]));
   }
 );
