@@ -193,6 +193,12 @@ describe("lab.result.ready consumer", () => {
   let labOrderId: string;
 
   const fakeChannel = () => ({ ack: vi.fn(), nack: vi.fn() });
+  const runMessage = async (body: unknown) => {
+    const ch = fakeChannel();
+    const msg = asMessage(body);
+    await onMessage(ch as unknown as Channel, msg);
+    return { ch, msg };
+  };
   const asMessage = (body: unknown) =>
     ({ content: Buffer.from(typeof body === "string" ? body : JSON.stringify(body)) }) as ConsumeMessage;
 
@@ -259,14 +265,28 @@ describe("lab.result.ready consumer", () => {
 
   it.each([
     ["is not JSON", "{{{"],
-    ["fails schema validation", envelope(crypto.randomUUID(), { results: [] })],
-    ["points to an unknown consultation", envelope(crypto.randomUUID(), { consultationId: crypto.randomUUID() })]
+    ["fails schema validation", envelope(crypto.randomUUID(), { results: [] })]
   ])("dead-letters a message that %s", async (_label, body) => {
     const ch = fakeChannel();
     const msg = asMessage(body);
     await onMessage(ch as unknown as Channel, msg);
     expect(ch.nack).toHaveBeenCalledWith(msg, false, false);
     expect(ch.ack).not.toHaveBeenCalled();
+  });
+
+  it("acks a result for an unknown lab order without storing anything (CON-7)", async () => {
+    const unknown = crypto.randomUUID();
+    const { ch, msg } = await runMessage(envelope(crypto.randomUUID(), { labRequestId: unknown }));
+    expect(ch.ack).toHaveBeenCalledWith(msg);
+    const copies = await pool.query("SELECT 1 FROM lab_result_copies WHERE lab_request_id = $1", [unknown]);
+    expect(copies.rowCount).toBe(0);
+  });
+
+  it("takes the consultation from the order, not from the event", async () => {
+    const { ch } = await runMessage(envelope(crypto.randomUUID(), { consultationId: crypto.randomUUID() }));
+    expect(ch.ack).toHaveBeenCalled();
+    const copy = await pool.query("SELECT consultation_id FROM lab_result_copies WHERE lab_request_id = $1", [labOrderId]);
+    expect(copy.rows[0].consultation_id).toBe(SEEDED_CONSULTATION);
   });
 
   it("requeues instead of dead-lettering while the database is not ready", async () => {

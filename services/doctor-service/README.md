@@ -32,11 +32,11 @@ npm start
 
 | Dependency | Needed by | Behaviour when missing |
 |---|---|---|
-| PostgreSQL with database `sgh_consultation` (`docker compose -f ../../infra/docker-compose.yml up -d postgres`) | all tests | the suite fails |
+| PostgreSQL (`docker compose -f ../../infra/docker-compose.yml up -d postgres`) | all tests | the suite fails. The tests use their own database `sgh_consultation_test`, created on first run, and never touch `sgh_consultation` |
 | Keycloak | none by default | tests sign their own tokens with a local JWKS (`tests/fake-idp.ts`, claims mirror `infra/keycloak/sgh-realm.json`). Set `TEST_KEYCLOAK=1` to use the real realm instead |
 | RabbitMQ with `infra/rabbitmq/definitions.json` loaded | `tests/amqp.integration.test.ts` | those tests are skipped |
 
-The RabbitMQ tests check the published envelopes against `contracts/events/*.json`, delivery of events that were queued before the broker connection existed, idempotent consumption of `lab.result.ready`, and dead-lettering of a poison message.
+The RabbitMQ tests listen on throwaway queues, and the consumer test skips itself when a doctor-service is already consuming the queue. They check the published envelopes against `contracts/events/*.json`, delivery of events that were queued before the broker connection existed, idempotent consumption of `lab.result.ready`, and dead-lettering of a poison message.
 
 - **Health check**: `http://localhost:8083/health`
 - **Swagger UI**: `http://localhost:8083/docs`
@@ -52,7 +52,7 @@ The RabbitMQ tests check the published envelopes against `contracts/events/*.jso
 - **CON-4**: Sign and lock: own doctor signs when `assessment` and `plan` are present; already signed returns 409 Conflict.
 - **CON-5**: Prescriptions: 1 to 20 items issued on DRAFT or SIGNED; publishes `prescription.created` in background without delaying HTTP response.
 - **CON-6**: Lab orders: 1 to 10 unique tests; publishes `lab.request.created` in background.
-- **CON-7**: Lab results: consumes `lab.result.ready` idempotently via `processed_events`, stores validated results, and marks order as `VALIDATED`.
+- **CON-7**: Lab results: consumes `lab.result.ready` idempotently via `processed_events`, stores validated results (consultation taken from the order), and marks order as `VALIDATED`. A result for an unknown lab order is logged and acknowledged.
 - **CON-8**: Vital signs: NURSE and DOCTOR record measurements with `recordedBy` from token; validates range constraints and `diastolic < systolic`.
 - **CON-9**: Consultations list: paged newest first; PATIENT role restricted to own patient ID.
 - **CON-10**: PHARMACIST role restricted exclusively to `GET /api/consultations/{id}/prescriptions`.

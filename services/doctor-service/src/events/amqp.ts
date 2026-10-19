@@ -209,6 +209,13 @@ async function handleLabResultReady(
       return;
     }
 
+    // CON-7: the order is found by labRequestId; an unknown one is logged and acknowledged.
+    const order = await client.query("SELECT consultation_id FROM lab_orders WHERE id = $1", [data.labRequestId]);
+    if (order.rowCount === 0) {
+      logger.warn({ eventId: event.eventId, labRequestId: data.labRequestId }, "lab.result.ready for an unknown lab order, acknowledged");
+      return;
+    }
+
     await client.query(
       `INSERT INTO lab_result_copies (
          lab_request_id, consultation_id, patient_id, validated_by, validated_at, results
@@ -219,7 +226,7 @@ async function handleLabResultReady(
          results = EXCLUDED.results`,
       [
         data.labRequestId,
-        data.consultationId,
+        order.rows[0].consultation_id,
         data.patientId,
         data.validatedBy,
         data.validatedAt,
