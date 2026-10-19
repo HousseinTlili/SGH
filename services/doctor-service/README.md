@@ -15,6 +15,9 @@ Service 3 (Consultation) of the SGH Hospital Management System. Runs on port 808
 # Install dependencies
 npm install
 
+# Type-check the sources and the tests
+npm run typecheck
+
 # Run unit and integration tests (Vitest)
 npm test
 
@@ -24,6 +27,16 @@ npm run build
 # Start the service (runs migrations and seed on boot)
 npm start
 ```
+
+### Test prerequisites
+
+| Dependency | Needed by | Behaviour when missing |
+|---|---|---|
+| PostgreSQL with database `sgh_consultation` (`docker compose -f ../../infra/docker-compose.yml up -d postgres`) | all tests | the suite fails |
+| Keycloak | none by default | tests sign their own tokens with a local JWKS (`tests/fake-idp.ts`, claims mirror `infra/keycloak/sgh-realm.json`). Set `TEST_KEYCLOAK=1` to use the real realm instead |
+| RabbitMQ with `infra/rabbitmq/definitions.json` loaded | `tests/amqp.integration.test.ts` | those tests are skipped |
+
+The RabbitMQ tests check the published envelopes against `contracts/events/*.json`, delivery of events that were queued before the broker connection existed, idempotent consumption of `lab.result.ready`, and dead-lettering of a poison message.
 
 - **Health check**: `http://localhost:8083/health`
 - **Swagger UI**: `http://localhost:8083/docs`
@@ -59,3 +72,17 @@ npm start
 | `PATIENT_SERVICE_URL` | `http://localhost:8081` | Patient service base URL |
 | `HTTP_TIMEOUT_MS` | `2000` | Service-to-service call timeout |
 | `SEED` | `true` | Run idempotent seed on startup |
+| `AMQP_REQUEUE_DELAY_MS` | `2000` | Pause before a `lab.result.ready` message is requeued after a transient failure |
+| `LOG_LEVEL` | `info` | Pino log level |
+
+---
+
+## Messaging behaviour
+
+- **Publishing** (`lab.request.created`, `prescription.created`): the HTTP response never waits for the broker. Events are queued in memory right after the database commit and sent with publisher confirms. While the broker is unreachable they are retried with exponential backoff (1 s up to 30 s) for as long as the process lives, and delivered in order once it is back (buffer of 1000 events, oldest dropped first). They are not persisted, so a process that stops while the broker is down loses what it still holds; a transactional outbox is the production remedy.
+- **Consuming** (`lab.result.ready`): the message is acknowledged only after it is saved. A message that cannot be understood (not JSON, fails the schema, refers to an unknown consultation) is dead-lettered to `sgh.events.dlq`. A transient failure (database down, migrations not finished yet) requeues the message instead, so a valid result is never lost to an outage.
+- **Connection**: a single reconnect timer with backoff handles broker restarts; connection and channel errors are logged and never crash the process.
+
+## Error format
+
+Every error uses the shared body (`timestamp, status, error, message, path, correlationId, details?`). Malformed path ids answer `404`, malformed filters `422`, malformed JSON `400`, a database that disappears after startup `503 Database unavailable`. Unexpected failures answer `500 Internal server error` without exposing the cause, which is only written to the log.

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { authenticateToken } from "../auth/jwt.js";
 import { requireRoles } from "../auth/roles.js";
 import { pool } from "../db/pool.js";
+import { forbidden, isUuid, pageOf, parseOrThrow, parsePaging, validationFailed } from "../http/errors.js";
 
 export const vitalsRouter = Router();
 
@@ -70,68 +71,37 @@ vitalsRouter.post(
   authenticateToken,
   requireRoles("NURSE", "DOCTOR"),
   async (req: Request, res: Response) => {
-    if (!req.user?.staffId) {
-      res.status(403).json({
-        timestamp: new Date().toISOString(),
-        status: 403,
-        error: "Forbidden",
-        message: "Token missing staffId claim",
-        path: req.originalUrl || req.url,
-        correlationId: req.correlationId
-      });
-      return;
+    if (!req.user!.staffId) throw forbidden("Token missing staffId claim");
+
+    const data = parseOrThrow(VitalSignsInputSchema, req.body);
+    if (data.consultationId) {
+      const exists = await pool.query("SELECT 1 FROM consultations WHERE id = $1", [
+        data.consultationId
+      ]);
+      if (exists.rowCount === 0) {
+        throw validationFailed([{ field: "consultationId", problem: "Consultation not found" }]);
+      }
     }
-
-    const parseResult = VitalSignsInputSchema.safeParse(req.body);
-    if (!parseResult.success) {
-      const details = parseResult.error.issues.map((err) => ({
-        field: err.path.join("."),
-        problem: err.message
-      }));
-      res.status(422).json({
-        timestamp: new Date().toISOString(),
-        status: 422,
-        error: "Unprocessable Entity",
-        message: "Validation failed",
-        path: req.originalUrl || req.url,
-        correlationId: req.correlationId,
-        details
-      });
-      return;
-    }
-
-    const data = parseResult.data;
-    const id = crypto.randomUUID();
-    const recordedBy = req.user.staffId;
-    const now = new Date().toISOString();
-
-    const client = await pool.connect();
-    try {
-      const query = `
-        INSERT INTO vital_signs (
-          id, patient_id, consultation_id, recorded_by, temperature,
-          heart_rate, systolic, diastolic, spo2, weight, recorded_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-        RETURNING *
-      `;
-      const result = await client.query(query, [
-        id,
+    const result = await pool.query(
+      `INSERT INTO vital_signs (
+         id, patient_id, consultation_id, recorded_by, temperature,
+         heart_rate, systolic, diastolic, spo2, weight, recorded_at
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, now())
+       RETURNING *`,
+      [
+        crypto.randomUUID(),
         data.patientId,
         data.consultationId || null,
-        recordedBy,
+        req.user!.staffId,
         data.temperature ?? null,
         data.heartRate ?? null,
         data.systolic ?? null,
         data.diastolic ?? null,
         data.spo2 ?? null,
-        data.weight ?? null,
-        now
-      ]);
-
-      res.status(201).json(formatVitalSigns(result.rows[0]));
-    } finally {
-      client.release();
-    }
+        data.weight ?? null
+      ]
+    );
+    res.status(201).json(formatVitalSigns(result.rows[0]));
   }
 );
 
@@ -141,53 +111,34 @@ vitalsRouter.get(
   authenticateToken,
   requireRoles("NURSE", "DOCTOR", "ADMIN"),
   async (req: Request, res: Response) => {
-    const patientId = req.query.patientId as string | undefined;
-    const consultationId = req.query.consultationId as string | undefined;
-
-    const page = Math.max(0, parseInt((req.query.page as string) || "0", 10));
-    const size = Math.min(
-      100,
-      Math.max(1, parseInt((req.query.size as string) || "20", 10))
-    );
-    const offset = page * size;
+    const problems = (["patientId", "consultationId"] as const)
+      .filter((f) => req.query[f] !== undefined && !isUuid(req.query[f]))
+      .map((field) => ({ field, problem: `${field} must be a valid UUID` }));
+    if (problems.length > 0) throw validationFailed(problems);
 
     const conditions: string[] = [];
-    const values: any[] = [];
-    let idx = 1;
-
-    if (patientId) {
-      conditions.push(`patient_id = $${idx++}`);
-      values.push(patientId);
+    const values: unknown[] = [];
+    for (const [param, column] of [
+      ["patientId", "patient_id"],
+      ["consultationId", "consultation_id"]
+    ] as const) {
+      if (req.query[param]) {
+        values.push(req.query[param]);
+        conditions.push(`${column} = $${values.length}`);
+      }
     }
-    if (consultationId) {
-      conditions.push(`consultation_id = $${idx++}`);
-      values.push(consultationId);
-    }
+    const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
-    const whereClause =
-      conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-
-    const countQuery = `SELECT COUNT(*) AS total FROM vital_signs ${whereClause}`;
-    const dataQuery = `SELECT * FROM vital_signs ${whereClause} ORDER BY recorded_at DESC LIMIT $${idx++} OFFSET $${idx++}`;
-
-    const client = await pool.connect();
-    try {
-      const countRes = await client.query(countQuery, values);
-      const totalElements = parseInt(countRes.rows[0].total, 10);
-      const totalPages = Math.ceil(totalElements / size);
-
-      const dataRes = await client.query(dataQuery, [...values, size, offset]);
-      const content = dataRes.rows.map(formatVitalSigns);
-
-      res.status(200).json({
-        content,
-        page,
-        size,
-        totalElements,
-        totalPages
-      });
-    } finally {
-      client.release();
-    }
+    const paging = parsePaging(req.query);
+    const count = await pool.query(
+      `SELECT COUNT(*)::int AS total FROM vital_signs ${where}`,
+      values
+    );
+    const data = await pool.query(
+      `SELECT * FROM vital_signs ${where} ORDER BY recorded_at DESC
+       LIMIT $${values.length + 1} OFFSET $${values.length + 2}`,
+      [...values, paging.size, paging.offset]
+    );
+    res.status(200).json(pageOf(data.rows.map(formatVitalSigns), count.rows[0].total, paging));
   }
 );
