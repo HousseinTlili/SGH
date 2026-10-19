@@ -84,12 +84,12 @@ flowchart TB
     end
 
     subgraph Services ["Polyglot Microservices"]
-        S1["patient-service\nSpring Boot 4 (Port 8081)"]
-        S2["reception-service\nNestJS (Port 8082)"]
+        S1["patient-service\nSpring Boot 3.4 (Port 8081)"]
+        S2["reception-service\nExpress 5 + TS (Port 8082)"]
         S3["doctor-service\nExpress 5 + TS (Port 8083)"]
         S4["lab-service\nFastAPI (Port 8084)"]
         S5["pharmacy-service\nExpress 5 + TS (Port 8085)"]
-        S6["staff-service\nSpring Boot 4 (Port 8086)"]
+        S6["staff-service\nSpring Boot 3.4 (Port 8086)"]
     end
 
     subgraph Databases ["PostgreSQL 16 Databases"]
@@ -134,12 +134,12 @@ flowchart TB
 
 | Microservice | Folder | Port | Stack & Framework | Database | Key Responsibilities |
 |---|---|---|---|---|---|
-| **Patient Service** | `services/patient-service` | `8081` | Spring Boot 4, JDK 17, JPA, Flyway | `sgh_patient` | Patient master index, demographics, medical file notes, patient search. |
-| **Reception Service** | `services/reception-service` | `8082` | NestJS 12, TypeORM, `@nestjs/schedule` | `sgh_reception` | Appointment scheduling, slot availability, check-in, billing, invoices. |
+| **Patient Service** | `services/patient-service` | `8081` | Spring Boot 3.4, JDK 17, JPA, Flyway | `sgh_patient` | Patient master index, demographics, medical file notes, patient search. |
+| **Reception Service** | `services/reception-service` | `8082` | Express 5, TypeScript, `pg`, Zod, Pino, background jobs | `sgh_reception` | Appointment scheduling, slot availability, check-in, billing, invoices. |
 | **Doctor Service** | `services/doctor-service` | `8083` | Express 5, TypeScript, `pg`, Zod, Pino | `sgh_consultation` | SOAP consultations, signing/locking, vital signs, prescriptions, lab orders. |
 | **Lab Service** | `services/lab-service` | `8084` | FastAPI, Python 3.12, SQLAlchemy, Alembic | `sgh_lab` | Test catalogue, sample processing, automated flag computation, result validation. |
 | **Pharmacy Service** | `services/pharmacy-service` | `8085` | Express 5, TypeScript, `pg`, Zod, Pino | `sgh_pharmacy` | Drug catalog, inventory levels, low-stock alerts, atomic dispensing. |
-| **Staff Service** | `services/staff-service` | `8086` | Spring Boot 4, JDK 17, JPA, Flyway | `sgh_staff` | Staff directory, practitioner licensing, roles, department assignment. |
+| **Staff Service** | `services/staff-service` | `8086` | Spring Boot 3.4, JDK 17, JPA, Flyway | `sgh_staff` | Staff directory, practitioner licensing, roles, department assignment. |
 | **API Gateway** | `gateway` | `8080` | Spring Cloud Gateway WebFlux | *None* | Central ingress, reverse proxy, JWT token relay, CORS, correlation ID injection. |
 | **Frontend** | `frontend` | `4200` | Angular 22, Zoneless, Angular Material | *None* | Responsive clinical workstation, doctor/nurse/patient/admin dashboards. |
 
@@ -249,7 +249,7 @@ Authentication and role-based access control (RBAC) are centralized using **Keyc
 ├── frontend/                      # Angular 22 Zoneless SPA (Port 4200)
 ├── services/                      # Microservices source code
 │   ├── patient-service/           # Module 1 (Spring Boot - Port 8081)
-│   ├── reception-service/         # Module 2 (NestJS - Port 8082)
+│   ├── reception-service/         # Module 2 (Express TS - Port 8082)
 │   ├── doctor-service/            # Module 3 (Express TS - Port 8083)
 │   ├── lab-service/               # Module 4 (FastAPI - Port 8084)
 │   ├── pharmacy-service/          # Module 5 (Express TS - Port 8085)

@@ -24,20 +24,16 @@ export async function runSeed(): Promise<void> {
     const a4Start = new Date(twoDaysAgo.getTime() + 11 * 60 * 60 * 1000).toISOString();
     const a4End = new Date(twoDaysAgo.getTime() + 11.5 * 60 * 60 * 1000).toISOString();
 
-    const a5Start = new Date(tomorrow.getTime() + 14 * 60 * 60 * 1000).toISOString();
-    const a5End = new Date(tomorrow.getTime() + 14.5 * 60 * 60 * 1000).toISOString();
-
-    // Appointments (A1 - A5)
+    // Appointments (A1 - A4, exactly the Seed Data and Fixtures rows)
     await client.query(`
       INSERT INTO appointments (id, patient_id, patient_verified, doctor_id, start_at, end_at, reason, status, cancel_reason, created_at, updated_at)
       VALUES
         ('e5e5e5e5-0000-4000-8000-000000000001', 'a1a1a1a1-0000-4000-8000-000000000001', true, 'b2b2b2b2-0000-4000-8000-000000000001', $1, $2, 'Cardiology follow-up', 'SCHEDULED', NULL, now(), now()),
         ('e5e5e5e5-0000-4000-8000-000000000002', 'a1a1a1a1-0000-4000-8000-000000000002', true, 'b2b2b2b2-0000-4000-8000-000000000002', $3, $4, 'General check-up', 'SCHEDULED', NULL, now(), now()),
         ('e5e5e5e5-0000-4000-8000-000000000003', 'a1a1a1a1-0000-4000-8000-000000000003', true, 'b2b2b2b2-0000-4000-8000-000000000001', $5, $6, 'Chest discomfort', 'CHECKED_IN', NULL, now(), now()),
-        ('e5e5e5e5-0000-4000-8000-000000000004', 'a1a1a1a1-0000-4000-8000-000000000005', true, 'b2b2b2b2-0000-4000-8000-000000000002', $7, $8, 'Persistent cough', 'COMPLETED', NULL, now(), now()),
-        ('e5e5e5e5-0000-4000-8000-000000000005', 'a1a1a1a1-0000-4000-8000-000000000006', false, 'b2b2b2b2-0000-4000-8000-000000000001', $9, $10, 'Routine checkup', 'SCHEDULED', NULL, now(), now())
+        ('e5e5e5e5-0000-4000-8000-000000000004', 'a1a1a1a1-0000-4000-8000-000000000005', true, 'b2b2b2b2-0000-4000-8000-000000000002', $7, $8, 'Persistent cough', 'COMPLETED', NULL, now(), now())
       ON CONFLICT (id) DO NOTHING;
-    `, [a1Start, a1End, a2Start, a2End, a3Start, a3End, a4Start, a4End, a5Start, a5End]);
+    `, [a1Start, a1End, a2Start, a2End, a3Start, a3End, a4Start, a4End]);
 
     // Invoices (INV1, INV2)
     const inv1Lines = JSON.stringify([

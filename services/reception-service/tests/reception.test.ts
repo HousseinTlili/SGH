@@ -3,7 +3,6 @@ import request from "supertest";
 import { app } from "../src/app.js";
 import { setDatabaseReady, pool } from "../src/db/pool.js";
 import { setupTestDatabase, getToken } from "./helpers.js";
-import { runPatientReverificationJob, runMockRemindersJob } from "../src/services/verificationJob.js";
 
 describe("SGH Reception Service Tests", () => {
   let adminToken: string;
@@ -47,36 +46,6 @@ describe("SGH Reception Service Tests", () => {
       const res = await request(app).get("/docs/");
       expect(res.status).toBe(200);
       expect(res.text).toContain("swagger");
-    });
-  });
-
-  // ==========================================
-  // Group 2: Stub endpoint
-  // ==========================================
-  describe("Group 2: Stub ping endpoint", () => {
-    it("returns 401 without bearer token", async () => {
-      const res = await request(app).get("/api/_stub/ping");
-      expect(res.status).toBe(401);
-      expect(res.body.error).toBe("Unauthorized");
-    });
-
-    it("returns 403 for non-ADMIN user (reception1)", async () => {
-      const res = await request(app)
-        .get("/api/_stub/ping")
-        .set("Authorization", `Bearer ${receptionToken}`);
-      expect(res.status).toBe(403);
-      expect(res.body.error).toBe("Forbidden");
-    });
-
-    it("returns 200 for ADMIN with service name and username", async () => {
-      const res = await request(app)
-        .get("/api/_stub/ping")
-        .set("Authorization", `Bearer ${adminToken}`);
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual({
-        service: "reception",
-        user: "admin1"
-      });
     });
   });
 
@@ -218,11 +187,6 @@ describe("SGH Reception Service Tests", () => {
       expect(res.header.location).toBe(`/api/appointments/${res.body.id}`);
       expect(res.body.status).toBe("SCHEDULED");
       expect(typeof res.body.patientVerified).toBe("boolean");
-    });
-
-    it("patient reverification job runs and queries unverified appointments (REC-6)", async () => {
-      const count = await runPatientReverificationJob();
-      expect(typeof count).toBe("number");
     });
   });
 
@@ -414,8 +378,8 @@ describe("SGH Reception Service Tests", () => {
     it("cancels appointment and updates pending reminders to CANCELLED", async () => {
       // Insert a pending reminder for A2
       await pool.query(`
-        INSERT INTO reminders (id, appointment_id, remind_at, status)
-        VALUES (gen_random_uuid(), 'e5e5e5e5-0000-4000-8000-000000000002', now() + interval '1 hour', 'PENDING')
+        INSERT INTO reminders (id, appointment_id, channel, send_at, status)
+        VALUES (gen_random_uuid(), 'e5e5e5e5-0000-4000-8000-000000000002', 'SMS', now() + interval '1 hour', 'PENDING')
       `);
 
       const res = await request(app)
@@ -580,11 +544,6 @@ describe("SGH Reception Service Tests", () => {
         });
 
       expect(res.status).toBe(403);
-    });
-
-    it("mock reminders job creates reminders for upcoming appointments", async () => {
-      const count = await runMockRemindersJob();
-      expect(typeof count).toBe("number");
     });
   });
 });

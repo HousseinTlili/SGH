@@ -1,43 +1,64 @@
 import { Request, Response, NextFunction } from "express";
-import { ZodError } from "zod";
+import { ApiError, sendError } from "../http/errors.js";
 import { logger } from "./logger.js";
+
+// Connection-level failures from pg: the database went away after startup (X-8).
+const DB_DOWN_CODES = new Set(["ECONNREFUSED", "ECONNRESET", "ETIMEDOUT", "57P01", "57P02", "57P03"]);
+
+function isDatabaseDown(err: any): boolean {
+  return (
+    DB_DOWN_CODES.has(err?.code) ||
+    /timeout exceeded when trying to connect|Connection terminated|the database system is/i.test(
+      err?.message ?? ""
+    )
+  );
+}
+
+/** Unknown routes answer in the shared error body instead of Express' HTML page. */
+export function notFoundHandler(req: Request, res: Response): void {
+  sendError(req, res, new ApiError(404, `No route for ${req.method} ${req.path}`));
+}
 
 export function errorHandler(
   err: any,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ): void {
-  logger.error({ err, path: req.url, correlationId: req.correlationId }, "Request error");
-
-  if (err instanceof ZodError) {
-    const details = err.errors.map((e) => ({
-      field: e.path.join("."),
-      problem: e.message
-    }));
-
-    res.status(422).json({
-      timestamp: new Date().toISOString(),
-      status: 422,
-      error: "Unprocessable Entity",
-      message: "Validation failed",
-      path: req.originalUrl || req.url,
-      correlationId: req.correlationId,
-      details
-    });
+  if (err instanceof ApiError) {
+    sendError(req, res, err);
     return;
   }
 
-  const status = err.status || 500;
-  const message = err.message || "Internal server error";
+  // Body-parser failures (malformed JSON, payload too large) carry a 4xx status and a safe message.
+  if (err?.type === "entity.parse.failed") {
+    sendError(req, res, new ApiError(400, "Malformed JSON body"));
+    return;
+  }
+  if (err?.type === "entity.too.large") {
+    sendError(req, res, new ApiError(413, "Request body too large"));
+    return;
+  }
 
-  res.status(status).json({
-    timestamp: new Date().toISOString(),
-    status,
-    error: status === 404 ? "Not Found" : status === 409 ? "Conflict" : status === 403 ? "Forbidden" : status === 422 ? "Unprocessable Entity" : "Internal Server Error",
-    message,
-    path: req.originalUrl || req.url,
-    correlationId: req.correlationId,
-    details: err.details
-  });
+  // A foreign key that points nowhere is a client mistake, not a server fault.
+  if (err?.code === "23503") {
+    sendError(
+      req,
+      res,
+      new ApiError(422, "Validation failed", [
+        { field: "reference", problem: "refers to a resource that does not exist" }
+      ])
+    );
+    return;
+  }
+
+  if (isDatabaseDown(err)) {
+    logger.warn({ err, correlationId: req.correlationId }, "Database unavailable during request");
+    sendError(req, res, new ApiError(503, "Database unavailable"));
+    return;
+  }
+
+  // Never echo internal messages (SQL, stack details) to clients.
+  logger.error({ err, correlationId: req.correlationId }, "Unhandled error");
+  sendError(req, res, new ApiError(500, "Internal server error"));
 }

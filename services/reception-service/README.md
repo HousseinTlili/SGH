@@ -9,7 +9,7 @@ Service 2 of the SGH Hospital Management System (port 8082, database `sgh_recept
 - **Database**: PostgreSQL 16 (`sgh_reception`), raw `pg` pool with idempotent migrations and fixtures seeding
 - **Messaging**: RabbitMQ (`sgh.events` topic exchange, publishing `appointment.created` and `appointment.cancelled` asynchronously)
 - **Auth**: Keycloak JWT validation via remote JWKS (`jose`), role-based access control, confidential client credentials authentication for background verification job
-- **Testing**: Vitest 3 + Supertest (34 unit and integration tests)
+- **Testing**: Vitest 3 + Supertest (71 tests). They run against their own database `sgh_reception_test` (created on first run) with a local token signer and stub Patient/Staff/Keycloak endpoints, so only PostgreSQL is needed; the RabbitMQ test is skipped when no broker is running. `npm run typecheck` checks sources and tests.
 
 ## Implemented Business Rules
 
@@ -17,7 +17,8 @@ Service 2 of the SGH Hospital Management System (port 8082, database `sgh_recept
 - **REC-3**: Doctor overlap check against active appointments (`SCHEDULED`, `CHECKED_IN`) returning 409 Conflict.
 - **REC-4**: Appointment state machine transitions (`SCHEDULED` -> `CHECKED_IN` -> `COMPLETED`, `SCHEDULED` / `CHECKED_IN` -> `CANCELLED`).
 - **REC-5 / REC-6**: Patient lookup against Patient Service `/summary` with fallback to `patientVerified = false` on network outage; background reverification job every 60s using `sgh-reception-svc` client credentials.
-- **REC-7**: Doctor lookup against Staff Service `/public` with resilient fallback.
+- **REC-7**: Doctor lookup against Staff Service `/public`: an unknown doctor answers 422, an unreachable Staff service skips the check.
+- **REC-9**: Every 60 s (and once at startup) each SCHEDULED appointment starting within 24 h without reminders gets one SMS and one EMAIL reminder, logged as `REMINDER channel=SMS appointmentId=... patientId=... startAt=...` and marked SENT.
 - **REC-8 / REC-10**: Asynchronous publishing of `appointment.created` and `appointment.cancelled` events with DLX support; reminder cancellation on appointment cancel.
 - **REC-11 / REC-13**: Server-computed invoice total (`sum(quantity * unitPrice)`); payment without storing credit card details.
 - **REC-12**: Invoice state transitions (`PENDING` -> `PAID` or `CANCELLED`).
@@ -62,3 +63,11 @@ npm start
 # Run all 34 Vitest integration tests
 npm test
 ```
+
+## Errors, concurrency and upgrades
+
+- Shared error body for everything, including unknown routes (`404`). Wrong parameter types (non-UUID ids, bad filters, malformed JSON) answer `400`; missing or invalid fields `422`. A database lost after startup answers `503 Database unavailable`; unexpected failures answer `500` with a generic message.
+- Booking and moving an appointment take a per-doctor transaction lock around the overlap check (REC-3), and state changes (`check-in`, `complete`, `cancel`, invoice `pay`/`cancel`) are single conditional updates, so concurrent requests cannot both succeed.
+- Events are queued in memory right after the commit and sent with publisher confirms; while the broker is down they are retried with backoff and delivered when it returns (they are lost if the process stops in the meantime).
+- Schema changes are versioned SQL files in `migrations/`, applied at startup under an advisory lock (`npm run migrate:up` runs them alone). `002` converts the single never-sent reminders of the earlier job to the SMS/EMAIL model.
+- The `invoices.lines` column stores the lines as JSON rather than in an `invoice_lines` table; the API shape is the one in the contract.
