@@ -64,13 +64,15 @@ Laboratory service for managing clinical lab analysis requests, work queue prior
 
 ### 1. Run the service
 ```bash
-./.venv/bin/uvicorn app.main:app --port 8084
+python3 -m venv .venv && ./.venv/bin/pip install -r requirements.txt
+./.venv/bin/uvicorn app.main:app --port 8084     # migrates and seeds in the background
 ```
 
-### 2. Run the test suite (22 tests)
+### 2. Run the test suite (65 tests)
 ```bash
 ./.venv/bin/pytest
 ```
+Needs PostgreSQL (`docker compose -f ../../infra/docker-compose.yml up -d postgres`). The tests use their own database `sgh_lab_test` (created on first run), sign their tokens with a local RSA key served through a local JWKS endpoint (no Keycloak needed) and never touch `sgh_lab`. `tests/test_broker.py` talks to a real RabbitMQ (`infra/rabbitmq/definitions.json` loaded) and is skipped when none is running.
 
 ### 3. Check contract integrity
 ```bash
@@ -79,5 +81,24 @@ Laboratory service for managing clinical lab analysis requests, work queue prior
 
 ### 4. Interactive Docs & Health
 - **Health**: http://localhost:8084/health
-- **Swagger UI**: http://localhost:8084/docs
+- **Swagger UI**: http://localhost:8084/docs (served from bundled assets, works offline)
 - **OpenAPI JSON**: http://localhost:8084/openapi.json
+
+---
+
+## Security
+
+Tokens are verified with the Keycloak public keys (RS256 only), the issuer and the expiry; anything else, including an unsigned `alg: none` token, is answered `401 Missing or invalid token` without saying why. `start`, `results` and `validate` need a `staffId` claim (LAB-5), otherwise `403`.
+
+## Errors
+
+Shared error body for everything, including unknown routes (`404`). Wrong parameter types and malformed JSON answer `400`, field validation `422`, a database lost after startup `503 Database unavailable`, unexpected failures `500` with a generic message (the cause is only logged). `start`/`results`/`validate` lock the request row, so concurrent calls cannot both succeed.
+
+## Messaging
+
+- `lab.request.created` is validated against the event contract; an unreadable or invalid message goes to `sgh.events.dlq`, a message that arrives while the database is down or still migrating is requeued instead of lost.
+- `lab.result.ready` is queued right after the validation is committed and sent with publisher confirms; while the broker is down it is retried with backoff (1 to 30 s) for as long as the process lives. It is held in memory only, so it is lost if the process stops in the meantime.
+
+## Database
+
+Schema changes are Alembic migrations in `alembic/versions/` applied at startup (`alembic upgrade head` does the same from a shell). `0001` also adopts a database created by the earlier `create_all` start-up.

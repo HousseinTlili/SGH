@@ -1,164 +1,184 @@
 import asyncio
 import logging
+import os
+import time
 import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
+
+import swagger_ui_bundle
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from sqlalchemy.exc import SQLAlchemyError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
-from app.amqp import start_consumer
-from app.database import connect_and_init_db, db_ready
-from app.routers import docs, health, lab_requests, lab_results, stub, tests
+
+from app import database, events
+from app.routers import docs, health, lab_requests, lab_results, tests
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("lab-service")
 
+ERROR_TITLES = {
+    400: "Bad Request",
+    401: "Unauthorized",
+    403: "Forbidden",
+    404: "Not Found",
+    405: "Method Not Allowed",
+    409: "Conflict",
+    413: "Payload Too Large",
+    422: "Unprocessable Entity",
+    500: "Internal Server Error",
+    503: "Service Unavailable",
+}
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    import os
-    if os.getenv("TESTING") == "1":
-        yield
-        return
-    # Background database initialization and RabbitMQ consumer
-    db_task = asyncio.create_task(connect_and_init_db())
-    consumer_task = asyncio.create_task(start_consumer())
+    # X-6: the HTTP server starts first; the database and the broker are connected in the background.
+    tasks = []
+    if os.getenv("TESTING") != "1":
+        tasks = [
+            asyncio.create_task(database.connect_and_init_db()),
+            asyncio.create_task(events.consumer_loop()),
+            asyncio.create_task(events.publisher_loop()),
+        ]
     yield
-    db_task.cancel()
-    consumer_task.cancel()
+    for task in tasks:
+        task.cancel()
+    await asyncio.gather(*tasks, return_exceptions=True)
+    database.engine.dispose()
 
 
 app = FastAPI(
     title="SGH Lab service",
     version="1.0.0",
-    docs_url="/docs",
-    openapi_url=None,  # Handled by custom docs router returning contract openapi.yaml
-    lifespan=lifespan
+    docs_url=None,  # served by /docs below from local assets, not a CDN
+    redoc_url=None,
+    openapi_url=None,  # /openapi.json is the committed contract (routers/docs.py)
+    lifespan=lifespan,
 )
 
 
-class CorrelationIdMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        corr_id = request.headers.get("X-Correlation-Id")
-        if not corr_id:
-            corr_id = str(uuid.uuid4())[:8]
+def error_body(request: Request, status: int, message: str, details=None) -> dict:
+    body = {
+        "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "status": status,
+        "error": ERROR_TITLES.get(status, "Error"),
+        "message": message,
+        "path": request.url.path,
+        "correlationId": getattr(request.state, "correlation_id", "unknown"),
+    }
+    if details:
+        body["details"] = details
+    return body
 
-        request.state.correlation_id = corr_id
+
+class CorrelationIdMiddleware(BaseHTTPMiddleware):
+    """Reads or creates X-Correlation-Id and logs one line per request (method, path, status, duration, user)."""
+
+    async def dispatch(self, request: Request, call_next):
+        correlation_id = request.headers.get("X-Correlation-Id") or str(uuid.uuid4())[:8]
+        request.state.correlation_id = correlation_id
+        started = time.perf_counter()
         response = await call_next(request)
-        response.headers["X-Correlation-Id"] = corr_id
+        response.headers["X-Correlation-Id"] = correlation_id
+        logger.info(
+            "%s %s -> %d in %d ms correlationId=%s user=%s",
+            request.method,
+            request.url.path,
+            response.status_code,
+            (time.perf_counter() - started) * 1000,
+            correlation_id,
+            getattr(request.state, "username", "anonymous"),
+        )
         return response
 
 
 class DbReadyMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        from app.database import db_ready as is_ready
+    """X-8: data endpoints answer 503 until migrations and seed have run; /health and /docs never wait."""
 
-        # Allow /health, /docs, /openapi.json through unconditionally (Rule X-8)
-        path = request.url.path
-        if path.startswith("/api/") and not is_ready:
-            corr_id = getattr(request.state, "correlation_id", "unknown")
-            return JSONResponse(
-                status_code=503,
-                content={
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                    "status": 503,
-                    "error": "Service Unavailable",
-                    "message": "Database unavailable",
-                    "path": path,
-                    "correlationId": corr_id
-                }
-            )
+    async def dispatch(self, request: Request, call_next):
+        if request.url.path.startswith("/api/") and not database.db_ready:
+            return JSONResponse(status_code=503, content=error_body(request, 503, "Database unavailable"))
         return await call_next(request)
 
 
+# Added last = outermost: the correlation id exists before anything else runs.
 app.add_middleware(DbReadyMiddleware)
 app.add_middleware(CorrelationIdMiddleware)
 
 
-@app.exception_handler(HTTPException)
-async def http_exception_handler(request: Request, exc: HTTPException):
-    corr_id = getattr(request.state, "correlation_id", "unknown")
-    status_code = exc.status_code
-
-    error_titles = {
-        400: "Bad Request",
-        401: "Unauthorized",
-        403: "Forbidden",
-        404: "Not Found",
-        409: "Conflict",
-        422: "Unprocessable Entity",
-        503: "Service Unavailable"
-    }
-
-    error_title = error_titles.get(status_code, "Error")
-
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     details = None
+    message = str(exc.detail)
     if isinstance(exc.detail, list):
-        details = exc.detail
-        message = "Validation failed"
-    else:
-        message = str(exc.detail)
-
-    content = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "status": status_code,
-        "error": error_title,
-        "message": message,
-        "path": request.url.path,
-        "correlationId": corr_id
-    }
-    if details:
-        content["details"] = details
-
-    return JSONResponse(status_code=status_code, content=content)
+        details, message = exc.detail, "Validation failed"
+    if exc.status_code == 404 and message == "Not Found":
+        message = f"No route for {request.method} {request.url.path}"
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=error_body(request, exc.status_code, message, details),
+        headers=getattr(exc, "headers", None),
+    )
 
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    corr_id = getattr(request.state, "correlation_id", "unknown")
-    details = []
-    for err in exc.errors():
-        field = ".".join(str(loc) for loc in err.get("loc", []) if loc != "body")
-        details.append({
-            "field": field or "body",
-            "problem": err.get("msg", "Invalid value")
-        })
-
-    return JSONResponse(
-        status_code=422,
-        content={
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "status": 422,
-            "error": "Unprocessable Entity",
-            "message": "Validation failed",
-            "path": request.url.path,
-            "correlationId": corr_id,
-            "details": details
+    problems = [
+        {
+            "field": ".".join(str(part) for part in err.get("loc", ()) if part not in ("body", "query", "path")) or "body",
+            "problem": err.get("msg", "Invalid value"),
         }
-    )
+        for err in exc.errors()
+    ]
+    locations = {err["loc"][0] for err in exc.errors() if err.get("loc")}
+    malformed_json = any(err.get("type") == "json_invalid" for err in exc.errors())
+    # Malformed JSON and parameters of the wrong type are 400; field validation of a valid body is 422.
+    if malformed_json:
+        return JSONResponse(status_code=400, content=error_body(request, 400, "Malformed request body"))
+    if locations & {"path", "query"} and "body" not in locations:
+        return JSONResponse(status_code=400, content=error_body(request, 400, "Invalid request parameter", problems))
+    return JSONResponse(status_code=422, content=error_body(request, 422, "Validation failed", problems))
+
+
+@app.exception_handler(SQLAlchemyError)
+async def database_exception_handler(request: Request, exc: SQLAlchemyError):
+    if database.is_database_down(exc):
+        logger.warning("Database unavailable while handling %s: %s", request.url.path, exc.__class__.__name__)
+        return JSONResponse(status_code=503, content=error_body(request, 503, "Database unavailable"))
+    logger.exception("Database error on %s", request.url.path)
+    return JSONResponse(status_code=500, content=error_body(request, 500, "Internal server error"))
 
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
-    corr_id = getattr(request.state, "correlation_id", "unknown")
-    logger.exception(f"Unhandled exception on {request.url.path}: {exc}")
-    return JSONResponse(
-        status_code=500,
-        content={
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "status": 500,
-            "error": "Internal Server Error",
-            "message": str(exc) or "An unexpected error occurred",
-            "path": request.url.path,
-            "correlationId": corr_id
-        }
+    # The cause goes to the log only, never to the client.
+    logger.exception("Unhandled exception on %s", request.url.path)
+    return JSONResponse(status_code=500, content=error_body(request, 500, "Internal server error"))
+
+
+# Swagger UI from the bundled assets, so /docs works without internet access.
+app.mount("/docs-assets", StaticFiles(directory=swagger_ui_bundle.swagger_ui_path), name="docs-assets")
+
+
+@app.get("/docs", include_in_schema=False)
+def swagger_ui() -> HTMLResponse:
+    return HTMLResponse(
+        """<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>SGH Lab service - API docs</title>
+<link rel="stylesheet" href="/docs-assets/swagger-ui.css"></head>
+<body><div id="swagger-ui"></div>
+<script src="/docs-assets/swagger-ui-bundle.js"></script>
+<script>window.ui = SwaggerUIBundle({url: "/openapi.json", dom_id: "#swagger-ui"});</script>
+</body></html>"""
     )
 
 
-# Include routers
 app.include_router(health.router)
-app.include_router(stub.router)
 app.include_router(docs.router)
 app.include_router(tests.router)
 app.include_router(lab_requests.router)

@@ -4,14 +4,15 @@ from datetime import datetime, timezone
 from typing import List, Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from sqlalchemy import case
+from sqlalchemy import case, select
 from sqlalchemy.orm import Session
-from app.amqp import publish_lab_result_ready
+from app.events import publish_lab_result_ready
 from app.auth import AuthUser, require_roles
 from app.database import get_db
 from app.models import LabRequest, LabResult, TestCatalog
 from app.schemas import (
     LabFlag,
+    LabPriority,
     LabRequest as LabRequestSchema,
     LabRequestPage,
     LabResultLine,
@@ -50,10 +51,28 @@ def to_lab_request_schema(req: LabRequest) -> LabRequestSchema:
     )
 
 
+def staff_uuid(user: AuthUser) -> uuid.UUID:
+    """LAB-5: the technician's id comes from the token claim staffId; without it there is no one to record."""
+    try:
+        return uuid.UUID(str(user.staff_id))
+    except ValueError:
+        raise HTTPException(status_code=403, detail="LAB_TECHNICIAN token missing staffId claim")
+
+
+def lock_and_load(db: Session, request_id: UUID) -> LabRequest:
+    """Takes a row lock first, so two concurrent start/results/validate calls on the same request
+    run one after the other and the second one sees the state the first one left (LAB-2)."""
+    locked = db.execute(select(LabRequest.id).where(LabRequest.id == request_id).with_for_update()).first()
+    if locked is None:
+        raise HTTPException(status_code=404, detail="Lab request not found")
+    req = db.query(LabRequest).filter(LabRequest.id == request_id).populate_existing().one()
+    return req
+
+
 @router.get("", response_model=LabRequestPage, dependencies=[Depends(require_roles(["LAB_TECHNICIAN", "DOCTOR", "ADMIN"]))])
 def list_lab_requests(
     status: Optional[LabStatus] = None,
-    priority: Optional[str] = None,
+    priority: Optional[LabPriority] = None,
     patientId: Optional[UUID] = None,
     page: int = Query(0, ge=0),
     size: int = Query(20, ge=1, le=100),
@@ -64,7 +83,7 @@ def list_lab_requests(
     if status:
         query = query.filter(LabRequest.status == status.value)
     if priority:
-        query = query.filter(LabRequest.priority == priority)
+        query = query.filter(LabRequest.priority == priority.value)
     if patientId:
         query = query.filter(LabRequest.patient_id == patientId)
 
@@ -92,7 +111,7 @@ def list_lab_requests(
 def get_lab_request(id: UUID, db: Session = Depends(get_db)):
     req = db.query(LabRequest).filter(LabRequest.id == id).first()
     if not req:
-        raise HTTPException(status_code=404, detail="Resource not found")
+        raise HTTPException(status_code=404, detail="Lab request not found")
     return to_lab_request_schema(req)
 
 
@@ -102,9 +121,8 @@ def start_lab_request(
     db: Session = Depends(get_db),
     user: AuthUser = Depends(require_roles(["LAB_TECHNICIAN"]))
 ):
-    req = db.query(LabRequest).filter(LabRequest.id == id).first()
-    if not req:
-        raise HTTPException(status_code=404, detail="Resource not found")
+    staff_uuid(user)
+    req = lock_and_load(db, id)
 
     if req.status != "REQUESTED":
         raise HTTPException(status_code=409, detail=f"Request is {req.status}, must be REQUESTED")
@@ -123,14 +141,21 @@ def enter_lab_results(
     db: Session = Depends(get_db),
     user: AuthUser = Depends(require_roles(["LAB_TECHNICIAN"]))
 ):
-    req = db.query(LabRequest).filter(LabRequest.id == id).first()
-    if not req:
-        raise HTTPException(status_code=404, detail="Resource not found")
+    staff_uuid(user)
+    req = lock_and_load(db, id)
 
     if req.status not in ("IN_PROGRESS", "RESULT_ENTERED"):
         raise HTTPException(status_code=409, detail=f"Request is {req.status}, must be IN_PROGRESS or RESULT_ENTERED")
 
     allowed_test_codes = {t.code for t in req.tests}
+
+    submitted = [item.testCode for item in payload.results]
+    duplicates = sorted({code for code in submitted if submitted.count(code) > 1})
+    if duplicates:
+        raise HTTPException(
+            status_code=422,
+            detail=[{"field": "results", "problem": f"Test {code} appears more than once"} for code in duplicates],
+        )
 
     # Fetch catalogue tests
     catalogue = {c.code: c for c in db.query(TestCatalog).all()}
@@ -194,15 +219,14 @@ def enter_lab_results(
 
 
 @router.post("/{id}/validate", response_model=LabRequestSchema)
-async def validate_lab_request(
+def validate_lab_request(
     id: UUID,
     request: Request,
     db: Session = Depends(get_db),
     user: AuthUser = Depends(require_roles(["LAB_TECHNICIAN"]))
 ):
-    req = db.query(LabRequest).filter(LabRequest.id == id).first()
-    if not req:
-        raise HTTPException(status_code=404, detail="Resource not found")
+    validator_id = staff_uuid(user)
+    req = lock_and_load(db, id)
 
     if req.status != "RESULT_ENTERED":
         raise HTTPException(status_code=409, detail=f"Request is {req.status}, must be RESULT_ENTERED")
@@ -220,12 +244,6 @@ async def validate_lab_request(
     req.status = "VALIDATED"
     req.validated_at = validated_at
 
-    validator_id = None
-    if user.staff_id:
-        try:
-            validator_id = uuid.UUID(user.staff_id)
-        except ValueError:
-            pass
     req.validated_by = validator_id
 
     for r in req.results:
@@ -234,8 +252,8 @@ async def validate_lab_request(
     db.commit()
     db.refresh(req)
 
-    # Publish lab.result.ready asynchronously (failure never rolls back validation, LAB-6)
+    # LAB-5/LAB-6: queued after the commit; a broker outage never undoes or delays the validation.
     correlation_id = getattr(request.state, "correlation_id", str(uuid.uuid4()))
-    await publish_lab_result_ready(req, correlation_id)
+    publish_lab_result_ready(req, correlation_id)
 
     return to_lab_request_schema(req)
