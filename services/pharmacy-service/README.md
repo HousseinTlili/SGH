@@ -6,7 +6,7 @@ Port **8085**, database `sgh_pharmacy`, stack **Express 5 (TypeScript)** with `p
 - **Specification**: Notion page "Pharmacy Service - API Spec", Domain Model and Business Rules (PHA-1 to PHA-9, X-1 to X-8), Seed Data and Fixtures, Event Catalogue.
 - **Events**:
   - Consumes: `prescription.created` from queue `pharmacy.prescription.created` (idempotently via `processed_events`).
-  - Publishes: `prescription.dispensed` to exchange `sgh.events` (background async with retries).
+  - Publishes: `prescription.dispensed` to exchange `sgh.events`, queued right after the commit and sent with publisher confirms; while the broker is down it is retried with backoff for as long as the process lives (held in memory only).
 - **Outgoing HTTP**: Verifies prescription with Consultation service `GET /api/consultations/{id}/prescriptions` on port 8083 using caller's bearer token; falls back to local copy if consultation-service is unreachable (PHA-7).
 
 ---
@@ -20,8 +20,8 @@ npm install
 # Compile TypeScript
 npm run build
 
-# Run Vitest test suite (35 tests covering all 10 groups)
-npm test
+# Type-check sources and tests, then run the Vitest suite (73 tests)
+npm run typecheck && npm test
 
 # Start the service
 npm start
@@ -30,7 +30,8 @@ npm start
 - Liveness: `http://localhost:8085/health` (unconditionally 200 UP)
 - Swagger UI: `http://localhost:8085/docs`
 - OpenAPI JSON: `http://localhost:8085/openapi.json`
-- Stub Ping: `GET /api/_stub/ping` (role ADMIN only)
+
+Tests need PostgreSQL only: they use their own database `sgh_pharmacy_test` (created on first run), sign their tokens with a local key and talk to a stub Consultation service that they can break on purpose. `tests/amqp.integration.test.ts` uses a real RabbitMQ (`infra/rabbitmq/definitions.json` loaded) and is skipped when none is running.
 
 ---
 
@@ -84,3 +85,13 @@ npm start
 - **PHA-8**: Stock alerts (`GET /api/stock/alerts`, plain array) returns all drugs where `stock <= reorderThreshold`.
 - **PHA-9 / D31**: Prescription listing accepts single status or comma-separated list (e.g. `?status=ISSUED,PARTIALLY_DISPENSED`), sorted with `ISSUED` and `PARTIALLY_DISPENSED` first, then oldest.
 - **X-8**: Resilient startup: starts HTTP server immediately even if PostgreSQL is unavailable; `/health` returns 200 UP; database-backed endpoints return 503 Service Unavailable ("Database unavailable") until background retry loop connects, runs migrations and seed.
+
+---
+
+## Concurrency, errors and upgrades
+
+- Dispensing locks the prescription row first and the drug rows in a fixed order, so the same item cannot be dispensed twice by racing requests, two dispensings that share drugs cannot deadlock, and stock cannot be oversold. Stock adjustments are a single conditional update.
+- A `PHARMACIST` token without `staffId` gets `403` on dispense: the dispensing record needs a real pharmacist.
+- Wrong parameter types (non-UUID ids, bad filters, malformed JSON, non-numeric paging) answer `400`; invalid fields `422`; conflicts (duplicate drug, insufficient stock, already dispensed) `409`, also when two creations race; a database lost after startup `503 Database unavailable`; unexpected failures `500` with a generic message. Unknown routes answer in the shared error body.
+- `prescription.created` is validated against the event contract; invalid messages go to `sgh.events.dlq`, and messages that arrive while the database is down or still migrating are requeued instead of lost.
+- Schema changes are versioned SQL files in `migrations/`, applied at startup under an advisory lock (`npm run migrate:up` runs them alone).

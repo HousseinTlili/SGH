@@ -35,34 +35,6 @@ describe("SGH Pharmacy Service Tests", () => {
     });
   });
 
-  // Group 2: Stub Acceptance Ping (D25)
-  describe("Group 2: Stub Acceptance Ping", () => {
-    it("GET /api/_stub/ping returns 401 without token", async () => {
-      const res = await request(app).get("/api/_stub/ping");
-      expect(res.status).toBe(401);
-      expect(res.body.error).toBe("Unauthorized");
-    });
-
-    it("GET /api/_stub/ping returns 403 for non-admin role", async () => {
-      const res = await request(app)
-        .get("/api/_stub/ping")
-        .set("Authorization", `Bearer ${pharmToken}`);
-      expect(res.status).toBe(403);
-      expect(res.body.error).toBe("Forbidden");
-    });
-
-    it("GET /api/_stub/ping returns 200 with ADMIN role", async () => {
-      const res = await request(app)
-        .get("/api/_stub/ping")
-        .set("Authorization", `Bearer ${adminToken}`);
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual({
-        service: "pharmacy",
-        user: "admin1"
-      });
-    });
-  });
-
   // Group 3: Auth & Role Validation
   describe("Group 3: Auth & Role Validation", () => {
     it("returns 401 on invalid token", async () => {
@@ -522,57 +494,6 @@ describe("SGH Pharmacy Service Tests", () => {
         .get("/api/drugs?search=Limited Drug")
         .set("Authorization", `Bearer ${pharmToken}`);
       expect(drugCheck.body.content[0].stock).toBe(0);
-    });
-
-    it("AMQP consumer: handles prescription.created event and ensures idempotency (X-5)", async () => {
-      const { handlePrescriptionCreated } = await import("../src/events/amqp.js");
-      const eventId = crypto.randomUUID();
-      const prescriptionId = crypto.randomUUID();
-      const consultationId = crypto.randomUUID();
-
-      const event = {
-        eventId,
-        type: "prescription.created",
-        version: 1,
-        occurredAt: new Date().toISOString(),
-        correlationId: "test-amqp-corr",
-        data: {
-          prescriptionId,
-          consultationId,
-          patientId: "a1a1a1a1-0000-4000-8000-000000000001",
-          doctorId: "b2b2b2b2-0000-4000-8000-000000000001",
-          items: [
-            {
-              drugName: "Salbutamol 100 mcg/dose",
-              dosage: "1 puff",
-              frequency: "twice daily",
-              duration: "30 days"
-            }
-          ]
-        }
-      };
-
-      // 1. Process event first time
-      await handlePrescriptionCreated(event);
-
-      // Verify prescription copy was created in database
-      const checkRes = await request(app)
-        .get(`/api/prescriptions/${prescriptionId}`)
-        .set("Authorization", `Bearer ${pharmToken}`);
-      expect(checkRes.status).toBe(200);
-      expect(checkRes.body.status).toBe("ISSUED");
-      expect(checkRes.body.items.length).toBe(1);
-      expect(checkRes.body.items[0].drugName).toBe("Salbutamol 100 mcg/dose");
-
-      // 2. Process duplicate event with same eventId (idempotency check)
-      await expect(handlePrescriptionCreated(event)).resolves.not.toThrow();
-
-      // Verify no duplicates created
-      const checkAgain = await request(app)
-        .get(`/api/prescriptions/${prescriptionId}`)
-        .set("Authorization", `Bearer ${pharmToken}`);
-      expect(checkAgain.status).toBe(200);
-      expect(checkAgain.body.items.length).toBe(1);
     });
 
     it("Resilience X-8: when database is not ready, /health is 200 UP and data endpoints return 503", async () => {

@@ -1,16 +1,19 @@
-import amqplib, { Channel, ChannelModel } from "amqplib";
+import amqplib, { ChannelModel, ConfirmChannel, ConsumeMessage } from "amqplib";
 import crypto from "crypto";
+import { z } from "zod";
 import { config } from "../config/index.js";
-import { pool } from "../db/pool.js";
+import { getDatabaseReady, withTransaction } from "../db/pool.js";
 import { logger } from "../middleware/logger.js";
-
-let connection: ChannelModel | null = null;
-let publishChannel: Channel | null = null;
-let consumerChannel: Channel | null = null;
 
 const EXCHANGE = "sgh.events";
 const DLX = "sgh.events.dlx";
 const QUEUE = "pharmacy.prescription.created";
+
+const RECONNECT_BASE_MS = 1000;
+const RECONNECT_MAX_MS = 30000;
+const MAX_PENDING_EVENTS = 1000;
+
+type PublishedType = "prescription.dispensed";
 
 interface EventEnvelope<T = Record<string, unknown>> {
   eventId: string;
@@ -21,225 +24,295 @@ interface EventEnvelope<T = Record<string, unknown>> {
   data: T;
 }
 
-interface PrescriptionItemData {
-  drugName: string;
-  dosage: string;
-  frequency: string;
-  duration: string;
-}
+let connection: ChannelModel | null = null;
+let publishChannel: ConfirmChannel | null = null;
+let reconnectTimer: NodeJS.Timeout | null = null;
+let reconnectDelay = RECONNECT_BASE_MS;
+let stopping = false;
 
-interface PrescriptionCreatedData {
-  prescriptionId: string;
-  consultationId: string;
-  patientId: string;
-  doctorId: string;
-  items: PrescriptionItemData[];
-}
+const sleep = (ms: number) =>
+  new Promise<void>((resolve) => setTimeout(resolve, ms).unref());
 
+// ---------------------------------------------------------------------------
+// Connection management
+// ---------------------------------------------------------------------------
+
+/** Connects in the background. Never throws: the service must boot with the broker down (X-6). */
 export async function initRabbitMQ(): Promise<void> {
+  if (stopping || connection) return;
+
   try {
     const conn = await amqplib.connect(config.rabbitmqUrl);
     connection = conn;
 
-    conn.on("error", (err) => {
-      logger.error({ err }, "RabbitMQ connection error");
-    });
-
+    conn.on("error", (err) => logger.error({ err }, "RabbitMQ connection error"));
     conn.on("close", () => {
-      logger.warn("RabbitMQ connection closed, scheduling reconnect...");
+      if (connection !== conn) return;
+      logger.warn("RabbitMQ connection closed");
       connection = null;
       publishChannel = null;
-      consumerChannel = null;
-      setTimeout(initRabbitMQ, 5000);
+      scheduleReconnect();
     });
 
-    const pChan = await conn.createChannel();
-    publishChannel = pChan;
-    await pChan.assertExchange(EXCHANGE, "topic", { durable: true });
-    await pChan.assertExchange(DLX, "fanout", { durable: true });
+    const pub = await conn.createConfirmChannel();
+    pub.on("error", (err) => logger.error({ err }, "RabbitMQ publish channel error"));
+    pub.on("close", () => {
+      if (publishChannel === pub) publishChannel = null;
+    });
+    await pub.assertExchange(EXCHANGE, "topic", { durable: true });
+    await pub.assertExchange(DLX, "fanout", { durable: true });
+    publishChannel = pub;
 
-    const cChan = await conn.createChannel();
-    consumerChannel = cChan;
-    await cChan.prefetch(10);
-
-    await cChan.assertQueue(QUEUE, {
+    const sub = await conn.createChannel();
+    sub.on("error", (err) => logger.error({ err }, "RabbitMQ consumer channel error"));
+    await sub.prefetch(10);
+    await sub.assertQueue(QUEUE, {
       durable: true,
       arguments: { "x-dead-letter-exchange": DLX }
     });
-    await cChan.bindQueue(QUEUE, EXCHANGE, "prescription.created");
+    await sub.bindQueue(QUEUE, EXCHANGE, "prescription.created");
+    await sub.consume(QUEUE, (msg) => void onMessage(sub, msg), { noAck: false });
 
-    await startConsumer(cChan);
-
-    logger.info("RabbitMQ initialized successfully in pharmacy-service");
+    reconnectDelay = RECONNECT_BASE_MS;
+    logger.info("RabbitMQ initialized successfully");
+    void flushPending();
   } catch (err) {
-    logger.warn({ err }, "RabbitMQ init failed, will retry in 5s");
-    setTimeout(initRabbitMQ, 5000);
+    logger.warn({ err }, `RabbitMQ init failed, retrying in ${reconnectDelay / 1000}s`);
+    // Drop a half-open connection so the retry starts from a clean state.
+    const conn = connection as ChannelModel | null;
+    connection = null;
+    publishChannel = null;
+    await conn?.close().catch(() => undefined);
+    scheduleReconnect();
   }
 }
 
-async function startConsumer(channel: Channel): Promise<void> {
-  await channel.consume(
-    QUEUE,
-    async (msg) => {
-      if (!msg) return;
+function scheduleReconnect(): void {
+  if (stopping || reconnectTimer) return;
+  const delay = reconnectDelay;
+  reconnectDelay = Math.min(reconnectDelay * 2, RECONNECT_MAX_MS);
+  reconnectTimer = setTimeout(() => {
+    reconnectTimer = null;
+    void initRabbitMQ();
+  }, delay);
+  reconnectTimer.unref();
+}
 
-      try {
-        const content = msg.content.toString();
-        const event: EventEnvelope = JSON.parse(content);
+/** Stops reconnecting and closes the broker connection (graceful shutdown). */
+export async function closeRabbitMQ(): Promise<void> {
+  stopping = true;
+  if (reconnectTimer) clearTimeout(reconnectTimer);
+  reconnectTimer = null;
+  const conn = connection;
+  connection = null;
+  publishChannel = null;
+  await conn?.close().catch(() => undefined);
+}
 
-        if (event.type === "prescription.created" && event.data) {
-          await handlePrescriptionCreated(event);
-        }
+// ---------------------------------------------------------------------------
+// Consuming prescription.created (PHA-1)
+// ---------------------------------------------------------------------------
 
-        channel.ack(msg);
-      } catch (err) {
-        logger.error({ err }, "Failed to process event from queue");
-        // Nack without requeue sends to dead-letter exchange
-        channel.nack(msg, false, false);
-      }
-    },
-    { noAck: false }
+const PrescriptionCreatedSchema = z.object({
+  prescriptionId: z.string().uuid(),
+  consultationId: z.string().uuid(),
+  patientId: z.string().uuid(),
+  doctorId: z.string().uuid(),
+  items: z
+    .array(
+      z.object({
+        drugName: z.string().min(1).max(120),
+        dosage: z.string().min(1).max(60),
+        frequency: z.string().min(1).max(60),
+        duration: z.string().min(1).max(60)
+      })
+    )
+    .min(1)
+    .max(20)
+});
+
+const EnvelopeSchema = z.object({
+  eventId: z.string().uuid(),
+  type: z.string(),
+  version: z.number().int(),
+  occurredAt: z.string(),
+  correlationId: z.string(),
+  data: z.record(z.unknown())
+});
+
+/** Failures that say nothing about the message itself: retrying later can succeed. */
+function isTransient(err: any): boolean {
+  const code: string = err?.code ?? "";
+  return (
+    err instanceof NotReadyError ||
+    ["ECONNREFUSED", "ECONNRESET", "ETIMEDOUT"].includes(code) ||
+    /^(08|53|57)/.test(code) ||
+    /timeout exceeded when trying to connect|Connection terminated/i.test(err?.message ?? "")
   );
 }
 
-export async function handlePrescriptionCreated(event: EventEnvelope): Promise<void> {
-  const client = await pool.connect();
+class NotReadyError extends Error {}
+
+export async function onMessage(
+  channel: import("amqplib").Channel,
+  msg: ConsumeMessage | null
+): Promise<void> {
+  if (!msg) return; // consumer cancelled by the broker
+
   try {
-    await client.query("BEGIN");
+    if (!getDatabaseReady()) throw new NotReadyError("database not ready");
 
-    // Check processed_events for idempotency (X-5)
-    const processedRes = await client.query(
-      "SELECT event_id FROM processed_events WHERE event_id = $1",
-      [event.eventId]
-    );
-
-    if (processedRes.rowCount && processedRes.rowCount > 0) {
-      logger.info({ eventId: event.eventId }, "Event already processed, skipping");
-      await client.query("COMMIT");
-      return;
+    const envelope = EnvelopeSchema.parse(JSON.parse(msg.content.toString()));
+    if (envelope.type === "prescription.created") {
+      await handlePrescriptionCreated(envelope, PrescriptionCreatedSchema.parse(envelope.data));
+    } else {
+      logger.warn({ type: envelope.type }, "Ignoring unexpected event type on the prescription queue");
     }
-
-    const data = event.data as unknown as PrescriptionCreatedData;
-
-    // Save copy of prescription
-    await client.query(
-      `INSERT INTO prescription_copies (id, consultation_id, patient_id, doctor_id, status, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, 'ISSUED', $5, $5)
-       ON CONFLICT (id) DO NOTHING`,
-      [
-        data.prescriptionId,
-        data.consultationId,
-        data.patientId,
-        data.doctorId,
-        event.occurredAt || new Date().toISOString()
-      ]
-    );
-
-    // Save items
-    if (Array.isArray(data.items)) {
-      for (let i = 0; i < data.items.length; i++) {
-        const item = data.items[i];
-        await client.query(
-          `INSERT INTO prescription_items (id, prescription_id, item_index, drug_name, dosage, frequency, duration, dispensed)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, false)
-           ON CONFLICT (prescription_id, item_index) DO NOTHING`,
-          [
-            crypto.randomUUID(),
-            data.prescriptionId,
-            i,
-            item.drugName,
-            item.dosage,
-            item.frequency,
-            item.duration
-          ]
-        );
-      }
-    }
-
-    // Mark event processed
-    await client.query(
-      "INSERT INTO processed_events (event_id, event_type) VALUES ($1, $2) ON CONFLICT DO NOTHING",
-      [event.eventId, event.type]
-    );
-
-    await client.query("COMMIT");
-    logger.info(
-      { prescriptionId: data.prescriptionId, consultationId: data.consultationId },
-      "Prescription copy saved successfully from prescription.created event"
-    );
+    channel.ack(msg);
   } catch (err) {
-    await client.query("ROLLBACK");
-    throw err;
-  } finally {
-    client.release();
+    if (isTransient(err)) {
+      // Keep the message: dead-lettering it would lose a valid prescription because of an outage.
+      logger.warn({ err }, "Transient failure handling event, requeueing");
+      await sleep(config.amqpRequeueDelayMs);
+      safely(() => channel.nack(msg, false, true));
+    } else {
+      logger.error({ err }, "Unprocessable event, sending to the dead-letter queue");
+      safely(() => channel.nack(msg, false, false));
+    }
   }
 }
 
-export interface PrescriptionDispensedData {
-  prescriptionId: string;
-  pharmacistId: string;
-  status: "PARTIALLY_DISPENSED" | "DISPENSED";
-  dispensedAt: string;
+/** The channel may already be closed when a retry wakes up; the broker redelivers in that case. */
+function safely(fn: () => void): void {
+  try {
+    fn();
+  } catch (err) {
+    logger.warn({ err }, "Could not settle message, the broker will redeliver it");
+  }
 }
 
+/** PHA-1: the copy is created once per prescriptionId; the event id is recorded in the same transaction (X-5). */
+async function handlePrescriptionCreated(
+  event: EventEnvelope,
+  data: z.infer<typeof PrescriptionCreatedSchema>
+): Promise<void> {
+  await withTransaction(async (client) => {
+    // Insert first and let the primary key arbitrate, so two deliveries of the same event
+    // racing each other cannot both apply it.
+    const claimed = await client.query(
+      `INSERT INTO processed_events (event_id, event_type) VALUES ($1, $2)
+       ON CONFLICT DO NOTHING RETURNING event_id`,
+      [event.eventId, event.type]
+    );
+    if (claimed.rowCount === 0) {
+      logger.info({ eventId: event.eventId }, "Event already processed, skipping");
+      return;
+    }
+
+    const copy = await client.query(
+      `INSERT INTO prescription_copies (id, consultation_id, patient_id, doctor_id, status, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, 'ISSUED', $5, $5)
+       ON CONFLICT (id) DO NOTHING RETURNING id`,
+      [data.prescriptionId, data.consultationId, data.patientId, data.doctorId, event.occurredAt]
+    );
+    if (copy.rowCount === 0) {
+      logger.info({ prescriptionId: data.prescriptionId }, "Prescription copy already exists, event recorded");
+      return;
+    }
+
+    for (const [index, item] of data.items.entries()) {
+      await client.query(
+        `INSERT INTO prescription_items (id, prescription_id, item_index, drug_name, dosage, frequency, duration, dispensed)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, false)`,
+        [crypto.randomUUID(), data.prescriptionId, index, item.drugName, item.dosage, item.frequency, item.duration]
+      );
+    }
+    logger.info(
+      { prescriptionId: data.prescriptionId, consultationId: data.consultationId, correlationId: event.correlationId },
+      "Prescription copy saved from prescription.created"
+    );
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Publishing
+// ---------------------------------------------------------------------------
+
+const pending: EventEnvelope[] = [];
+let flushing = false;
+
 /**
- * Publishes prescription.dispensed event to sgh.events exchange in background with retry.
- * Never throws or blocks the caller HTTP request.
+ * Queues an event for publication and returns immediately; the HTTP request never waits on
+ * the broker. Events are delivered with publisher confirms and retried with exponential
+ * backoff for as long as the process lives. They are kept in memory only, so they are lost
+ * if the process stops while the broker is unreachable (a transactional outbox would close
+ * that gap in production).
  */
-export function publishPrescriptionDispensedAsync(
-  data: PrescriptionDispensedData,
+export function publishEventAsync(
+  type: PublishedType,
+  data: Record<string, unknown>,
   correlationId: string
 ): void {
-  const envelope: EventEnvelope<PrescriptionDispensedData> = {
+  if (pending.length >= MAX_PENDING_EVENTS) {
+    const dropped = pending.shift()!;
+    logger.error({ eventId: dropped.eventId, type: dropped.type }, "Event buffer full, dropped oldest event");
+  }
+  pending.push({
     eventId: crypto.randomUUID(),
-    type: "prescription.dispensed",
+    type,
     version: 1,
     occurredAt: new Date().toISOString(),
     correlationId,
     data
-  };
+  });
+  setImmediate(() => void flushPending());
+}
 
-  setImmediate(async () => {
-    const payload = Buffer.from(JSON.stringify(envelope));
-    const maxRetries = 3;
-    let delay = 1000;
+function publishConfirmed(channel: ConfirmChannel, envelope: EventEnvelope): Promise<void> {
+  return new Promise((resolve, reject) => {
+    channel.publish(
+      EXCHANGE,
+      envelope.type,
+      Buffer.from(JSON.stringify(envelope)),
+      { persistent: true, contentType: "application/json", messageId: envelope.eventId },
+      (err) => (err ? reject(err) : resolve())
+    );
+  });
+}
 
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        if (!publishChannel) {
-          throw new Error("Publish channel not connected");
-        }
+async function flushPending(): Promise<void> {
+  if (flushing) return;
+  flushing = true;
+  let delay = RECONNECT_BASE_MS;
 
-        publishChannel.publish(EXCHANGE, "prescription.dispensed", payload, {
-          persistent: true,
-          contentType: "application/json"
-        });
-
-        logger.info(
-          {
-            type: "prescription.dispensed",
-            eventId: envelope.eventId,
-            prescriptionId: data.prescriptionId,
-            correlationId
-          },
-          "prescription.dispensed event published successfully"
-        );
+  try {
+    while (pending.length > 0 && !stopping) {
+      const channel = publishChannel;
+      if (!channel) {
+        // The reconnect loop calls flushPending again once the broker is back.
         return;
-      } catch (err) {
-        logger.warn(
-          { attempt, type: "prescription.dispensed", err },
-          `Publish attempt ${attempt} failed, retrying in ${delay}ms`
+      }
+
+      const envelope = pending[0];
+      try {
+        await publishConfirmed(channel, envelope);
+        pending.shift();
+        delay = RECONNECT_BASE_MS;
+        logger.info(
+          { type: envelope.type, eventId: envelope.eventId, correlationId: envelope.correlationId },
+          "Event published"
         );
-        if (attempt === maxRetries) {
-          logger.error(
-            { err, type: "prescription.dispensed", eventId: envelope.eventId },
-            "Failed to publish prescription.dispensed after 3 attempts"
-          );
-          return;
-        }
-        await new Promise((resolve) => setTimeout(resolve, delay));
-        delay *= 2;
+      } catch (err) {
+        logger.warn({ err, type: envelope.type, eventId: envelope.eventId }, `Publish failed, retrying in ${delay}ms`);
+        await sleep(delay);
+        delay = Math.min(delay * 2, RECONNECT_MAX_MS);
       }
     }
-  });
+  } finally {
+    flushing = false;
+  }
+}
+
+export function pendingEventCount(): number {
+  return pending.length;
 }

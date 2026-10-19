@@ -12,9 +12,6 @@ export async function verifyPrescriptionWithConsultation(
   correlationId?: string
 ): Promise<ConsultationVerificationResult> {
   const url = `${config.consultationServiceUrl}/api/consultations/${consultationId}/prescriptions`;
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), config.httpTimeoutMs);
-
   try {
     const headers: Record<string, string> = {
       Accept: "application/json"
@@ -30,10 +27,8 @@ export async function verifyPrescriptionWithConsultation(
     const response = await fetch(url, {
       method: "GET",
       headers,
-      signal: controller.signal
+      signal: AbortSignal.timeout(config.httpTimeoutMs)
     });
-
-    clearTimeout(timer);
 
     if (response.status === 200) {
       const prescriptions = (await response.json()) as Array<{ id: string }>;
@@ -42,16 +37,17 @@ export async function verifyPrescriptionWithConsultation(
     }
 
     if (response.status === 404) {
+      await response.body?.cancel();
       return { reachable: true, exists: false };
     }
 
+    await response.body?.cancel();
     logger.warn(
       { status: response.status, consultationId, prescriptionId },
       "Consultation service returned non-200/404, falling back to local copy (PHA-7)"
     );
     return { reachable: false };
   } catch (err) {
-    clearTimeout(timer);
     logger.warn(
       { err, consultationId, prescriptionId },
       "Failed to reach Consultation service (timeout or down), falling back to local copy (PHA-7)"

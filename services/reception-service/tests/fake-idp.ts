@@ -38,14 +38,17 @@ export async function stopFakeIdp(): Promise<void> {
   server = null;
 }
 
-export async function signToken(username: string): Promise<string> {
+export async function signToken(
+  username: string,
+  options: { withoutStaffId?: boolean } = {}
+): Promise<string> {
   const user = USERS[username];
   if (!user || !privateKey) throw new Error(`Unknown test user or IdP not started: ${username}`);
   const claims: Record<string, unknown> = {
     preferred_username: username,
     realm_access: { roles: [...user.roles, "offline_access", "uma_authorization"] }
   };
-  if (user.staffId) claims.staffId = user.staffId;
+  if (user.staffId && !options.withoutStaffId) claims.staffId = user.staffId;
   if (user.patientId) claims.patientId = user.patientId;
   return new SignJWT(claims)
     .setProtectedHeader({ alg: "RS256", kid: "test-key" })
