@@ -170,10 +170,28 @@ describe('LoginComponent', () => {
     );
   });
 
-  it('real mode only explains that Keycloak sign-in is not connected yet', async () => {
+  it('real mode offers no fake users, only the Keycloak sign-in', async () => {
     const { el } = await render(false);
     expect(el.querySelectorAll('button.user')).toHaveLength(0);
-    expect(el.textContent).toContain('npm run start:mock');
+    expect(el.textContent).toContain('Sign in with Keycloak');
+  });
+
+  it('the Keycloak button hands over to the identity provider', async () => {
+    const login = vi.fn();
+    TestBed.configureTestingModule({
+      providers: [
+        ...baseProviders(),
+        { provide: MOCK_AUTH_ENABLED, useValue: false },
+        provideFakeAuth({ login }),
+      ],
+    });
+    const fixture = TestBed.createComponent(LoginComponent);
+    await fixture.whenStable();
+    const button = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('button'),
+    ).find((b) => b.textContent?.includes('Sign in with Keycloak'));
+    button?.click();
+    expect(login).toHaveBeenCalledOnce();
   });
 
   it('signing in completes the sign-in and leaves the login page', async () => {

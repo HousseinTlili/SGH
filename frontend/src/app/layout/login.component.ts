@@ -99,6 +99,11 @@ export class LoginComponent {
     this.signIn(username);
   }
 
+  /** Real mode: hands over to Keycloak, which returns here with a token. */
+  signInWithKeycloak(): void {
+    this.auth.login();
+  }
+
   goToWorkspace(): void {
     const target = landingPathFor(this.auth.roles());
     void this.router.navigateByUrl(target);

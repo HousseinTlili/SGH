@@ -1,0 +1,9 @@
+<!doctype html>
+<html>
+  <body>
+    <script>
+      // Keycloak answers the silent session check here; the app reads the result from the message.
+      parent.postMessage(location.href, location.origin);
+    </script>
+  </body>
+</html>

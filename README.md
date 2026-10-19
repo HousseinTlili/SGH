@@ -55,7 +55,7 @@ SGH orchestrates the full patient care lifecycle across specialized clinical and
 | `services/patient-service`, `staff-service` (Spring Boot), `reception-service`, `doctor-service`, `pharmacy-service` (Express), `lab-service` (FastAPI) | Implemented, each with its own test suite; verified together by `scripts/e2e.sh` |
 | `gateway/` (Spring Cloud Gateway 5) | Implemented: route table and role rules as data, JWT, CORS, correlation id, 503 fallback, `/gateway/health/services` |
 | `scripts/e2e.sh` | Scenarios 1-7 and 12 through the gateway; `--resilience` adds 8-11 (stops Lab, Patient, Consultation and RabbitMQ for real) |
-| `frontend/` Angular app | Built and tested against the mock servers; the real Keycloak sign-in is still the placeholder (`pending-keycloak.backend.ts`) |
+| `frontend/` Angular app | Built and tested against the mock servers and, in real mode, against Keycloak and the gateway (browser sign-in as doctor1/patient1, reload keeps the session, logout ends it) |
 
 ---
 
