@@ -4,7 +4,8 @@
 For every operation with `x-roles` in contracts/openapi/<contract>.yaml the script calls the
 running service with a real Keycloak token for each seeded user and checks:
 
-  - no token and an invalid token  -> 401
+  - no token, an invalid token and forged tokens (unsigned `alg: none`, or a real token whose
+    payload was edited to claim ADMIN)                  -> 401
   - a role that is not allowed     -> 403   (the role is checked before the body is validated)
   - a role that is allowed         -> anything except 401/403
     (PATIENT is only checked for "not 401": "own record only" rules legitimately answer 403)
@@ -14,6 +15,7 @@ Path ids are random UUIDs and bodies are empty objects, so nothing is created or
 
 usage: scripts/check-roles.py <contract> <port>      e.g. scripts/check-roles.py patient 8081
 """
+import base64
 import json
 import re
 import subprocess
@@ -37,6 +39,22 @@ def token(username: str) -> str:
     if not out.stdout.strip():
         sys.exit(f"cannot get a token for {username}; is Keycloak up?")
     return out.stdout.strip()
+
+
+def b64(data: dict) -> str:
+    return base64.urlsafe_b64encode(json.dumps(data).encode()).rstrip(b"=").decode()
+
+
+def forged_tokens(real: str) -> dict:
+    """Tokens an attacker can build without the realm's private key."""
+    header, payload, signature = real.split(".")
+    padded = payload + "=" * (-len(payload) % 4)
+    claims = json.loads(base64.urlsafe_b64decode(padded))
+    claims["realm_access"] = {"roles": list(USERS)}  # every role, ADMIN included
+    return {
+        "unsigned (alg none)": f"{b64({'alg': 'none', 'typ': 'JWT'})}.{b64(claims)}.",
+        "edited payload, original signature": f"{header}.{b64(claims)}.{signature}",
+    }
 
 
 def call(port: int, method: str, path: str, bearer: str | None, body: bool) -> int:
@@ -79,6 +97,9 @@ def main() -> int:
             expect("no token", got, got == 401, "401")
             got = call(port, method, real, "not.a.token", sends_body)
             expect("invalid token", got, got == 401, "401")
+            for name, forged in forged_tokens(tokens["DOCTOR"]).items():
+                got = call(port, method, real, forged, sends_body)
+                expect(f"forged token, {name}", got, got == 401, "401")
             for role, bearer in tokens.items():
                 got = call(port, method, real, bearer, sends_body)
                 if role in roles:
