@@ -1,0 +1,386 @@
+openapi: 3.0.3
+info:
+  title: SGH Staff and Access service
+  version: 1.0.0
+  description: >-
+    Contract of the Staff service of Service 6 (port 8086). Source: Staff Service - API Spec, Domain Model and Business Rules (STF-1 to STF-5, X-1 to X-8), Seed Data and Fixtures. It calls no other service and publishes or consumes no events. Route order: /api/staff/directory must be matched before /api/staff/{id}. Every endpoint except /health needs a Keycloak JWT; roles are in the description
+    of each operation (and in x-roles). Errors use the shared body of API Contracts and Conventions.
+servers:
+  - url: http://localhost:8086
+security:
+  - bearerAuth: []
+tags:
+  - name: staff
+  - name: directory
+  - name: me
+  - name: health
+paths:
+  /health:
+    get:
+      tags: [health]
+      operationId: health
+      summary: Liveness of the process (never checks the database or the broker)
+      security: []
+      responses:
+        "200":
+          description: The service process is up
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Health" }
+              example: { status: UP }
+  /api/staff:
+    get:
+      tags: [staff]
+      operationId: listStaff
+      summary: List staff profiles sorted by last name
+      description: "Roles: ADMIN. search is a contains match on first or last name."
+      x-roles: [ADMIN]
+      parameters:
+        - { name: role, in: query, schema: { $ref: "#/components/schemas/StaffRole" } }
+        - { name: department, in: query, schema: { type: string } }
+        - { name: active, in: query, schema: { type: boolean } }
+        - { name: search, in: query, schema: { type: string } }
+        - { $ref: "#/components/parameters/page" }
+        - { $ref: "#/components/parameters/size" }
+      responses:
+        "200":
+          description: A page of staff members
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StaffPage" }
+              example:
+                content:
+                  - { id: b2b2b2b2-0000-4000-8000-000000000001, keycloakUserId: c3c3c3c3-0000-4000-8000-000000000001, firstName: Amel, lastName: Trabelsi, role: DOCTOR, specialty: Cardiology, department: Cardiology, email: doctor1@sgh.local, active: true, createdAt: "2026-10-12T08:00:00Z", updatedAt: "2026-10-12T08:00:00Z" }
+                page: 0
+                size: 20
+                totalElements: 7
+                totalPages: 1
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+    post:
+      tags: [staff]
+      operationId: createStaff
+      summary: Create a staff profile (STF-1, STF-2)
+      description: "Roles: ADMIN. 409 when the e-mail already exists (case-insensitive). Login accounts come from Keycloak; this manages the profile only (STF-3)."
+      x-roles: [ADMIN]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/StaffInput" }
+            example: { firstName: Amel, lastName: Trabelsi, role: DOCTOR, specialty: Cardiology, department: Cardiology, email: doctor1@sgh.local }
+      responses:
+        "201":
+          description: Created, active
+          headers:
+            Location: { description: "/api/staff/{id}", schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Staff" }
+              example: { id: b2b2b2b2-0000-4000-8000-000000000001, keycloakUserId: c3c3c3c3-0000-4000-8000-000000000001, firstName: Amel, lastName: Trabelsi, role: DOCTOR, specialty: Cardiology, department: Cardiology, email: doctor1@sgh.local, active: true, createdAt: "2026-10-12T08:00:00Z", updatedAt: "2026-10-12T08:00:00Z" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/staff/directory:
+    get:
+      tags: [directory]
+      operationId: staffDirectory
+      summary: Minimal view of ACTIVE staff, sorted by full name (STF-4, D15, plain array)
+      description: "Roles: RECEPTIONIST, DOCTOR, NURSE, LAB_TECHNICIAN, PHARMACIST, ADMIN. On a fresh seed role=DOCTOR returns 2."
+      x-roles: [RECEPTIONIST, DOCTOR, NURSE, LAB_TECHNICIAN, PHARMACIST, ADMIN]
+      parameters:
+        - { name: role, in: query, schema: { $ref: "#/components/schemas/StaffRole" } }
+      responses:
+        "200":
+          description: The active staff
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/StaffPublic" }
+              example:
+                - { id: b2b2b2b2-0000-4000-8000-000000000001, fullName: Amel Trabelsi, role: DOCTOR, specialty: Cardiology }
+                - { id: b2b2b2b2-0000-4000-8000-000000000002, fullName: Karim Jlassi, role: DOCTOR, specialty: General practice }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/staff/{id}:
+    parameters:
+      - { $ref: "#/components/parameters/id" }
+    get:
+      tags: [staff]
+      operationId: getStaff
+      summary: Get one staff profile
+      description: "Roles: ADMIN."
+      x-roles: [ADMIN]
+      responses:
+        "200":
+          description: The profile
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Staff" }
+              example: { id: b2b2b2b2-0000-4000-8000-000000000001, keycloakUserId: c3c3c3c3-0000-4000-8000-000000000001, firstName: Amel, lastName: Trabelsi, role: DOCTOR, specialty: Cardiology, department: Cardiology, email: doctor1@sgh.local, active: true, createdAt: "2026-10-12T08:00:00Z", updatedAt: "2026-10-12T08:00:00Z" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+    put:
+      tags: [staff]
+      operationId: updateStaff
+      summary: Replace a staff profile
+      description: "Roles: ADMIN. 409 for a duplicate e-mail."
+      x-roles: [ADMIN]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/StaffInput" }
+            example: { firstName: Amel, lastName: Trabelsi, role: DOCTOR, specialty: Cardiology, department: Cardiology, email: doctor1@sgh.local }
+      responses:
+        "200":
+          description: The updated profile
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Staff" }
+              example: { id: b2b2b2b2-0000-4000-8000-000000000001, keycloakUserId: c3c3c3c3-0000-4000-8000-000000000001, firstName: Amel, lastName: Trabelsi, role: DOCTOR, specialty: Cardiology, department: Cardiology, email: doctor1@sgh.local, active: true, createdAt: "2026-10-12T08:00:00Z", updatedAt: "2026-10-12T08:00:00Z" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/staff/{id}/deactivate:
+    post:
+      tags: [staff]
+      operationId: deactivateStaff
+      summary: Deactivate a staff member (they disappear from the directory)
+      description: "Roles: ADMIN. 409 when already inactive. Reactivation is not required."
+      x-roles: [ADMIN]
+      parameters:
+        - { $ref: "#/components/parameters/id" }
+      responses:
+        "200":
+          description: The profile with active false
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Staff" }
+              example: { id: b2b2b2b2-0000-4000-8000-000000000001, keycloakUserId: c3c3c3c3-0000-4000-8000-000000000001, firstName: Amel, lastName: Trabelsi, role: DOCTOR, specialty: Cardiology, department: Cardiology, email: doctor1@sgh.local, active: false, createdAt: "2026-10-12T08:00:00Z", updatedAt: "2026-10-12T08:00:00Z" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/staff/{id}/public:
+    get:
+      tags: [directory]
+      operationId: staffPublic
+      summary: Minimal view of one ACTIVE staff member (STF-4, D15)
+      description: "Roles: any authenticated user. 404 when unknown or inactive."
+      x-roles: [PATIENT, RECEPTIONIST, DOCTOR, NURSE, LAB_TECHNICIAN, PHARMACIST, ADMIN]
+      parameters:
+        - { $ref: "#/components/parameters/id" }
+      responses:
+        "200":
+          description: The minimal profile
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StaffPublic" }
+              example: { id: b2b2b2b2-0000-4000-8000-000000000001, fullName: Amel Trabelsi, role: DOCTOR, specialty: Cardiology }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/roles:
+    get:
+      tags: [me]
+      operationId: listRoles
+      summary: The seven role names (plain array)
+      description: "Roles: any authenticated user."
+      x-roles: [PATIENT, RECEPTIONIST, DOCTOR, NURSE, LAB_TECHNICIAN, PHARMACIST, ADMIN]
+      responses:
+        "200":
+          description: The roles
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: string }
+              example: [PATIENT, DOCTOR, NURSE, LAB_TECHNICIAN, PHARMACIST, RECEPTIONIST, ADMIN]
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/me:
+    get:
+      tags: [me]
+      operationId: getMe
+      summary: Profile of the logged-in user (STF-5)
+      description: "Roles: any authenticated user. Username comes from preferred_username. roles keeps only the seven SGH roles. A staff user gets the profile matched by the staffId claim; a patient user gets patientId and staff null."
+      x-roles: [PATIENT, RECEPTIONIST, DOCTOR, NURSE, LAB_TECHNICIAN, PHARMACIST, ADMIN]
+      responses:
+        "200":
+          description: The caller
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Me" }
+              example: { username: doctor1, roles: [DOCTOR], staff: { id: b2b2b2b2-0000-4000-8000-000000000001, fullName: Amel Trabelsi, role: DOCTOR, specialty: Cardiology, department: Cardiology }, patientId: null }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    id:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 0, default: 0 }
+    size:
+      name: size
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+  responses:
+    Unauthorized:
+      description: Missing or invalid token
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 401, error: Unauthorized, message: Missing or invalid token, path: /api/staff, correlationId: b3f1c2d4 }
+    Forbidden:
+      description: Valid token, role or record not allowed
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 403, error: Forbidden, message: Your role is not allowed to do this, path: /api/staff, correlationId: b3f1c2d4 }
+    NotFound:
+      description: Unknown resource
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 404, error: Not Found, message: Resource not found, path: /api/staff/unknown, correlationId: b3f1c2d4 }
+    Conflict:
+      description: Duplicate, business conflict or invalid state move
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 409, error: Conflict, message: This e-mail is already used, path: /api/staff, correlationId: b3f1c2d4 }
+    Unprocessable:
+      description: Validation failed (details name the fields)
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example:
+            timestamp: "2026-10-12T09:30:00Z"
+            status: 422
+            error: Unprocessable Entity
+            message: Validation failed
+            path: /api/staff
+            correlationId: b3f1c2d4
+            details:
+              - { field: email, problem: must be a valid e-mail address }
+    DatabaseUnavailable:
+      description: The database is not reachable yet (X-8); the service itself is up
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 503, error: Service Unavailable, message: Database unavailable, path: /api/staff, correlationId: b3f1c2d4 }
+  schemas:
+    Health:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [UP] }
+    ApiError:
+      type: object
+      required: [status, error, message]
+      properties:
+        timestamp: { type: string, format: date-time }
+        status: { type: integer }
+        error: { type: string }
+        message: { type: string }
+        path: { type: string }
+        correlationId: { type: string }
+        service: { type: string, description: "Only on gateway 503 bodies" }
+        details:
+          type: array
+          items:
+            type: object
+            required: [field, problem]
+            properties:
+              field: { type: string }
+              problem: { type: string }
+    Role:
+      type: string
+      enum: [PATIENT, DOCTOR, NURSE, LAB_TECHNICIAN, PHARMACIST, RECEPTIONIST, ADMIN]
+    StaffRole:
+      type: string
+      enum: [DOCTOR, NURSE, LAB_TECHNICIAN, PHARMACIST, RECEPTIONIST, ADMIN]
+    StaffInput:
+      type: object
+      required: [firstName, lastName, role, department, email]
+      properties:
+        firstName: { type: string, minLength: 1, maxLength: 80 }
+        lastName: { type: string, minLength: 1, maxLength: 80 }
+        role: { $ref: "#/components/schemas/StaffRole" }
+        specialty: { type: string, maxLength: 80, nullable: true }
+        department: { type: string, minLength: 1, maxLength: 80 }
+        email: { type: string, format: email, maxLength: 120 }
+        keycloakUserId: { type: string, format: uuid, nullable: true }
+    Staff:
+      allOf:
+        - $ref: "#/components/schemas/StaffInput"
+        - type: object
+          required: [id, active, createdAt, updatedAt]
+          properties:
+            id: { type: string, format: uuid }
+            active: { type: boolean }
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time }
+    StaffPublic:
+      type: object
+      required: [id, fullName, role]
+      properties:
+        id: { type: string, format: uuid }
+        fullName: { type: string }
+        role: { $ref: "#/components/schemas/Role" }
+        specialty: { type: string, nullable: true }
+    Me:
+      type: object
+      required: [username, roles, staff, patientId]
+      properties:
+        username: { type: string }
+        roles:
+          type: array
+          items: { $ref: "#/components/schemas/Role" }
+        staff:
+          type: object
+          nullable: true
+          required: [id, fullName, role, department]
+          properties:
+            id: { type: string, format: uuid }
+            fullName: { type: string }
+            role: { $ref: "#/components/schemas/Role" }
+            specialty: { type: string, nullable: true }
+            department: { type: string }
+        patientId: { type: string, format: uuid, nullable: true }
+    StaffPage:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content:
+          type: array
+          items: { $ref: "#/components/schemas/Staff" }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
