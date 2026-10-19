@@ -62,7 +62,10 @@ describe.skipIf(!brokerUp)("RabbitMQ integration: prescription.created in, presc
     await pool.end();
   });
 
-  it("stores the copy, dispenses it, and emits a contract-conformant event", async () => {
+  it("stores the copy, dispenses it, and emits a contract-conformant event", async (ctx) => {
+    // The test's own consumer would compete with a running pharmacy-service for the queue.
+    const { consumerCount } = await ch.checkQueue("pharmacy.prescription.created");
+    if (consumerCount > 1) ctx.skip();
     const prescriptionId = crypto.randomUUID();
     const created = {
       eventId: crypto.randomUUID(),

@@ -51,6 +51,11 @@ describe.skipIf(!brokerUp)("RabbitMQ integration (contracts, confirms, consumer)
   const ajv = new Ajv2020({ strict: false });
   addFormats(ajv);
 
+  // The real lab and pharmacy services may be running and consuming the shared queues, so the test
+  // listens on throwaway queues bound to the same exchange instead.
+  let labListener: string;
+  let rxListener: string;
+
   const drain = async (queue: string) => {
     const messages: any[] = [];
     for (;;) {
@@ -64,8 +69,10 @@ describe.skipIf(!brokerUp)("RabbitMQ integration (contracts, confirms, consumer)
     await setupTestDatabase();
     conn = await amqplib.connect(config.rabbitmqUrl);
     ch = await conn.createChannel();
-    await ch.purgeQueue("lab.lab.request.created");
-    await ch.purgeQueue("pharmacy.prescription.created");
+    labListener = (await ch.assertQueue("", { exclusive: true })).queue;
+    rxListener = (await ch.assertQueue("", { exclusive: true })).queue;
+    await ch.bindQueue(labListener, "sgh.events", "lab.request.created");
+    await ch.bindQueue(rxListener, "sgh.events", "prescription.created");
   });
 
   afterAll(async () => {
@@ -106,8 +113,8 @@ describe.skipIf(!brokerUp)("RabbitMQ integration (contracts, confirms, consumer)
 
     await initRabbitMQ();
 
-    const lab = await waitFor(async () => (await drain("lab.lab.request.created"))[0]);
-    const rx = await waitFor(async () => (await drain("pharmacy.prescription.created"))[0]);
+    const lab = await waitFor(async () => (await drain(labListener))[0]);
+    const rx = await waitFor(async () => (await drain(rxListener))[0]);
     expect(pendingEventCount()).toBe(0);
 
     const validateEnvelope = ajv.compile(schema("envelope.schema.json"));
@@ -121,7 +128,10 @@ describe.skipIf(!brokerUp)("RabbitMQ integration (contracts, confirms, consumer)
     expect(validateRx(rx.data), JSON.stringify(validateRx.errors)).toBe(true);
   });
 
-  it("consumes a lab.result.ready event published by the lab service", async () => {
+  it("consumes a lab.result.ready event published by the lab service", async (ctx) => {
+    // A running doctor-service would take the message instead of this process.
+    const { consumerCount } = await ch.checkQueue("consultation.lab.result.ready");
+    if (consumerCount > 1) ctx.skip(); // 1 = this test's own consumer
     const labRequestId = crypto.randomUUID();
     await pool.query(
       `INSERT INTO lab_orders (id, consultation_id, patient_id, doctor_id, priority, status)

@@ -46,6 +46,12 @@ async def test_request_in_result_out_and_poison_to_dlq():
     channel = await connection.channel()
     exchange = await channel.declare_exchange("sgh.events", aio_pika.ExchangeType.TOPIC, durable=True)
 
+    # A running lab-service would compete with this test's consumer for the queue.
+    probe = await channel.declare_queue("lab.lab.request.created", durable=True, arguments={"x-dead-letter-exchange": "sgh.events.dlx"})
+    if probe.declaration_result.consumer_count > 0:
+        await connection.close()
+        pytest.skip("a lab-service is already consuming lab.lab.request.created")
+
     # What the doctor service would listen with, and the dead-letter queue.
     listener = await channel.declare_queue("", exclusive=True)
     await listener.bind(exchange, routing_key="lab.result.ready")
