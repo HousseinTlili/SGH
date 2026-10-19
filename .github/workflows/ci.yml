@@ -1,0 +1,76 @@
+name: CI
+
+# Merge to main only through a pull request (CLAUDE.md): these jobs are the gate.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Service copies match contracts/openapi
+        run: ./scripts/check-contracts.sh
+      - name: Lint OpenAPI contracts
+        run: npx --yes @redocly/cli@1 lint contracts/openapi/*.yaml
+
+  doctor-service:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/doctor-service
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_USER: sgh
+          POSTGRES_PASSWORD: sgh_dev_password
+          POSTGRES_DB: sgh_consultation
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sgh"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: services/doctor-service/package-lock.json
+      # The real broker with the repository's topology, so the integration tests run instead of skipping.
+      - name: Start RabbitMQ from infra/docker-compose.yml
+        working-directory: .
+        run: docker compose -f infra/docker-compose.yml up -d --wait rabbitmq
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
