@@ -46,10 +46,16 @@ public class DbReadyService {
                 log.info("Attempting database connection and Flyway migrations...");
                 try (Connection conn = dataSource.getConnection()) {
                     if (conn.isValid(2)) {
-                        Flyway flyway = Flyway.configure()
+                        // The async thread's context class loader cannot see the migrations inside the
+                        // packaged jar, so the class loader is passed explicitly.
+                        Flyway flyway = Flyway.configure(DbReadyService.class.getClassLoader())
                                 .dataSource(dataSource)
+                                .locations("classpath:db/migration")
                                 .baselineOnMigrate(true)
                                 .load();
+                        if (flyway.info().all().length == 0) {
+                            throw new IllegalStateException("No Flyway migrations found on the classpath");
+                        }
                         flyway.migrate();
                         ready = true;
                         log.info("Database migrations complete. Patient service is ready.");

@@ -12,7 +12,8 @@ Service 1 (Patient) of the SGH Hospital Management System. Runs on port 8081, da
 ## Run and Test
 
 ```bash
-# Run unit and integration tests (22 tests)
+# Run unit and integration tests (23 tests). They use their own database,
+# sgh_patient_test, created on first run, so the development data is never touched.
 ./mvnw test
 
 # Package JAR
@@ -63,3 +64,9 @@ Idempotently seeded with 8 patients (P1 to P8) and 4 medical file entries (M1 to
 - **P6**: `a1a1a1a1-0000-4000-8000-000000000006` — Mariem Sassi (1999-09-09, FEMALE, A-)
 - **P7**: `a1a1a1a1-0000-4000-8000-000000000007` — Omar Zouari (1988-12-25, MALE, B-)
 - **P8**: `a1a1a1a1-0000-4000-8000-000000000008` — Sarra Belhaj (1973-04-04, FEMALE, A+)
+
+---
+
+## Errors
+
+Shared error body for everything, including unknown routes (`404`). Malformed JSON or a parameter of the wrong type (for example an id that is not a UUID) answers `400`; field validation answers `422`. A database that disappears after startup answers `503 Database unavailable` and the service recovers on its own when it returns.
