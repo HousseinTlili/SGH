@@ -120,9 +120,16 @@
           } @else {
             <h1 id="login-title" class="form-title">Sign in</h1>
             <p class="form-subtitle">
-              Keycloak sign-in is not connected yet. To explore the app now, run it in mock mode:
+              You sign in on the hospital's identity server and come back here with your role.
             </p>
-            <p class="code-box"><code>npm run start:mock</code></p>
+            <button mat-flat-button class="enter-btn" type="button" (click)="signInWithKeycloak()">
+              <span>Sign in with Keycloak</span>
+              <mat-icon>arrow_forward</mat-icon>
+            </button>
+            <p class="form-subtitle">
+              No identity server at hand? Explore the app with fake users instead:
+              <code>npm run start:mock</code>
+            </p>
           }
         </div>
 

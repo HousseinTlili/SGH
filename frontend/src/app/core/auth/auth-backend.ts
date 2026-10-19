@@ -10,8 +10,8 @@ export interface AuthUser {
 }
 
 /**
- * What AuthService needs from an identity provider. MockAuthBackend implements it now;
- * a Keycloak implementation (keycloak-js, PKCE) plugs in later without touching any caller.
+ * What AuthService needs from an identity provider. MockAuthBackend (development without Keycloak) and
+ * KeycloakAuthBackend (keycloak-js, authorization code flow with PKCE) implement it.
  */
 export interface AuthBackend {
   /** Runs before the app renders. Resolves the current user, or null when nobody is signed in. */
