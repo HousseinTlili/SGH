@@ -22,18 +22,23 @@ jobs:
       - name: Lint OpenAPI contracts
         run: npx --yes @redocly/cli@1 lint contracts/openapi/*.yaml
 
-  doctor-service:
+  # The Node services share one shape: PostgreSQL for the tests, the repository's RabbitMQ topology
+  # so the broker tests run instead of skipping.
+  node-service:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [doctor-service, reception-service, pharmacy-service]
     defaults:
       run:
-        working-directory: services/doctor-service
+        working-directory: services/${{ matrix.service }}
     services:
       postgres:
         image: postgres:16.15
         env:
           POSTGRES_USER: sgh
           POSTGRES_PASSWORD: sgh_dev_password
-          POSTGRES_DB: sgh_consultation
         ports:
           - 5432:5432
         options: >-
@@ -47,8 +52,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: services/doctor-service/package-lock.json
-      # The real broker with the repository's topology, so the integration tests run instead of skipping.
+          cache-dependency-path: services/${{ matrix.service }}/package-lock.json
       - name: Start RabbitMQ from infra/docker-compose.yml
         working-directory: .
         run: docker compose -f infra/docker-compose.yml up -d --wait rabbitmq
@@ -56,6 +60,82 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+
+  spring-service:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [patient-service, staff-service]
+    defaults:
+      run:
+        working-directory: services/${{ matrix.service }}
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_USER: sgh
+          POSTGRES_PASSWORD: sgh_dev_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sgh"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+      - run: ./mvnw -B test
+
+  lab-service:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/lab-service
+    services:
+      postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_USER: sgh
+          POSTGRES_PASSWORD: sgh_dev_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sgh"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: services/lab-service/requirements.txt
+      - name: Start RabbitMQ from infra/docker-compose.yml
+        working-directory: .
+        run: docker compose -f infra/docker-compose.yml up -d --wait rabbitmq
+      - run: pip install -r requirements.txt
+      - run: python -m pytest -q
+
+  gateway:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: gateway
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+      - run: ./mvnw -B test
 
   frontend:
     runs-on: ubuntu-latest

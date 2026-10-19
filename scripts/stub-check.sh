@@ -3,12 +3,13 @@
 # (Notion: Stack Templates, section 3).
 #
 # usage: ./scripts/stub-check.sh <port> <module-folder> [options]
-#   ./scripts/stub-check.sh 8083 doctor-service --protected-path /api/vitals --role NURSE --wrong-role PATIENT
+#   ./scripts/stub-check.sh 8083 doctor-service
 #
-# options (the protected endpoint defaults to the stub placeholder, D25):
-#   --protected-path PATH   a GET endpoint that needs a role      (default /api/_stub/ping)
-#   --role ROLE             a role that may call it               (default ADMIN)
-#   --wrong-role ROLE       a role that must get 403              (default DOCTOR)
+# The protected endpoint used for the 401/403/200 check is a real one of each service (the stub
+# placeholder /api/_stub/ping is gone, D25). Defaults per module folder, overridable with:
+#   --protected-path PATH   a GET endpoint that needs a role
+#   --role ROLE             a role that may call it
+#   --wrong-role ROLE       a role that must get 403
 #
 # Needs the infra running (Keycloak for tokens, RabbitMQ management for the topology).
 # SGH_TOKEN_CMD overrides the token command (called with a username, default scripts/token.sh).
@@ -16,7 +17,15 @@
 set -uo pipefail
 
 PORT="${1:?port required}"; MODULE="${2:?module folder required (e.g. doctor-service)}"; shift 2
-PROTECTED=/api/_stub/ping; ROLE=ADMIN; WRONG=DOCTOR
+case "$MODULE" in
+  patient-service)   PROTECTED=/api/patients;     ROLE=RECEPTIONIST;   WRONG=PATIENT ;;
+  reception-service) PROTECTED=/api/appointments; ROLE=RECEPTIONIST;   WRONG=NURSE ;;
+  doctor-service)    PROTECTED=/api/vitals;       ROLE=NURSE;          WRONG=PATIENT ;;
+  lab-service)       PROTECTED=/api/tests;        ROLE=LAB_TECHNICIAN; WRONG=PATIENT ;;
+  pharmacy-service)  PROTECTED=/api/drugs;        ROLE=PHARMACIST;     WRONG=NURSE ;;
+  staff-service)     PROTECTED=/api/staff;        ROLE=ADMIN;          WRONG=RECEPTIONIST ;;
+  *)                 PROTECTED=/api/_stub/ping;   ROLE=ADMIN;          WRONG=DOCTOR ;;
+esac
 while [ $# -gt 0 ]; do
   case "$1" in
     --protected-path) PROTECTED="${2:?}"; shift 2 ;;

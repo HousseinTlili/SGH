@@ -22,3 +22,6 @@ Thumbs.db
 
 # local Claude Code state
 .claude/settings.local.json
+
+# local service runner (scripts/dev-services.sh)
+.run/
