@@ -77,13 +77,19 @@ class LabRequestPage(BaseModel):
 
 
 class ResultInputItem(BaseModel):
-    testCode: str
-    value: float
-    unit: Optional[str] = None
+    testCode: str = Field(min_length=1, max_length=10)
+    # LAB-3: the value must be a real number (NaN and infinity are not measurements).
+    value: float = Field(allow_inf_nan=False)
+    unit: Optional[str] = Field(default=None, max_length=30)
 
 
 class ResultsInput(BaseModel):
-    results: List[ResultInputItem] = Field(..., min_length=1)
+    results: List[ResultInputItem] = Field(..., min_length=1, max_length=50)
+
+
+class LabPriority(str, Enum):
+    ROUTINE = "ROUTINE"
+    URGENT = "URGENT"
 
 
 class LabResultRow(BaseModel):

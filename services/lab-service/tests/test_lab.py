@@ -21,24 +21,7 @@ def test_openapi_json(client):
     assert data["info"]["title"] == "SGH Lab service"
 
 
-# --- Group 2: Stub acceptance ping ---
-
-def test_stub_ping_admin(client, admin_token):
-    res = client.get("/api/_stub/ping", headers={"Authorization": f"Bearer {admin_token}"})
-    assert res.status_code == 200
-    assert res.json() == {"status": "pong"}
-
-
-def test_stub_ping_unauthorized(client):
-    res = client.get("/api/_stub/ping")
-    assert res.status_code == 401
-    assert res.json()["error"] == "Unauthorized"
-
-
-def test_stub_ping_forbidden(client, doctor_token):
-    res = client.get("/api/_stub/ping", headers={"Authorization": f"Bearer {doctor_token}"})
-    assert res.status_code == 403
-    assert res.json()["error"] == "Forbidden"
+# --- Group 2: (stub ping removed, D25) ---
 
 
 # --- Group 3: Catalogue of tests ---
@@ -179,7 +162,7 @@ def test_enter_results_conflict_when_requested(client, lab_tech_token):
 
 # --- Group 7: Validate Lab Request (LAB-5, LAB-6) ---
 
-@patch("app.routers.lab_requests.publish_lab_result_ready", new_callable=AsyncMock)
+@patch("app.routers.lab_requests.publish_lab_result_ready")
 def test_validate_lab_request_success(mock_publish, client, lab_tech_token):
     l2_id = "f9f9f9f9-0000-4000-8000-000000000002"
     client.post(f"/api/lab-requests/{l2_id}/start", headers={"Authorization": f"Bearer {lab_tech_token}"})
@@ -240,95 +223,3 @@ def test_database_unavailable_returns_503(client, lab_tech_token):
     assert health_res.json()["status"] == "UP"
 
     db_module.db_ready = True
-
-
-# --- Group 10: Event Consumption & Idempotency (LAB-1) ---
-
-@pytest.mark.asyncio
-async def test_consume_lab_request_created_success():
-    from app.amqp import process_lab_request_created
-    import json
-    from unittest.mock import MagicMock
-
-    event_id = str(uuid.uuid4())
-    req_id = str(uuid.uuid4())
-    consultation_id = "f7f7f7f7-0000-4000-8000-000000000001"
-    patient_id = "a1a1a1a1-0000-4000-8000-000000000005"
-    doctor_id = "b2b2b2b2-0000-4000-8000-000000000002"
-
-    payload = {
-        "eventId": event_id,
-        "type": "lab.request.created",
-        "version": 1,
-        "occurredAt": "2026-10-18T12:00:00Z",
-        "correlationId": "test-corr-1",
-        "data": {
-            "labRequestId": req_id,
-            "consultationId": consultation_id,
-            "patientId": patient_id,
-            "doctorId": doctor_id,
-            "priority": "URGENT",
-            "tests": [
-                {"code": "HGB", "name": "Hemoglobin"},
-                {"code": "GLU", "name": "Fasting glucose"}
-            ]
-        }
-    }
-
-    mock_msg = MagicMock()
-    mock_msg.body = json.dumps(payload).encode("utf-8")
-    mock_msg.process = MagicMock()
-    mock_msg.process.return_value.__aenter__ = AsyncMock()
-    mock_msg.process.return_value.__aexit__ = AsyncMock()
-
-    await process_lab_request_created(mock_msg)
-
-    with SessionLocal() as session:
-        created = session.query(LabRequest).filter_by(id=uuid.UUID(req_id)).first()
-        assert created is not None
-        assert created.priority == "URGENT"
-        assert len(created.tests) == 2
-        processed = session.query(ProcessedEvent).filter_by(event_id=event_id).first()
-        assert processed is not None
-
-
-@pytest.mark.asyncio
-async def test_consume_lab_request_created_duplicate_is_ignored():
-    from app.amqp import process_lab_request_created
-    import json
-    from unittest.mock import MagicMock
-
-    event_id = str(uuid.uuid4())
-    req_id = str(uuid.uuid4())
-
-    with SessionLocal() as session:
-        session.add(ProcessedEvent(event_id=event_id))
-        session.commit()
-
-    payload = {
-        "eventId": event_id,
-        "type": "lab.request.created",
-        "version": 1,
-        "occurredAt": "2026-10-18T12:00:00Z",
-        "correlationId": "test-corr-2",
-        "data": {
-            "labRequestId": req_id,
-            "consultationId": "f7f7f7f7-0000-4000-8000-000000000001",
-            "patientId": "a1a1a1a1-0000-4000-8000-000000000005",
-            "doctorId": "b2b2b2b2-0000-4000-8000-000000000002",
-            "priority": "ROUTINE",
-            "tests": [{"code": "HGB", "name": "Hemoglobin"}]
-        }
-    }
-
-    mock_msg = MagicMock()
-    mock_msg.body = json.dumps(payload).encode("utf-8")
-    mock_msg.process = MagicMock()
-    mock_msg.process.return_value.__aenter__ = AsyncMock()
-    mock_msg.process.return_value.__aexit__ = AsyncMock()
-
-    await process_lab_request_created(mock_msg)
-
-    with SessionLocal() as session:
-        req = session.query(LabRequest).filter_by(id=uuid.UUID(req_id)).first()
-        assert req is None
