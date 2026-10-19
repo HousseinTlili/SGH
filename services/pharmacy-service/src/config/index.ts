@@ -13,5 +13,7 @@ export const config = {
   consultationServiceUrl:
     process.env.CONSULTATION_SERVICE_URL || "http://localhost:8083",
   httpTimeoutMs: parseInt(process.env.HTTP_TIMEOUT_MS || "2000", 10),
-  seed: process.env.SEED !== "false"
+  amqpRequeueDelayMs: parseInt(process.env.AMQP_REQUEUE_DELAY_MS || "2000", 10),
+  seed: process.env.SEED !== "false",
+  logLevel: process.env.LOG_LEVEL || "info"
 };

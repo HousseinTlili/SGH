@@ -40,6 +40,12 @@ export function errorHandler(
     return;
   }
 
+  // Two requests racing past an application-level duplicate check end up here: still a conflict, not a 500.
+  if (err?.code === "23505") {
+    sendError(req, res, new ApiError(409, "Resource already exists"));
+    return;
+  }
+
   // A foreign key that points nowhere is a client mistake, not a server fault.
   if (err?.code === "23503") {
     sendError(

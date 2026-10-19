@@ -1,75 +1,50 @@
+import fs from "node:fs";
+import path from "node:path";
 import { pool } from "./pool.js";
+import { logger } from "../middleware/logger.js";
 
+// Same relative path from src/db (tsx) and dist/db (compiled): the service root.
+const MIGRATIONS_DIR = path.resolve(import.meta.dirname, "../../migrations");
+
+// Arbitrary constant: serialises runners so two instances cannot apply a file twice.
+const MIGRATION_LOCK_ID = 83_005;
+
+/** Applies `migrations/*.sql` in filename order, each in its own transaction, once. */
 export async function runMigrations(): Promise<void> {
+  const files = fs
+    .readdirSync(MIGRATIONS_DIR)
+    .filter((f) => f.endsWith(".sql"))
+    .sort();
+
   const client = await pool.connect();
   try {
-    await client.query("BEGIN");
-
+    await client.query("SELECT pg_advisory_lock($1)", [MIGRATION_LOCK_ID]);
     await client.query(`
-      CREATE TABLE IF NOT EXISTS drugs (
-        id UUID PRIMARY KEY,
-        name VARCHAR(120) NOT NULL,
-        form VARCHAR(30) NOT NULL,
-        strength VARCHAR(40) NOT NULL,
-        unit VARCHAR(30) NOT NULL,
-        stock INT NOT NULL DEFAULT 0,
-        reorder_threshold INT NOT NULL DEFAULT 0,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-      );
-
-      CREATE UNIQUE INDEX IF NOT EXISTS idx_drugs_name_strength 
-        ON drugs (LOWER(TRIM(name)), LOWER(TRIM(strength)));
-
-      CREATE TABLE IF NOT EXISTS prescription_copies (
-        id UUID PRIMARY KEY,
-        consultation_id UUID NOT NULL,
-        patient_id UUID NOT NULL,
-        doctor_id UUID NOT NULL,
-        status VARCHAR(30) NOT NULL DEFAULT 'ISSUED',
-        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-      );
-
-      CREATE TABLE IF NOT EXISTS prescription_items (
-        id UUID PRIMARY KEY,
-        prescription_id UUID NOT NULL REFERENCES prescription_copies(id) ON DELETE CASCADE,
-        item_index INT NOT NULL,
-        drug_name VARCHAR(120) NOT NULL,
-        dosage VARCHAR(60) NOT NULL,
-        frequency VARCHAR(60) NOT NULL,
-        duration VARCHAR(60) NOT NULL,
-        dispensed BOOLEAN NOT NULL DEFAULT false,
-        UNIQUE (prescription_id, item_index)
-      );
-
-      CREATE TABLE IF NOT EXISTS dispensings (
-        id UUID PRIMARY KEY,
-        prescription_id UUID NOT NULL REFERENCES prescription_copies(id) ON DELETE CASCADE,
-        pharmacist_id UUID NOT NULL,
-        dispensed_at TIMESTAMPTZ NOT NULL DEFAULT now()
-      );
-
-      CREATE TABLE IF NOT EXISTS dispensing_lines (
-        id UUID PRIMARY KEY,
-        dispensing_id UUID NOT NULL REFERENCES dispensings(id) ON DELETE CASCADE,
-        item_index INT NOT NULL,
-        drug_id UUID NOT NULL REFERENCES drugs(id),
-        quantity INT NOT NULL
-      );
-
-      CREATE TABLE IF NOT EXISTS processed_events (
-        event_id UUID PRIMARY KEY,
-        event_type VARCHAR(100) NOT NULL,
-        processed_at TIMESTAMPTZ NOT NULL DEFAULT now()
-      );
+      CREATE TABLE IF NOT EXISTS schema_migrations (
+        filename TEXT PRIMARY KEY,
+        applied_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      )
     `);
+    const applied = new Set(
+      (await client.query("SELECT filename FROM schema_migrations")).rows.map((r) => r.filename)
+    );
 
-    await client.query("COMMIT");
-  } catch (error) {
-    await client.query("ROLLBACK");
-    throw error;
+    for (const file of files) {
+      if (applied.has(file)) continue;
+      const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, file), "utf8");
+      try {
+        await client.query("BEGIN");
+        await client.query(sql);
+        await client.query("INSERT INTO schema_migrations (filename) VALUES ($1)", [file]);
+        await client.query("COMMIT");
+        logger.info({ file }, "Applied migration");
+      } catch (err) {
+        await client.query("ROLLBACK").catch(() => undefined);
+        throw err;
+      }
+    }
   } finally {
+    await client.query("SELECT pg_advisory_unlock($1)", [MIGRATION_LOCK_ID]).catch(() => undefined);
     client.release();
   }
 }

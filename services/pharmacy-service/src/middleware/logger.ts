@@ -1,25 +1,21 @@
-import { Request, Response, NextFunction } from "express";
 import pino from "pino";
+import { pinoHttp } from "pino-http";
+import { config } from "../config/index.js";
 
 export const logger = pino({
-  level: process.env.LOG_LEVEL || "info"
+  level: config.logLevel,
+  timestamp: pino.stdTimeFunctions.isoTime
 });
 
-export function requestLogger(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void {
-  const start = Date.now();
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    logger.info({
-      method: req.method,
-      path: req.originalUrl || req.url,
-      status: res.statusCode,
-      durationMs: duration,
-      correlationId: req.correlationId
-    });
-  });
-  next();
-}
+// One line per request: method, path, status, duration, correlation id and user (X-7: no tokens, no bodies).
+export const requestLogger = pinoHttp({
+  logger,
+  serializers: {
+    req: (req) => ({ method: req.method, url: req.url }),
+    res: (res) => ({ statusCode: res.statusCode })
+  },
+  customProps: (req) => ({
+    correlationId: (req as any).correlationId,
+    user: (req as any).user?.username ?? "anonymous"
+  })
+});

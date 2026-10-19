@@ -1,9 +1,9 @@
 import { app } from "./app.js";
 import { config } from "./config/index.js";
-import { setDatabaseReady } from "./db/pool.js";
+import { pool, setDatabaseReady } from "./db/pool.js";
 import { runMigrations } from "./db/migrate.js";
 import { runSeed } from "./db/seed.js";
-import { initRabbitMQ } from "./events/amqp.js";
+import { closeRabbitMQ, initRabbitMQ } from "./events/amqp.js";
 import { logger } from "./middleware/logger.js";
 
 const server = app.listen(config.port, () => {
@@ -42,13 +42,21 @@ async function initDatabaseWithRetry() {
 initDatabaseWithRetry();
 initRabbitMQ();
 
-// Graceful shutdown
-function shutdown() {
-  logger.info("Shutting down pharmacy-service...");
-  server.close(() => {
-    process.exit(0);
-  });
+// Graceful shutdown: stop accepting requests, then release the broker and the database.
+let shuttingDown = false;
+async function shutdown(signal: string) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  logger.info({ signal }, "Shutting down pharmacy-service...");
+
+  const forceExit = setTimeout(() => process.exit(1), 10000);
+  forceExit.unref();
+
+  await new Promise<void>((resolve) => server.close(() => resolve()));
+  await closeRabbitMQ();
+  await pool.end().catch(() => undefined);
+  process.exit(0);
 }
 
-process.on("SIGTERM", shutdown);
-process.on("SIGINT", shutdown);
+process.on("SIGTERM", () => void shutdown("SIGTERM"));
+process.on("SIGINT", () => void shutdown("SIGINT"));
