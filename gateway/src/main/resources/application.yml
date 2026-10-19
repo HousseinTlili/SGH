@@ -1,0 +1,78 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          httpclient:
+            connect-timeout: 2000      # ms: a service that does not accept the connection is "down"
+            response-timeout: 15s      # a service that accepts and then never answers
+          # Services add no CORS headers and no Via/forwarded noise: the gateway is the only edge.
+          x-forwarded:
+            enabled: false
+
+logging:
+  pattern:
+    level: "%5p"
+  level:
+    root: INFO
+
+# The route table and the coarse role rules are data (Gateway Config). Adding a service or changing a
+# rule is one entry here. `roles` empty = any authenticated user. The services stay authoritative.
+sgh:
+  gateway:
+    keycloak-issuer: ${KEYCLOAK_ISSUER_URL:http://localhost:8180/realms/sgh}
+    keycloak-jwks-uri: ${KEYCLOAK_JWKS_URL:http://localhost:8180/realms/sgh/protocol/openid-connect/certs}
+    status:
+      timeout: 1s
+      cache-for: 2s
+    cors:
+      allowed-origins: ["http://localhost:4200"]
+      allowed-methods: [GET, POST, PUT, DELETE, OPTIONS]
+      allowed-headers: [Authorization, Content-Type, X-Correlation-Id]
+      exposed-headers: [X-Correlation-Id, Location]
+    routes:
+      - id: patient
+        service: patient
+        uri: ${PATIENT_SERVICE_URL:http://localhost:8081}
+        paths: ["/api/patients/**"]
+        roles: [RECEPTIONIST, DOCTOR, NURSE, LAB_TECHNICIAN, PHARMACIST, ADMIN, PATIENT]
+      - id: reception-appointments
+        service: reception
+        uri: ${RECEPTION_SERVICE_URL:http://localhost:8082}
+        paths: ["/api/appointments/**"]
+        roles: [RECEPTIONIST, DOCTOR, ADMIN, PATIENT]
+      - id: reception-invoices
+        service: reception
+        uri: ${RECEPTION_SERVICE_URL:http://localhost:8082}
+        paths: ["/api/invoices/**"]
+        roles: [RECEPTIONIST, ADMIN, PATIENT]
+      - id: consultation-consultations
+        service: consultation
+        uri: ${CONSULTATION_SERVICE_URL:http://localhost:8083}
+        paths: ["/api/consultations/**"]
+        roles: [DOCTOR, NURSE, ADMIN, PATIENT, PHARMACIST]
+      - id: consultation-vitals
+        service: consultation
+        uri: ${CONSULTATION_SERVICE_URL:http://localhost:8083}
+        paths: ["/api/vitals/**"]
+        roles: [DOCTOR, NURSE, ADMIN]
+      - id: lab
+        service: lab
+        uri: ${LAB_SERVICE_URL:http://localhost:8084}
+        paths: ["/api/lab-requests/**", "/api/lab-results/**", "/api/tests/**"]
+        roles: [LAB_TECHNICIAN, DOCTOR, ADMIN]
+      - id: pharmacy
+        service: pharmacy
+        uri: ${PHARMACY_SERVICE_URL:http://localhost:8085}
+        paths: ["/api/drugs/**", "/api/stock/**", "/api/prescriptions/**"]
+        roles: [PHARMACIST, DOCTOR, ADMIN]
+      - id: staff
+        service: staff
+        uri: ${STAFF_SERVICE_URL:http://localhost:8086}
+        paths: ["/api/staff/**", "/api/roles", "/api/me"]
+        roles: []
