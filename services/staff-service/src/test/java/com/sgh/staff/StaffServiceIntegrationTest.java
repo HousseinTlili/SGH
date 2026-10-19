@@ -134,34 +134,36 @@ class StaffServiceIntegrationTest {
                 .andExpect(status().isOk());
     }
 
-    // --- Group 2: Stub acceptance ping ---
+    // --- Group 2: Error mapping (Stack Templates) ---
 
     @Test
-    @DisplayName("Stub ping returns 200 pong for ADMIN")
-    void testStubPingSuccess() throws Exception {
-        mockMvc.perform(get("/api/_stub/ping")
+    @DisplayName("Unknown route answers 404 in the shared error body")
+    void testUnknownRoute() throws Exception {
+        mockMvc.perform(get("/api/nothing-here")
+                        .header("X-Correlation-Id", "abc12345")
                         .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("pong"));
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.correlationId").value("abc12345"));
     }
 
     @Test
-    @DisplayName("Stub ping returns 401 without token")
-    void testStubPingUnauthorized() throws Exception {
-        mockMvc.perform(get("/api/_stub/ping"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.status").value(401))
-                .andExpect(jsonPath("$.error").value("Unauthorized"));
+    @DisplayName("Malformed JSON answers 400")
+    void testMalformedJson() throws Exception {
+        mockMvc.perform(post("/api/staff")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{ not json")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Bad Request"));
     }
 
     @Test
-    @DisplayName("Stub ping returns 403 for non-admin")
-    void testStubPingForbidden() throws Exception {
-        mockMvc.perform(get("/api/_stub/ping")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_DOCTOR"))))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.status").value(403))
-                .andExpect(jsonPath("$.error").value("Forbidden"));
+    @DisplayName("A path id that is not a UUID answers 400")
+    void testBadUuid() throws Exception {
+        mockMvc.perform(get("/api/staff/not-a-uuid")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))))
+                .andExpect(status().isBadRequest());
     }
 
     // --- Group 3: Staff Listing and Search (ADMIN) ---

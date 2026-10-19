@@ -223,9 +223,6 @@ public class StaffService {
             for (Object obj : roleList) {
                 if (obj instanceof String roleStr) {
                     String upper = roleStr.toUpperCase();
-                    if ("LAB_TECH".equals(upper)) {
-                        upper = "LAB_TECHNICIAN";
-                    }
                     if (SGH_ROLES.contains(upper)) {
                         roles.add(Role.valueOf(upper));
                     }

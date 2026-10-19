@@ -13,12 +13,20 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.transaction.CannotCreateTransactionException;
+import java.sql.SQLException;
+import java.sql.SQLTransientConnectionException;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     private String getCorrelationId(HttpServletRequest request) {
         String correlationId = (String) request.getAttribute("correlationId");
@@ -136,27 +144,63 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error);
     }
 
+    /** Malformed JSON or a parameter of the wrong type is a 400 (Stack Templates), not a field validation failure. */
     @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class})
     public ResponseEntity<ApiError> handleBadRequest(Exception ex, HttpServletRequest request) {
+        String message = ex instanceof MethodArgumentTypeMismatchException mismatch
+                ? "Parameter '" + mismatch.getName() + "' has the wrong type"
+                : "Malformed request body";
         ApiError error = new ApiError(
-                HttpStatus.UNPROCESSABLE_ENTITY.value(),
-                "Unprocessable Entity",
-                "Malformed request body or parameter: " + ex.getMessage(),
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                message,
                 request.getRequestURI(),
                 getCorrelationId(request)
         );
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler({NoResourceFoundException.class, NoHandlerFoundException.class})
+    public ResponseEntity<ApiError> handleUnknownRoute(Exception ex, HttpServletRequest request) {
+        ApiError error = new ApiError(
+                HttpStatus.NOT_FOUND.value(),
+                "Not Found",
+                "No route for " + request.getMethod() + " " + request.getRequestURI(),
+                request.getRequestURI(),
+                getCorrelationId(request)
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGeneralException(Exception ex, HttpServletRequest request) {
+        if (isDatabaseDown(ex)) {
+            // The database went away after startup (X-8): the service is up, its storage is not.
+            log.warn("Database unavailable while processing {}: {}", request.getRequestURI(), ex.getMessage());
+            return handleDatabaseUnavailable(new DatabaseUnavailableException("Database unavailable"), request);
+        }
+        // Never echo internal messages to clients; the cause goes to the log only.
+        log.error("Unhandled exception processing request: {}", request.getRequestURI(), ex);
         ApiError error = new ApiError(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "Internal Server Error",
-                ex.getMessage() != null ? ex.getMessage() : "An unexpected error occurred",
+                "An unexpected error occurred",
                 request.getRequestURI(),
                 getCorrelationId(request)
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+
+    private static boolean isDatabaseDown(Throwable ex) {
+        for (Throwable t = ex; t != null; t = t.getCause()) {
+            if (t instanceof CannotCreateTransactionException || t instanceof DataAccessResourceFailureException
+                    || t instanceof SQLTransientConnectionException) {
+                return true;
+            }
+            if (t instanceof SQLException sql && sql.getSQLState() != null && sql.getSQLState().startsWith("08")) {
+                return true;
+            }
+        }
+        return false;
     }
 }
