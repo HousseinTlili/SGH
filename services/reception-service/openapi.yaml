@@ -1,0 +1,546 @@
+openapi: 3.0.3
+info:
+  title: SGH Reception service
+  version: 1.0.0
+  description: >-
+    Contract of Service 2 (port 8082). Source: Reception Service - API Spec, Domain Model and Business Rules (REC-1 to REC-15, X-1 to X-8), Seed Data and Fixtures. Every endpoint except /health needs a Keycloak JWT; roles are in the description
+    of each operation (and in x-roles). Errors use the shared body of API Contracts and Conventions.
+servers:
+  - url: http://localhost:8082
+security:
+  - bearerAuth: []
+tags:
+  - name: appointments
+  - name: invoices
+  - name: health
+paths:
+  /health:
+    get:
+      tags: [health]
+      operationId: health
+      summary: Liveness of the process (never checks the database or the broker)
+      security: []
+      responses:
+        "200":
+          description: The service process is up
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Health" }
+              example: { status: UP }
+  /api/appointments:
+    get:
+      tags: [appointments]
+      operationId: listAppointments
+      summary: List appointments sorted by start time
+      description: "Roles: RECEPTIONIST, ADMIN (all); DOCTOR (forced to the token staffId); PATIENT (forced to the token patientId, REC-15). date filters appointments starting on that UTC day."
+      x-roles: [RECEPTIONIST, ADMIN, DOCTOR, PATIENT]
+      parameters:
+        - { name: doctorId, in: query, schema: { type: string, format: uuid } }
+        - { name: patientId, in: query, schema: { type: string, format: uuid } }
+        - { name: date, in: query, schema: { type: string, format: date }, example: "2026-10-13" }
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/AppointmentStatus" } }
+        - { $ref: "#/components/parameters/page" }
+        - { $ref: "#/components/parameters/size" }
+      responses:
+        "200":
+          description: A page of appointments
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AppointmentPage" }
+              example:
+                content:
+                  - { id: e5e5e5e5-0000-4000-8000-000000000001, patientId: a1a1a1a1-0000-4000-8000-000000000001, patientVerified: true, doctorId: b2b2b2b2-0000-4000-8000-000000000001, startAt: "2026-10-13T09:00:00Z", endAt: "2026-10-13T09:30:00Z", reason: Cardiology follow-up, status: SCHEDULED, cancelReason: null, createdAt: "2026-10-12T08:00:00Z", updatedAt: "2026-10-12T08:00:00Z" }
+                  - { id: e5e5e5e5-0000-4000-8000-000000000002, patientId: a1a1a1a1-0000-4000-8000-000000000002, patientVerified: true, doctorId: b2b2b2b2-0000-4000-8000-000000000002, startAt: "2026-10-13T10:00:00Z", endAt: "2026-10-13T10:30:00Z", reason: General check-up, status: SCHEDULED, cancelReason: null, createdAt: "2026-10-12T08:00:00Z", updatedAt: "2026-10-12T08:00:00Z" }
+                page: 0
+                size: 20
+                totalElements: 2
+                totalPages: 1
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+    post:
+      tags: [appointments]
+      operationId: createAppointment
+      summary: Book an appointment (REC-1 to REC-8)
+      description: "Roles: RECEPTIONIST. Order: validate input, check the doctor (Staff /public, REC-7), check the patient (Patient /summary, REC-5), check overlap (REC-3), save, commit, publish appointment.created. Patient unreachable: 201 with patientVerified false. Patient 404: 422. Overlap: 409."
+      x-roles: [RECEPTIONIST]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AppointmentInput" }
+            example: { patientId: a1a1a1a1-0000-4000-8000-000000000001, doctorId: b2b2b2b2-0000-4000-8000-000000000001, startAt: "2026-10-13T09:00:00Z", endAt: "2026-10-13T09:30:00Z", reason: Cardiology follow-up }
+      responses:
+        "201":
+          description: Created
+          headers:
+            Location: { description: "/api/appointments/{id}", schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Appointment" }
+              example: { id: e5e5e5e5-0000-4000-8000-000000000001, patientId: a1a1a1a1-0000-4000-8000-000000000001, patientVerified: true, doctorId: b2b2b2b2-0000-4000-8000-000000000001, startAt: "2026-10-13T09:00:00Z", endAt: "2026-10-13T09:30:00Z", reason: Cardiology follow-up, status: SCHEDULED, cancelReason: null, createdAt: "2026-10-12T08:00:00Z", updatedAt: "2026-10-12T08:00:00Z" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/appointments/availability:
+    get:
+      tags: [appointments]
+      operationId: getAvailability
+      summary: Doctor availability, 18 half-hour slots from 08:00 to 17:00 UTC (REC-14)
+      description: "Roles: RECEPTIONIST, DOCTOR, ADMIN."
+      x-roles: [RECEPTIONIST, DOCTOR, ADMIN]
+      parameters:
+        - { name: doctorId, in: query, required: true, schema: { type: string, format: uuid } }
+        - { name: date, in: query, required: true, schema: { type: string, format: date }, example: "2026-10-13" }
+      responses:
+        "200":
+          description: The slots of that day
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Availability" }
+              example:
+                doctorId: b2b2b2b2-0000-4000-8000-000000000001
+                date: "2026-10-13"
+                slots:
+                  - { startAt: "2026-10-13T08:00:00Z", endAt: "2026-10-13T08:30:00Z", available: true }
+                  - { startAt: "2026-10-13T08:30:00Z", endAt: "2026-10-13T09:00:00Z", available: true }
+                  - { startAt: "2026-10-13T09:00:00Z", endAt: "2026-10-13T09:30:00Z", available: false }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/appointments/{id}:
+    parameters:
+      - { $ref: "#/components/parameters/id" }
+    get:
+      tags: [appointments]
+      operationId: getAppointment
+      summary: Get one appointment
+      description: "Roles: same visibility as the list. 403 outside the caller's visibility."
+      x-roles: [RECEPTIONIST, ADMIN, DOCTOR, PATIENT]
+      responses:
+        "200":
+          description: The appointment
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Appointment" }
+              example: { id: e5e5e5e5-0000-4000-8000-000000000001, patientId: a1a1a1a1-0000-4000-8000-000000000001, patientVerified: true, doctorId: b2b2b2b2-0000-4000-8000-000000000001, startAt: "2026-10-13T09:00:00Z", endAt: "2026-10-13T09:30:00Z", reason: Cardiology follow-up, status: SCHEDULED, cancelReason: null, createdAt: "2026-10-12T08:00:00Z", updatedAt: "2026-10-12T08:00:00Z" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+    put:
+      tags: [appointments]
+      operationId: updateAppointment
+      summary: Edit a SCHEDULED appointment (REC-4)
+      description: "Roles: RECEPTIONIST. 409 when the status is not SCHEDULED or on overlap with another appointment (excluding itself)."
+      x-roles: [RECEPTIONIST]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AppointmentInput" }
+            example: { patientId: a1a1a1a1-0000-4000-8000-000000000001, doctorId: b2b2b2b2-0000-4000-8000-000000000001, startAt: "2026-10-13T09:30:00Z", endAt: "2026-10-13T10:00:00Z", reason: Cardiology follow-up }
+      responses:
+        "200":
+          description: The updated appointment
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Appointment" }
+              example: { id: e5e5e5e5-0000-4000-8000-000000000001, patientId: a1a1a1a1-0000-4000-8000-000000000001, patientVerified: true, doctorId: b2b2b2b2-0000-4000-8000-000000000001, startAt: "2026-10-13T09:30:00Z", endAt: "2026-10-13T10:00:00Z", reason: Cardiology follow-up, status: SCHEDULED, cancelReason: null, createdAt: "2026-10-12T08:00:00Z", updatedAt: "2026-10-12T09:00:00Z" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/appointments/{id}/check-in:
+    post:
+      tags: [appointments]
+      operationId: checkInAppointment
+      summary: SCHEDULED to CHECKED_IN
+      description: "Roles: RECEPTIONIST. 409 for any other move (REC-4)."
+      x-roles: [RECEPTIONIST]
+      parameters:
+        - { $ref: "#/components/parameters/id" }
+      responses:
+        "200":
+          description: The appointment, now CHECKED_IN
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Appointment" }
+              example: { id: e5e5e5e5-0000-4000-8000-000000000001, patientId: a1a1a1a1-0000-4000-8000-000000000001, patientVerified: true, doctorId: b2b2b2b2-0000-4000-8000-000000000001, startAt: "2026-10-13T09:00:00Z", endAt: "2026-10-13T09:30:00Z", reason: Cardiology follow-up, status: CHECKED_IN, cancelReason: null, createdAt: "2026-10-12T08:00:00Z", updatedAt: "2026-10-13T08:55:00Z" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/appointments/{id}/complete:
+    post:
+      tags: [appointments]
+      operationId: completeAppointment
+      summary: CHECKED_IN to COMPLETED
+      description: "Roles: DOCTOR, RECEPTIONIST. 409 for any other move (REC-4)."
+      x-roles: [DOCTOR, RECEPTIONIST]
+      parameters:
+        - { $ref: "#/components/parameters/id" }
+      responses:
+        "200":
+          description: The appointment, now COMPLETED
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Appointment" }
+              example: { id: e5e5e5e5-0000-4000-8000-000000000004, patientId: a1a1a1a1-0000-4000-8000-000000000005, patientVerified: true, doctorId: b2b2b2b2-0000-4000-8000-000000000002, startAt: "2026-10-10T11:00:00Z", endAt: "2026-10-10T11:30:00Z", reason: Persistent cough, status: COMPLETED, cancelReason: null, createdAt: "2026-10-09T08:00:00Z", updatedAt: "2026-10-10T11:40:00Z" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/appointments/{id}/cancel:
+    post:
+      tags: [appointments]
+      operationId: cancelAppointment
+      summary: SCHEDULED or CHECKED_IN to CANCELLED
+      description: "Roles: RECEPTIONIST. Sets the PENDING reminders to CANCELLED (REC-10) and publishes appointment.cancelled. 409 for a COMPLETED appointment."
+      x-roles: [RECEPTIONIST]
+      parameters:
+        - { $ref: "#/components/parameters/id" }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string, maxLength: 255 }
+            example: { reason: Patient asked to move the visit }
+      responses:
+        "200":
+          description: The appointment, now CANCELLED
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Appointment" }
+              example: { id: e5e5e5e5-0000-4000-8000-000000000002, patientId: a1a1a1a1-0000-4000-8000-000000000002, patientVerified: true, doctorId: b2b2b2b2-0000-4000-8000-000000000002, startAt: "2026-10-13T10:00:00Z", endAt: "2026-10-13T10:30:00Z", reason: General check-up, status: CANCELLED, cancelReason: Patient asked to move the visit, createdAt: "2026-10-12T08:00:00Z", updatedAt: "2026-10-12T09:10:00Z" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/invoices:
+    get:
+      tags: [invoices]
+      operationId: listInvoices
+      summary: List invoices, newest first
+      description: "Roles: RECEPTIONIST, ADMIN (all); PATIENT (own only, REC-15)."
+      x-roles: [RECEPTIONIST, ADMIN, PATIENT]
+      parameters:
+        - { name: patientId, in: query, schema: { type: string, format: uuid } }
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/InvoiceStatus" } }
+        - { $ref: "#/components/parameters/page" }
+        - { $ref: "#/components/parameters/size" }
+      responses:
+        "200":
+          description: A page of invoices
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InvoicePage" }
+              example:
+                content:
+                  - { id: e6e6e6e6-0000-4000-8000-000000000002, patientId: a1a1a1a1-0000-4000-8000-000000000003, appointmentId: e5e5e5e5-0000-4000-8000-000000000003, lines: [{ description: Cardiology consultation, quantity: 1, unitPrice: 70.0 }], total: 70.0, currency: TND, status: PENDING, paymentMethod: null, paidAt: null, createdAt: "2026-10-12T09:00:00Z" }
+                  - { id: e6e6e6e6-0000-4000-8000-000000000001, patientId: a1a1a1a1-0000-4000-8000-000000000005, appointmentId: e5e5e5e5-0000-4000-8000-000000000004, lines: [{ description: General consultation, quantity: 1, unitPrice: 50.0 }, { description: "Blood tests (HGB, WBC)", quantity: 1, unitPrice: 30.0 }], total: 80.0, currency: TND, status: PAID, paymentMethod: CASH, paidAt: "2026-10-10T11:45:00Z", createdAt: "2026-10-10T11:35:00Z" }
+                page: 0
+                size: 20
+                totalElements: 2
+                totalPages: 1
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+    post:
+      tags: [invoices]
+      operationId: createInvoice
+      summary: Create an invoice (REC-11, REC-13)
+      description: "Roles: RECEPTIONIST. 1 to 30 lines. The total is computed by the server; a total sent by the client is ignored."
+      x-roles: [RECEPTIONIST]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/InvoiceInput" }
+            example: { patientId: a1a1a1a1-0000-4000-8000-000000000003, appointmentId: e5e5e5e5-0000-4000-8000-000000000003, lines: [{ description: Cardiology consultation, quantity: 1, unitPrice: 70.0 }] }
+      responses:
+        "201":
+          description: Created with status PENDING
+          headers:
+            Location: { description: "/api/invoices/{id}", schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Invoice" }
+              example: { id: e6e6e6e6-0000-4000-8000-000000000002, patientId: a1a1a1a1-0000-4000-8000-000000000003, appointmentId: e5e5e5e5-0000-4000-8000-000000000003, lines: [{ description: Cardiology consultation, quantity: 1, unitPrice: 70.0 }], total: 70.0, currency: TND, status: PENDING, paymentMethod: null, paidAt: null, createdAt: "2026-10-12T09:00:00Z" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/invoices/{id}:
+    parameters:
+      - { $ref: "#/components/parameters/id" }
+    get:
+      tags: [invoices]
+      operationId: getInvoice
+      summary: Get one invoice
+      description: "Roles: same as the list."
+      x-roles: [RECEPTIONIST, ADMIN, PATIENT]
+      responses:
+        "200":
+          description: The invoice
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Invoice" }
+              example: { id: e6e6e6e6-0000-4000-8000-000000000001, patientId: a1a1a1a1-0000-4000-8000-000000000005, appointmentId: e5e5e5e5-0000-4000-8000-000000000004, lines: [{ description: General consultation, quantity: 1, unitPrice: 50.0 }, { description: "Blood tests (HGB, WBC)", quantity: 1, unitPrice: 30.0 }], total: 80.0, currency: TND, status: PAID, paymentMethod: CASH, paidAt: "2026-10-10T11:45:00Z", createdAt: "2026-10-10T11:35:00Z" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/invoices/{id}/pay:
+    post:
+      tags: [invoices]
+      operationId: payInvoice
+      summary: Mock payment, PENDING to PAID (REC-12, REC-13)
+      description: "Roles: RECEPTIONIST. No card data is ever sent or stored. 409 when the invoice is not PENDING."
+      x-roles: [RECEPTIONIST]
+      parameters:
+        - { $ref: "#/components/parameters/id" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [method]
+              properties:
+                method: { type: string, enum: [CASH, CARD] }
+            example: { method: CASH }
+      responses:
+        "200":
+          description: The paid invoice
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Invoice" }
+              example: { id: e6e6e6e6-0000-4000-8000-000000000002, patientId: a1a1a1a1-0000-4000-8000-000000000003, appointmentId: e5e5e5e5-0000-4000-8000-000000000003, lines: [{ description: Cardiology consultation, quantity: 1, unitPrice: 70.0 }], total: 70.0, currency: TND, status: PAID, paymentMethod: CASH, paidAt: "2026-10-12T09:20:00Z", createdAt: "2026-10-12T09:00:00Z" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/invoices/{id}/cancel:
+    post:
+      tags: [invoices]
+      operationId: cancelInvoice
+      summary: PENDING to CANCELLED (REC-12)
+      description: "Roles: RECEPTIONIST. 409 when the invoice is not PENDING."
+      x-roles: [RECEPTIONIST]
+      parameters:
+        - { $ref: "#/components/parameters/id" }
+      responses:
+        "200":
+          description: The cancelled invoice
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Invoice" }
+              example: { id: e6e6e6e6-0000-4000-8000-000000000002, patientId: a1a1a1a1-0000-4000-8000-000000000003, appointmentId: e5e5e5e5-0000-4000-8000-000000000003, lines: [{ description: Cardiology consultation, quantity: 1, unitPrice: 70.0 }], total: 70.0, currency: TND, status: CANCELLED, paymentMethod: null, paidAt: null, createdAt: "2026-10-12T09:00:00Z" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    id:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 0, default: 0 }
+    size:
+      name: size
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+  responses:
+    Unauthorized:
+      description: Missing or invalid token
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 401, error: Unauthorized, message: Missing or invalid token, path: /api/appointments, correlationId: b3f1c2d4 }
+    Forbidden:
+      description: Valid token, role or record not allowed
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 403, error: Forbidden, message: Your role is not allowed to do this, path: /api/appointments, correlationId: b3f1c2d4 }
+    NotFound:
+      description: Unknown resource
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 404, error: Not Found, message: Resource not found, path: /api/appointments/unknown, correlationId: b3f1c2d4 }
+    Conflict:
+      description: Duplicate, business conflict or invalid state move
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 409, error: Conflict, message: Doctor already has an appointment at this time, path: /api/appointments, correlationId: b3f1c2d4 }
+    Unprocessable:
+      description: Validation failed (details name the fields)
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example:
+            timestamp: "2026-10-12T09:30:00Z"
+            status: 422
+            error: Unprocessable Entity
+            message: Validation failed
+            path: /api/appointments
+            correlationId: b3f1c2d4
+            details:
+              - { field: startAt, problem: must be in the future }
+    DatabaseUnavailable:
+      description: The database is not reachable yet (X-8); the service itself is up
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+          example: { timestamp: "2026-10-12T09:30:00Z", status: 503, error: Service Unavailable, message: Database unavailable, path: /api/appointments, correlationId: b3f1c2d4 }
+  schemas:
+    Health:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [UP] }
+    ApiError:
+      type: object
+      required: [status, error, message]
+      properties:
+        timestamp: { type: string, format: date-time }
+        status: { type: integer }
+        error: { type: string }
+        message: { type: string }
+        path: { type: string }
+        correlationId: { type: string }
+        service: { type: string, description: "Only on gateway 503 bodies" }
+        details:
+          type: array
+          items:
+            type: object
+            required: [field, problem]
+            properties:
+              field: { type: string }
+              problem: { type: string }
+    AppointmentStatus:
+      type: string
+      enum: [SCHEDULED, CHECKED_IN, COMPLETED, CANCELLED]
+    InvoiceStatus:
+      type: string
+      enum: [PENDING, PAID, CANCELLED]
+    AppointmentInput:
+      type: object
+      required: [patientId, doctorId, startAt, endAt, reason]
+      properties:
+        patientId: { type: string, format: uuid }
+        doctorId: { type: string, format: uuid, description: "A staff id" }
+        startAt: { type: string, format: date-time, description: "In the future (REC-2)" }
+        endAt: { type: string, format: date-time, description: "After startAt; duration 10 to 120 minutes (REC-1)" }
+        reason: { type: string, minLength: 1, maxLength: 255 }
+    Appointment:
+      allOf:
+        - $ref: "#/components/schemas/AppointmentInput"
+        - type: object
+          required: [id, patientVerified, status, createdAt, updatedAt]
+          properties:
+            id: { type: string, format: uuid }
+            patientVerified: { type: boolean, description: "true when the Patient service confirmed the id" }
+            status: { $ref: "#/components/schemas/AppointmentStatus" }
+            cancelReason: { type: string, maxLength: 255, nullable: true }
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time }
+    Slot:
+      type: object
+      required: [startAt, endAt, available]
+      properties:
+        startAt: { type: string, format: date-time }
+        endAt: { type: string, format: date-time }
+        available: { type: boolean }
+    Availability:
+      type: object
+      required: [doctorId, date, slots]
+      properties:
+        doctorId: { type: string, format: uuid }
+        date: { type: string, format: date }
+        slots:
+          type: array
+          items: { $ref: "#/components/schemas/Slot" }
+    InvoiceLine:
+      type: object
+      required: [description, quantity, unitPrice]
+      properties:
+        description: { type: string, minLength: 1, maxLength: 150 }
+        quantity: { type: integer, minimum: 1 }
+        unitPrice: { type: number, minimum: 0, multipleOf: 0.01 }
+    InvoiceInput:
+      type: object
+      required: [patientId, lines]
+      properties:
+        patientId: { type: string, format: uuid }
+        appointmentId: { type: string, format: uuid, nullable: true }
+        lines:
+          type: array
+          minItems: 1
+          maxItems: 30
+          items: { $ref: "#/components/schemas/InvoiceLine" }
+    Invoice:
+      type: object
+      required: [id, patientId, lines, total, currency, status, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        patientId: { type: string, format: uuid }
+        appointmentId: { type: string, format: uuid, nullable: true }
+        lines:
+          type: array
+          items: { $ref: "#/components/schemas/InvoiceLine" }
+        total: { type: number, description: "Computed by the server, sum of quantity times unitPrice, 2 decimals (REC-11)" }
+        currency: { type: string, enum: [TND] }
+        status: { $ref: "#/components/schemas/InvoiceStatus" }
+        paymentMethod: { type: string, enum: [CASH, CARD, null], nullable: true }
+        paidAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time }
+    AppointmentPage:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content:
+          type: array
+          items: { $ref: "#/components/schemas/Appointment" }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+    InvoicePage:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content:
+          type: array
+          items: { $ref: "#/components/schemas/Invoice" }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
