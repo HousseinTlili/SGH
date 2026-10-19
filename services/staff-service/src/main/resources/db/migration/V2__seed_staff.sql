@@ -1,0 +1,95 @@
+-- Seed data for sgh_staff: 7 staff members
+INSERT INTO staff_members (id, keycloak_user_id, first_name, last_name, role, specialty, department, email, active, created_at, updated_at)
+VALUES
+(
+    'b2b2b2b2-0000-4000-8000-000000000001',
+    'c3c3c3c3-0000-4000-8000-000000000001',
+    'Amel',
+    'Trabelsi',
+    'DOCTOR',
+    'Cardiology',
+    'Cardiology',
+    'doctor1@sgh.local',
+    true,
+    '2026-10-12T08:00:00Z',
+    '2026-10-12T08:00:00Z'
+),
+(
+    'b2b2b2b2-0000-4000-8000-000000000002',
+    'c3c3c3c3-0000-4000-8000-000000000002',
+    'Karim',
+    'Jlassi',
+    'DOCTOR',
+    'General practice',
+    'General Medicine',
+    'doctor2@sgh.local',
+    true,
+    '2026-10-12T08:00:00Z',
+    '2026-10-12T08:00:00Z'
+),
+(
+    'b2b2b2b2-0000-4000-8000-000000000003',
+    'c3c3c3c3-0000-4000-8000-000000000003',
+    'Sonia',
+    'Gharbi',
+    'NURSE',
+    null,
+    'Nursing',
+    'nurse1@sgh.local',
+    true,
+    '2026-10-12T08:00:00Z',
+    '2026-10-12T08:00:00Z'
+),
+(
+    'b2b2b2b2-0000-4000-8000-000000000004',
+    'c3c3c3c3-0000-4000-8000-000000000004',
+    'Walid',
+    'Mansouri',
+    'LAB_TECHNICIAN',
+    null,
+    'Laboratory',
+    'lab1@sgh.local',
+    true,
+    '2026-10-12T08:00:00Z',
+    '2026-10-12T08:00:00Z'
+),
+(
+    'b2b2b2b2-0000-4000-8000-000000000005',
+    'c3c3c3c3-0000-4000-8000-000000000005',
+    'Ines',
+    'Chaabane',
+    'PHARMACIST',
+    null,
+    'Pharmacy',
+    'pharmacist1@sgh.local',
+    true,
+    '2026-10-12T08:00:00Z',
+    '2026-10-12T08:00:00Z'
+),
+(
+    'b2b2b2b2-0000-4000-8000-000000000006',
+    'c3c3c3c3-0000-4000-8000-000000000006',
+    'Rim',
+    'Bouazizi',
+    'RECEPTIONIST',
+    null,
+    'Front Desk',
+    'reception1@sgh.local',
+    true,
+    '2026-10-12T08:00:00Z',
+    '2026-10-12T08:00:00Z'
+),
+(
+    'b2b2b2b2-0000-4000-8000-000000000007',
+    'c3c3c3c3-0000-4000-8000-000000000007',
+    'Sami',
+    'Hamdi',
+    'ADMIN',
+    null,
+    'IT',
+    'admin1@sgh.local',
+    true,
+    '2026-10-12T08:00:00Z',
+    '2026-10-12T08:00:00Z'
+)
+ON CONFLICT (id) DO NOTHING;
