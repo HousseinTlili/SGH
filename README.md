@@ -51,15 +51,11 @@ SGH orchestrates the full patient care lifecycle across specialized clinical and
 
 | Part | Status |
 |---|---|
-| `contracts/` (6 OpenAPI files, event schemas) | Done |
-| `infra/` (Postgres, RabbitMQ topology, Keycloak realm) | Done |
-| `frontend/` Angular app | Built against the mock servers; real Keycloak sign-in is a placeholder (`pending-keycloak.backend.ts`) |
-| `services/doctor-service` | Implemented and tested |
-| `services/patient-service`, `reception-service`, `lab-service`, `pharmacy-service`, `staff-service` | Not started (folder holds the README and rules only) |
-| `gateway/` | Not started |
-| End-to-end and resilience scripts | `scripts/e2e.sh` and `scripts/stub-check.sh` not written yet |
-
-Until the remaining services exist, run the front end with `npm run mock` / `npm run start:mock` (see `tools/mock/README.md`).
+| `contracts/`, `infra/` | Done |
+| `services/patient-service`, `staff-service` (Spring Boot), `reception-service`, `doctor-service`, `pharmacy-service` (Express), `lab-service` (FastAPI) | Implemented, each with its own test suite; verified together by `scripts/e2e.sh` |
+| `gateway/` (Spring Cloud Gateway 5) | Implemented: route table and role rules as data, JWT, CORS, correlation id, 503 fallback, `/gateway/health/services` |
+| `scripts/e2e.sh` | Scenarios 1-7 and 12 through the gateway; `--resilience` adds 8-11 (stops Lab, Patient, Consultation and RabbitMQ for real) |
+| `frontend/` Angular app | Built and tested against the mock servers; the real Keycloak sign-in is still the placeholder (`pending-keycloak.backend.ts`) |
 
 ---
 
@@ -306,24 +302,17 @@ The infrastructure exposes:
 ./scripts/token.sh doctor1
 ```
 
-### 3. Run a Microservice (Example: `doctor-service`)
+### 3. Run the services and the gateway
 ```bash
-cd services/doctor-service
-
-# Install dependencies
-npm install
-
-# Run Vitest test suite
-npm test
-
-# Build and start the service
-npm run build
-npm start
+# Starts patient, reception, consultation, lab, pharmacy, staff and the gateway with the command from
+# each README (the first start installs dependencies and builds: a few minutes)
+./scripts/dev-services.sh start
+./scripts/dev-services.sh status          # or: ./scripts/health.sh
+curl -s localhost:8080/gateway/health/services | jq
 ```
-The doctor service runs on `http://localhost:8083`:
-* Health check: `http://localhost:8083/health`
-* Swagger UI Docs: `http://localhost:8083/docs`
-* OpenAPI JSON: `http://localhost:8083/openapi.json`
+Stop one with `./scripts/dev-services.sh stop lab`. Logs are in `.run/logs/`. Every service README also has its own run and test commands (for example `cd services/doctor-service && npm start`).
+
+Everything is reached through the gateway on `http://localhost:8080` (for example `curl -H "Authorization: Bearer $(./scripts/token.sh doctor1)" localhost:8080/api/consultations`).
 
 ### 4. Run the Angular Frontend
 ```bash
@@ -344,17 +333,28 @@ Open your browser at `http://localhost:4200`.
 
 ## 10. Testing & Verification
 
-Each service includes standalone unit and integration suites that test domain rules, authentication gates, and resilience fallbacks:
+Each service and the gateway have their own suite, run with the command in their README. Together they cover business rules, authentication (including forged tokens), concurrency, fallbacks, events validated against `contracts/events/*.json`, and migrations:
 
 ```bash
-# Verify contracts are byte-identical across services
-./scripts/check-contracts.sh
+./scripts/check-contracts.sh                       # service copies equal contracts/openapi
+cd services/patient-service   && ./mvnw test       # Spring Boot (PostgreSQL)
+cd services/staff-service     && ./mvnw test       # Spring Boot (in-memory H2)
+cd services/reception-service && npm test          # Express (PostgreSQL, RabbitMQ optional)
+cd services/doctor-service    && npm test          # Express (PostgreSQL, RabbitMQ optional)
+cd services/pharmacy-service  && npm test          # Express (PostgreSQL, RabbitMQ optional)
+cd services/lab-service       && ./.venv/bin/pytest   # FastAPI (PostgreSQL, RabbitMQ optional)
+cd gateway                    && ./mvnw test       # no infrastructure needed
+cd frontend                   && npm test          # Angular, 266 tests
+```
+The tests of the services use their own databases (`sgh_<service>_test`, created on first run), so running them never touches the development data. Tests that need RabbitMQ skip themselves when no broker is running.
 
-# Run the Doctor Service suite (needs Postgres; Keycloak is simulated, RabbitMQ tests are skipped if no broker)
-cd services/doctor-service && npm run typecheck && npm test
+Black-box checks against the running system (infrastructure, services and gateway up):
 
-# Run Frontend unit test suite (266 tests)
-cd frontend && npm test
+```bash
+./scripts/e2e.sh                      # scenarios 1-7 and 12 through the gateway, repeatable
+./scripts/e2e.sh --resilience         # + 8-11: stops and restarts Lab, Patient, Consultation and RabbitMQ
+./scripts/check-roles.py patient 8081 # every endpoint x every role from the contract, plus forged tokens
+./scripts/stub-check.sh 8083 doctor-service   # the stub acceptance list for one service
 ```
 
 ---
