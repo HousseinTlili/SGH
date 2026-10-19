@@ -85,4 +85,8 @@ The RabbitMQ tests check the published envelopes against `contracts/events/*.jso
 
 ## Error format
 
-Every error uses the shared body (`timestamp, status, error, message, path, correlationId, details?`). Malformed path ids answer `404`, malformed filters `422`, malformed JSON `400`, a database that disappears after startup `503 Database unavailable`. Unexpected failures answer `500 Internal server error` without exposing the cause, which is only written to the log.
+Every error uses the shared body (`timestamp, status, error, message, path, correlationId, details?`), including unknown routes. Wrong parameter types (a path id that is not a UUID, a non-numeric `page`, a malformed filter, malformed JSON) answer `400`; unknown resources `404`; field validation `422`; a database that disappears after startup `503 Database unavailable`. Unexpected failures answer `500 Internal server error` without exposing the cause, which is only written to the log.
+
+## Database
+
+Schema changes are versioned SQL files in `migrations/`, applied in filename order at startup (and by `npm run migrate:up`) under an advisory lock and recorded in `schema_migrations`. The seed then loads the fixtures idempotently (`SEED=false` skips it).

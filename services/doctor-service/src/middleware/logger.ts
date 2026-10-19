@@ -18,7 +18,8 @@ export function requestLogger(
       path: req.originalUrl || req.url,
       status: res.statusCode,
       durationMs: duration,
-      correlationId: req.correlationId
+      correlationId: req.correlationId,
+      user: req.user?.username ?? "anonymous"
     });
   });
   next();

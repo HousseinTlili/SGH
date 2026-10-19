@@ -26,7 +26,7 @@ prescriptionsRouter.get(
   authenticateToken,
   requireRoles("DOCTOR", "NURSE", "ADMIN", "PHARMACIST", "PATIENT"),
   async (req: Request, res: Response) => {
-    const id = uuidParam(req.params.id as string, "Consultation");
+    const id = uuidParam(req.params.id as string);
     const consultation = await pool.query(
       "SELECT patient_id FROM consultations WHERE id = $1",
       [id]
@@ -79,7 +79,7 @@ prescriptionsRouter.post(
   authenticateToken,
   requireDoctorWithStaffId,
   async (req: Request, res: Response) => {
-    const id = uuidParam(req.params.id as string, "Consultation");
+    const id = uuidParam(req.params.id as string);
     const consultation = await pool.query(
       "SELECT patient_id, doctor_id FROM consultations WHERE id = $1",
       [id]

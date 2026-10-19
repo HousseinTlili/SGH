@@ -11,6 +11,7 @@ import {
   pageOf,
   parseOrThrow,
   parsePaging,
+  parseQueryOrThrow,
   uuidParam,
   validationFailed
 } from "../http/errors.js";
@@ -64,7 +65,7 @@ consultationsRouter.get(
   authenticateToken,
   requireRoles("DOCTOR", "NURSE", "ADMIN", "PATIENT"),
   async (req: Request, res: Response) => {
-    const filters = parseOrThrow(ListQuerySchema, {
+    const filters = parseQueryOrThrow(ListQuerySchema, {
       patientId: req.query.patientId,
       doctorId: req.query.doctorId,
       status: req.query.status
@@ -169,7 +170,7 @@ consultationsRouter.get(
   authenticateToken,
   requireRoles("DOCTOR", "NURSE", "ADMIN", "PATIENT"),
   async (req: Request, res: Response) => {
-    const id = uuidParam(req.params.id as string, "Consultation");
+    const id = uuidParam(req.params.id as string);
     const result = await pool.query<ConsultationRow>(
       "SELECT * FROM consultations WHERE id = $1",
       [id]
@@ -200,7 +201,7 @@ consultationsRouter.put(
   authenticateToken,
   requireDoctorWithStaffId,
   async (req: Request, res: Response) => {
-    const id = uuidParam(req.params.id as string, "Consultation");
+    const id = uuidParam(req.params.id as string);
     const found = await pool.query<ConsultationRow>(
       "SELECT * FROM consultations WHERE id = $1",
       [id]
@@ -240,7 +241,7 @@ consultationsRouter.post(
   authenticateToken,
   requireDoctorWithStaffId,
   async (req: Request, res: Response) => {
-    const id = uuidParam(req.params.id as string, "Consultation");
+    const id = uuidParam(req.params.id as string);
     const found = await pool.query<ConsultationRow>(
       "SELECT * FROM consultations WHERE id = $1",
       [id]

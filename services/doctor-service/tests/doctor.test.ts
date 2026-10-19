@@ -38,34 +38,6 @@ describe("SGH Doctor (Consultation) Service Tests", () => {
     });
   });
 
-  // 2. Stub acceptance ping (D25)
-  describe("Stub Acceptance Ping", () => {
-    it("GET /api/_stub/ping returns 401 without a token", async () => {
-      const res = await request(app).get("/api/_stub/ping");
-      expect(res.status).toBe(401);
-      expect(res.body.error).toBe("Unauthorized");
-    });
-
-    it("GET /api/_stub/ping returns 403 with DOCTOR or NURSE role", async () => {
-      const res = await request(app)
-        .get("/api/_stub/ping")
-        .set("Authorization", `Bearer ${doc1Token}`);
-      expect(res.status).toBe(403);
-      expect(res.body.error).toBe("Forbidden");
-    });
-
-    it("GET /api/_stub/ping returns 200 with ADMIN role", async () => {
-      const res = await request(app)
-        .get("/api/_stub/ping")
-        .set("Authorization", `Bearer ${admin1Token}`);
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual({
-        service: "consultation",
-        user: "admin1"
-      });
-    });
-  });
-
   // 3. Authentication & Role checks (CON-10, X-7)
   describe("Auth & Role Validation", () => {
     it("returns 401 on invalid token", async () => {

@@ -37,7 +37,7 @@ labRouter.get(
   authenticateToken,
   requireRoles("DOCTOR", "NURSE", "ADMIN"),
   async (req: Request, res: Response) => {
-    const id = uuidParam(req.params.id as string, "Consultation");
+    const id = uuidParam(req.params.id as string);
     const consultation = await pool.query("SELECT id FROM consultations WHERE id = $1", [id]);
     if (consultation.rows.length === 0) throw notFound("Consultation not found");
 
@@ -74,7 +74,7 @@ labRouter.post(
   authenticateToken,
   requireDoctorWithStaffId,
   async (req: Request, res: Response) => {
-    const id = uuidParam(req.params.id as string, "Consultation");
+    const id = uuidParam(req.params.id as string);
     const consultation = await pool.query(
       "SELECT patient_id, doctor_id FROM consultations WHERE id = $1",
       [id]
@@ -130,7 +130,7 @@ labRouter.get(
   authenticateToken,
   requireRoles("DOCTOR", "NURSE", "ADMIN", "PATIENT"),
   async (req: Request, res: Response) => {
-    const id = uuidParam(req.params.id as string, "Consultation");
+    const id = uuidParam(req.params.id as string);
     const consultation = await pool.query(
       "SELECT patient_id FROM consultations WHERE id = $1",
       [id]
