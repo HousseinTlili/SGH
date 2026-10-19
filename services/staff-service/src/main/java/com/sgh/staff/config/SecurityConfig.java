@@ -14,6 +14,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 
@@ -41,14 +42,12 @@ public class SecurityConfig {
                         .requestMatchers("/health").permitAll()
                         .requestMatchers("/docs", "/docs/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/openapi.json").permitAll()
 
-                        // Stub acceptance ping (ADMIN only)
-                        .requestMatchers("/api/_stub/ping").hasRole("ADMIN")
 
                         // Directory: must come before /api/staff/*
-                        .requestMatchers(HttpMethod.GET, "/api/staff/directory").hasAnyRole("RECEPTIONIST", "DOCTOR", "NURSE", "LAB_TECH", "LAB_TECHNICIAN", "PHARMACIST", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/staff/directory").hasAnyRole("RECEPTIONIST", "DOCTOR", "NURSE", "LAB_TECHNICIAN", "PHARMACIST", "ADMIN")
 
                         // Specific staff sub-endpoints before /api/staff/*
-                        .requestMatchers(HttpMethod.GET, "/api/staff/*/public").hasAnyRole("PATIENT", "RECEPTIONIST", "DOCTOR", "NURSE", "LAB_TECH", "LAB_TECHNICIAN", "PHARMACIST", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/staff/*/public").hasAnyRole("PATIENT", "RECEPTIONIST", "DOCTOR", "NURSE", "LAB_TECHNICIAN", "PHARMACIST", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/staff/*/deactivate").hasRole("ADMIN")
 
                         // Single staff member endpoints
@@ -60,8 +59,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/staff").hasRole("ADMIN")
 
                         // Roles and Me endpoints
-                        .requestMatchers(HttpMethod.GET, "/api/roles").hasAnyRole("PATIENT", "RECEPTIONIST", "DOCTOR", "NURSE", "LAB_TECH", "LAB_TECHNICIAN", "PHARMACIST", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/me").hasAnyRole("PATIENT", "RECEPTIONIST", "DOCTOR", "NURSE", "LAB_TECH", "LAB_TECHNICIAN", "PHARMACIST", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/roles").hasAnyRole("PATIENT", "RECEPTIONIST", "DOCTOR", "NURSE", "LAB_TECHNICIAN", "PHARMACIST", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/me").hasAnyRole("PATIENT", "RECEPTIONIST", "DOCTOR", "NURSE", "LAB_TECHNICIAN", "PHARMACIST", "ADMIN")
 
                         .anyRequest().authenticated()
                 )
@@ -70,6 +69,7 @@ public class SecurityConfig {
                         .authenticationEntryPoint(customAuthenticationEntryPoint())
                         .accessDeniedHandler(customAccessDeniedHandler())
                 )
+                .addFilterAfter(new UsernameRequestAttributeFilter(), BearerTokenAuthenticationFilter.class)
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(customAuthenticationEntryPoint())
                         .accessDeniedHandler(customAccessDeniedHandler())

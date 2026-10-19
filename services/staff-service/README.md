@@ -80,3 +80,11 @@ Initial Flyway migrations seed the 7 canonical SGH staff profiles:
 - **Health**: http://localhost:8086/health
 - **Swagger UI**: http://localhost:8086/docs
 - **OpenAPI JSON**: http://localhost:8086/openapi.json
+
+---
+
+## Errors
+
+Shared error body for everything, including unknown routes (`404`). Malformed JSON or a parameter of the wrong type (for example an id that is not a UUID) answers `400`; field validation answers `422`. A database that disappears after startup answers `503 Database unavailable` and the service recovers on its own when it returns. Unexpected failures answer `500` with a generic message; the cause is only logged.
+
+Tests run on an in-memory H2 database, so they never touch `sgh_staff`; the Flyway migrations on PostgreSQL are exercised by running the service itself.

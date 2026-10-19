@@ -20,7 +20,6 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
             "RECEPTIONIST",
             "PATIENT",
             "PHARMACIST",
-            "LAB_TECH",
             "LAB_TECHNICIAN"
     );
 
@@ -41,11 +40,6 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
                     String upperRole = role.toUpperCase();
                     if (ALLOWED_ROLES.contains(upperRole)) {
                         authorities.add(new SimpleGrantedAuthority("ROLE_" + upperRole));
-                        if ("LAB_TECH".equals(upperRole)) {
-                            authorities.add(new SimpleGrantedAuthority("ROLE_LAB_TECHNICIAN"));
-                        } else if ("LAB_TECHNICIAN".equals(upperRole)) {
-                            authorities.add(new SimpleGrantedAuthority("ROLE_LAB_TECH"));
-                        }
                     }
                 }
             }
