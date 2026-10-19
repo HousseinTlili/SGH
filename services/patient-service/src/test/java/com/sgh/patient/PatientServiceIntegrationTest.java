@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -25,7 +26,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 public class PatientServiceIntegrationTest {
+
+    static {
+        TestDatabase.ensure();
+    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -63,38 +69,6 @@ public class PatientServiceIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.openapi").exists())
                 .andExpect(jsonPath("$.info.title").value("SGH Patient service"));
-    }
-
-    // -------------------------------------------------------------
-    // Stub Ping Acceptance Test
-    // -------------------------------------------------------------
-
-    @Test
-    @DisplayName("GET /api/_stub/ping returns 401 without token")
-    void stubPingUnauthenticated() throws Exception {
-        mockMvc.perform(get("/api/_stub/ping"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.status").value(401))
-                .andExpect(jsonPath("$.error").value("Unauthorized"));
-    }
-
-    @Test
-    @DisplayName("GET /api/_stub/ping returns 403 for DOCTOR or NURSE")
-    void stubPingForbiddenForNonAdmin() throws Exception {
-        mockMvc.perform(get("/api/_stub/ping")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_DOCTOR"))))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.status").value(403));
-    }
-
-    @Test
-    @DisplayName("GET /api/_stub/ping returns 200 for ADMIN")
-    void stubPingSuccessForAdmin() throws Exception {
-        mockMvc.perform(get("/api/_stub/ping")
-                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("UP"))
-                .andExpect(jsonPath("$.service").value("patient-service"));
     }
 
     // -------------------------------------------------------------
@@ -367,5 +341,49 @@ public class PatientServiceIntegrationTest {
         mockMvc.perform(get("/api/patients")
                         .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_RECEPTIONIST"))))
                 .andExpect(status().isOk());
+    }
+
+    // -------------------------------------------------------------
+    // Error mapping (Stack Templates)
+    // -------------------------------------------------------------
+
+    @Test
+    @DisplayName("Unknown route answers 404 in the shared error body")
+    void unknownRouteIs404() throws Exception {
+        mockMvc.perform(get("/api/nothing-here")
+                        .header("X-Correlation-Id", "abc12345")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_DOCTOR"))))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.correlationId").value("abc12345"));
+    }
+
+    @Test
+    @DisplayName("Malformed JSON answers 400")
+    void malformedJsonIs400() throws Exception {
+        mockMvc.perform(post("/api/patients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{ not json")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_RECEPTIONIST"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Bad Request"));
+    }
+
+    @Test
+    @DisplayName("A path id that is not a UUID answers 400")
+    void badUuidIs400() throws Exception {
+        mockMvc.perform(get("/api/patients/not-a-uuid")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_DOCTOR"))))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("PUT is limited to RECEPTIONIST (ADMIN gets 403)")
+    void putIsReceptionistOnly() throws Exception {
+        mockMvc.perform(put("/api/patients/" + P1_ID)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))))
+                .andExpect(status().isForbidden());
     }
 }

@@ -73,12 +73,13 @@ else
 fi
 
 # docs
-docs="$(status_of "$BASE/docs/")"; spec="$(curl -s --max-time 5 "$BASE/openapi.json")"
+docs="$(status_of -L "$BASE/docs")"; spec="$(curl -s --max-time 5 "$BASE/openapi.json")"
 if [ "$docs" = 200 ] && echo "$spec" | grep -q '"openapi"'; then pass "GET /docs opens and /openapi.json is served"
 else fail "GET /docs -> ${docs}, /openapi.json ${spec:0:60}"; fi
 
 # unknown route
-unknown="$(curl -s --max-time 5 -w '\n%{http_code}' "$BASE/api/this-route-does-not-exist")"
+# with a valid token: an unauthenticated request is answered 401 before routing, which is correct
+unknown="$(curl -s --max-time 5 -w '\n%{http_code}' -H "Authorization: Bearer $good_token" "$BASE/api/this-route-does-not-exist")"
 if [ "$(echo "$unknown" | tail -1)" = 404 ] && echo "$unknown" | grep -q '"correlationId"'; then
   pass "unknown route -> 404 in the shared error body with a correlationId"
 else fail "unknown route -> expected 404 JSON with correlationId, got: $(echo "$unknown" | tr '\n' ' ' | cut -c1-120)"; fi
