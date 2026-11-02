@@ -1,0 +1,54 @@
+{
+  "info": {
+    "name": "SGH Staff Service",
+    "_postman_id": "8122c2a1-0002-4000-8000-000000000001",
+    "description": "Postman collection for SGH Staff & Access Service (Port 8086 / Gateway 8080)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
+    { "key": "token", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Current User Profile (/api/me)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/me",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+      }
+    },
+    {
+      "name": "Hospital Roles (/api/roles)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/roles",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+      }
+    },
+    {
+      "name": "Doctor & Practitioner Directory",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/staff/directory",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+      }
+    },
+    {
+      "name": "List Staff (Admin only)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/staff?page=0&size=20",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+      }
+    },
+    {
+      "name": "Get Staff Member Public Info",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/staff/b2b2b2b2-0000-4000-8000-000000000001/public",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+      }
+    }
+  ]
+}

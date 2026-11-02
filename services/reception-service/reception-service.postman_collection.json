@@ -1,0 +1,76 @@
+{
+  "info": {
+    "name": "SGH Reception Service",
+    "_postman_id": "8122c2a1-0003-4000-8000-000000000001",
+    "description": "Postman collection for SGH Reception Service (Port 8082 / Gateway 8080)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
+    { "key": "token", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Check Doctor Availability",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/appointments/availability?doctorId=b2b2b2b2-0000-4000-8000-000000000001&date=2026-10-15",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+      }
+    },
+    {
+      "name": "List Appointments",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/appointments?page=0&size=20",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+      }
+    },
+    {
+      "name": "Book Appointment",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/appointments",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"patientId\": \"a1a1a1a1-0000-4000-8000-000000000001\",\n  \"doctorId\": \"b2b2b2b2-0000-4000-8000-000000000001\",\n  \"startAt\": \"2026-10-15T09:00:00Z\",\n  \"endAt\": \"2026-10-15T09:30:00Z\",\n  \"reason\": \"Routine cardiology consultation\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Check-in Appointment",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/appointments/c3c3c3c3-0000-4000-8000-000000000001/check-in",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+      }
+    },
+    {
+      "name": "List Invoices",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/invoices?page=0&size=20",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+      }
+    },
+    {
+      "name": "Pay Invoice",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/invoices/e5e5e5e5-0000-4000-8000-000000000001/pay",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"method\": \"CARD\"\n}"
+        }
+      }
+    }
+  ]
+}

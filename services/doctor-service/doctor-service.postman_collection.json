@@ -1,0 +1,90 @@
+{
+  "info": {
+    "name": "SGH Doctor Consultation Service",
+    "_postman_id": "8122c2a1-0004-4000-8000-000000000001",
+    "description": "Postman collection for SGH Doctor / Consultation Service (Port 8083 / Gateway 8080)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
+    { "key": "token", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "List Consultations",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/consultations?page=0&size=20",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+      }
+    },
+    {
+      "name": "Open Consultation",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/consultations",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"patientId\": \"a1a1a1a1-0000-4000-8000-000000000001\",\n  \"appointmentId\": \"c3c3c3c3-0000-4000-8000-000000000001\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Record Vitals",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/vitals",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"patientId\": \"a1a1a1a1-0000-4000-8000-000000000001\",\n  \"consultationId\": \"f7f7f7f7-0000-4000-8000-000000000001\",\n  \"temperature\": 37.2,\n  \"heartRate\": 72,\n  \"systolic\": 120,\n  \"diastolic\": 80,\n  \"spo2\": 98,\n  \"weight\": 75.5\n}"
+        }
+      }
+    },
+    {
+      "name": "Order Lab Tests",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/consultations/f7f7f7f7-0000-4000-8000-000000000001/lab-orders",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"priority\": \"URGENT\",\n  \"tests\": [\n    { \"code\": \"GLU\", \"name\": \"Blood Glucose\" },\n    { \"code\": \"HGB\", \"name\": \"Hemoglobin\" }\n  ]\n}"
+        }
+      }
+    },
+    {
+      "name": "Create Prescription",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/consultations/f7f7f7f7-0000-4000-8000-000000000001/prescriptions",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"items\": [\n    {\n      \"drugName\": \"Amoxicillin 500 mg\",\n      \"dosage\": \"1 capsule\",\n      \"frequency\": \"3 per day\",\n      \"duration\": \"7 days\"\n    }\n  ]\n}"
+        }
+      }
+    },
+    {
+      "name": "Sign Consultation",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/consultations/f7f7f7f7-0000-4000-8000-000000000001/sign",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+      }
+    }
+  ]
+}
