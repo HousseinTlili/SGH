@@ -48,6 +48,10 @@ export class MockAuthBackend implements AuthBackend {
     return user;
   }
 
+  loginWithCredentials(username: string): Promise<AuthUser> {
+    return Promise.resolve(this.signIn(username));
+  }
+
   private restore(): AuthUser | null {
     try {
       const username = sessionStorage.getItem(STORAGE_KEY);

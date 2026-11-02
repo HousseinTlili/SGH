@@ -85,7 +85,7 @@
 
     <div class="auth-center-wrap">
       <div class="auth-form-card">
-        @if (mockAuth && auth.isAuthenticated()) {
+        @if (auth.isAuthenticated()) {
           <div class="active-session-banner">
             <div class="session-user">
               <mat-icon class="session-icon" aria-hidden="true">verified_user</mat-icon>
@@ -112,29 +112,25 @@
             <span>Authorized Portal Access</span>
           </div>
 
-          @if (mockAuth) {
-            <h1 id="login-title" class="form-title">Sign in (mock mode)</h1>
-            <p class="form-subtitle">
+          <h1 id="login-title" class="form-title">Sign in {{ mockAuth ? '(mock mode)' : '' }}</h1>
+          <p class="form-subtitle">
+            @if (mockAuth) {
               Enter your clinical credentials or select any seeded persona to test specialist roles.
-            </p>
-          } @else {
-            <h1 id="login-title" class="form-title">Sign in</h1>
-            <p class="form-subtitle">
-              You sign in on the hospital's identity server and come back here with your role.
-            </p>
-            <button mat-flat-button class="enter-btn" type="button" (click)="signInWithKeycloak()">
-              <span>Sign in with Keycloak</span>
-              <mat-icon>arrow_forward</mat-icon>
-            </button>
-            <p class="form-subtitle">
-              No identity server at hand? Explore the app with fake users instead:
-              <code>npm run start:mock</code>
-            </p>
-          }
+            } @else {
+              Enter your hospital credentials to sign in directly, or authenticate via Keycloak SSO.
+            }
+          </p>
         </div>
 
+        @if (errorMessage()) {
+          <div class="login-error-alert" role="alert">
+            <mat-icon class="error-icon">error</mat-icon>
+            <span>{{ errorMessage() }}</span>
+          </div>
+        }
+
         @if (mockAuth) {
-          <!-- Quick Demo Role Dropdown Menu -->
+          <!-- Quick Demo Role Dropdown Menu (only in mock mode so button.user is not present in real mode) -->
           <div class="role-selector-wrap" [class.is-open]="roleMenuOpen()">
             <span class="selector-label">Demo Quick Access</span>
             <button
@@ -196,53 +192,74 @@
             <span class="divider-text">OR SIGN IN WITH CREDENTIALS</span>
             <span class="divider-line" aria-hidden="true"></span>
           </div>
+        }
 
-          <!-- Credentials Form -->
-          <form class="signin-form" (submit)="onSubmit($event)">
-            <div class="field-block">
-              <label for="username" class="field-label">Username or Patient ID</label>
-              <div class="input-wrap">
-                <mat-icon class="input-icon" aria-hidden="true">person</mat-icon>
-                <input
-                  id="username"
-                  name="username"
-                  type="text"
-                  class="field-input"
-                  [(ngModel)]="usernameInput"
-                  placeholder="e.g. doctor1, patient1, nurse1"
-                  required
-                />
-              </div>
+        <!-- Credentials Form (Active in BOTH modes: Direct Keycloak grant in real mode, mock in mock mode) -->
+        <form class="signin-form" (submit)="onSubmit($event)">
+          <div class="field-block">
+            <label for="username" class="field-label">Username or Staff ID</label>
+            <div class="input-wrap">
+              <mat-icon class="input-icon" aria-hidden="true">person</mat-icon>
+              <input
+                id="username"
+                name="username"
+                type="text"
+                class="field-input"
+                [(ngModel)]="usernameInput"
+                placeholder="e.g. doctor1, patient1, nurse1"
+                required
+              />
             </div>
+          </div>
 
-            <div class="field-block">
-              <label for="password" class="field-label">Security Password</label>
-              <div class="input-wrap">
-                <mat-icon class="input-icon" aria-hidden="true">lock</mat-icon>
-                <input
-                  id="password"
-                  name="password"
-                  [type]="showPassword() ? 'text' : 'password'"
-                  class="field-input"
-                  [(ngModel)]="passwordInput"
-                  placeholder="Enter password"
-                />
-                <button
-                  type="button"
-                  class="toggle-eye"
-                  (click)="toggleShowPassword()"
-                  [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
-                >
-                  <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
-                </button>
-              </div>
+          <div class="field-block">
+            <label for="password" class="field-label">Security Password</label>
+            <div class="input-wrap">
+              <mat-icon class="input-icon" aria-hidden="true">lock</mat-icon>
+              <input
+                id="password"
+                name="password"
+                [type]="showPassword() ? 'text' : 'password'"
+                class="field-input"
+                [(ngModel)]="passwordInput"
+                placeholder="Enter password"
+              />
+              <button
+                type="button"
+                class="toggle-eye"
+                (click)="toggleShowPassword()"
+                [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+              >
+                <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
             </div>
+          </div>
 
-            <button mat-flat-button class="signin-cta" type="submit">
-              <mat-icon>login</mat-icon>
+          <button mat-flat-button class="signin-cta" type="submit" [disabled]="loading()">
+            @if (loading()) {
+              <span>Signing In...</span>
+            } @else {
               <span>Sign In to Portal</span>
-            </button>
-          </form>
+            }
+          </button>
+        </form>
+
+        @if (!mockAuth) {
+          <div class="card-divider">
+            <span class="divider-line" aria-hidden="true"></span>
+            <span class="divider-text">OR ENTERPRISE SSO</span>
+            <span class="divider-line" aria-hidden="true"></span>
+          </div>
+
+          <button
+            mat-stroked-button
+            class="keycloak-sso-btn"
+            type="button"
+            (click)="signInWithKeycloak()"
+          >
+            <mat-icon>lock_open</mat-icon>
+            <span>Sign in with Keycloak</span>
+          </button>
         }
 
         <!-- Reassurance Footer -->
