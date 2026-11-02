@@ -40,6 +40,21 @@ export class LabApi {
     return this.http.get<LabRequest>(`${this.base}/lab-requests/${id}`);
   }
 
+  startRequest(id: string): Observable<LabRequest> {
+    return this.http.post<LabRequest>(`${this.base}/lab-requests/${id}/start`, {});
+  }
+
+  enterResults(
+    id: string,
+    results: { testCode: string; value: number; unit?: string }[],
+  ): Observable<LabRequest> {
+    return this.http.post<LabRequest>(`${this.base}/lab-requests/${id}/results`, { results });
+  }
+
+  validateRequest(id: string): Observable<LabRequest> {
+    return this.http.post<LabRequest>(`${this.base}/lab-requests/${id}/validate`, {});
+  }
+
   /** Validated results only, newest first. */
   listResults(patientId?: string, page = 0, size = 20): Observable<Paged<LabResultRow>> {
     const paging = clampPaging(page, size);

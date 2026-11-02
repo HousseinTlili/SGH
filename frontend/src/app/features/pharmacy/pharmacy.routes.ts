@@ -1,6 +1,5 @@
 import type { Routes } from '@angular/router';
 import { roleGuard } from '../../core/auth/auth.guard';
-import { FeaturePlaceholderComponent } from '../../shared/components/feature-placeholder/feature-placeholder.component';
 
 export const PHARMACY_ROUTES: Routes = [
   {
@@ -23,13 +22,13 @@ export const PHARMACY_ROUTES: Routes = [
       },
       {
         path: 'drugs',
-        component: FeaturePlaceholderComponent,
-        data: { title: 'Drugs and stock', service: 'pharmacy' },
+        loadComponent: () =>
+          import('./drug-list/drug-list.component').then((m) => m.DrugListComponent),
       },
       {
         path: 'stock',
-        component: FeaturePlaceholderComponent,
-        data: { title: 'Stock alerts', service: 'pharmacy' },
+        loadComponent: () =>
+          import('./stock-alerts/stock-alerts.component').then((m) => m.StockAlertsComponent),
       },
     ],
   },
