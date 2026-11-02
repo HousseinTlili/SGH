@@ -1,0 +1,69 @@
+{
+  "info": {
+    "name": "SGH Lab Service",
+    "_postman_id": "8122c2a1-0005-4000-8000-000000000001",
+    "description": "Postman collection for SGH Lab Service (Port 8084 / Gateway 8080)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
+    { "key": "token", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Test Catalogue (/api/tests)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/tests",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+      }
+    },
+    {
+      "name": "Lab Work Queue (/api/lab-requests)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/lab-requests?page=0&size=20",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+      }
+    },
+    {
+      "name": "Start Analysis",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/lab-requests/f9f9f9f9-0000-4000-8000-000000000001/start",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+      }
+    },
+    {
+      "name": "Enter Results",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/lab-requests/f9f9f9f9-0000-4000-8000-000000000001/results",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"results\": [\n    { \"testCode\": \"GLU\", \"value\": 115.0 },\n    { \"testCode\": \"HGB\", \"value\": 14.5 }\n  ]\n}"
+        }
+      }
+    },
+    {
+      "name": "Validate Lab Request",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/lab-requests/f9f9f9f9-0000-4000-8000-000000000001/validate",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+      }
+    },
+    {
+      "name": "List Validated Results",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/lab-results?page=0&size=20",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+      }
+    }
+  ]
+}

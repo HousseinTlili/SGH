@@ -1,0 +1,83 @@
+{
+  "info": {
+    "name": "SGH Pharmacy Service",
+    "_postman_id": "8122c2a1-0006-4000-8000-000000000001",
+    "description": "Postman collection for SGH Pharmacy Service (Port 8085 / Gateway 8080)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
+    { "key": "token", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "List Drugs Catalogue",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/drugs?page=0&size=20",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+      }
+    },
+    {
+      "name": "Create Drug",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/drugs",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Ibuprofen\",\n  \"form\": \"TABLET\",\n  \"strength\": \"400 mg\",\n  \"unit\": \"tablet\",\n  \"stock\": 200,\n  \"reorderThreshold\": 50\n}"
+        }
+      }
+    },
+    {
+      "name": "Adjust Stock",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/drugs/d4d4d4d4-0000-4000-8000-000000000001/stock",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"delta\": 50,\n  \"reason\": \"Monthly supplier delivery\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Stock Alerts (Low Stock)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/stock/alerts",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+      }
+    },
+    {
+      "name": "List Prescriptions Queue",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/prescriptions?page=0&size=20",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+      }
+    },
+    {
+      "name": "Dispense Prescription Items",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/prescriptions/f8f8f8f8-0000-4000-8000-000000000001/dispense",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"lines\": [\n    {\n      \"itemIndex\": 0,\n      \"drugId\": \"d4d4d4d4-0000-4000-8000-000000000001\",\n      \"quantity\": 15\n    }\n  ]\n}"
+        }
+      }
+    }
+  ]
+}
