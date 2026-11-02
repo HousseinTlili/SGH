@@ -6,6 +6,10 @@
     </button>
   </app-page-header>
 
+  @if (actionError(); as aErr) {
+    <app-error-state [error]="aErr" (retry)="load()" />
+  }
+
   @if (loading() && !prescription()) {
     <app-loading-state label="Loading prescription..." />
   } @else if (error(); as err) {
@@ -36,7 +40,78 @@
       </dl>
     </section>
 
-    <h2 class="block-title">Items</h2>
+    <!-- Pharmacist Dispensing Panel -->
+    @if (isPharmacist() && hasUndispensedItems()) {
+      <div class="sgh-card dispensing-panel">
+        <h2 class="block-title">Dispense Medications</h2>
+        <p class="panel-desc">
+          Select prescription items to dispense. Inventory stock is checked and deducted atomically.
+        </p>
+
+        <table class="sgh-table" aria-label="Dispense items">
+          <thead>
+            <tr>
+              <th scope="col" style="width: 48px">Dispense</th>
+              <th scope="col">Prescribed Item</th>
+              <th scope="col">Inventory Medication</th>
+              <th scope="col">Available Stock</th>
+              <th scope="col">Quantity</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of dispenseRows(); track row.itemIndex) {
+              <tr>
+                <td>
+                  <mat-checkbox [(ngModel)]="row.selected" />
+                </td>
+                <td>
+                  <strong>{{ row.drugName }}</strong>
+                  <div class="item-sub">
+                    {{ row.dosage }} &bull; {{ row.frequency }} &bull; {{ row.duration }}
+                  </div>
+                </td>
+                <td>
+                  <mat-form-field appearance="outline" class="select-drug">
+                    <mat-select [(ngModel)]="row.drugId">
+                      @for (d of availableDrugs(); track d.id) {
+                        <mat-option [value]="d.id">
+                          {{ d.name }} {{ d.strength }} ({{ d.form }})
+                        </mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                </td>
+                <td>
+                  <span [class.stock-empty]="getDrugStock(row.drugId) === 0">
+                    {{ getDrugStock(row.drugId) }} {{ getDrugUnit(row.drugId) }}
+                  </span>
+                </td>
+                <td>
+                  <mat-form-field appearance="outline" class="qty-input">
+                    <input matInput type="number" min="1" [(ngModel)]="row.quantity" />
+                  </mat-form-field>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <div class="panel-actions">
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            [disabled]="actionLoading()"
+            (click)="dispenseSelected()"
+          >
+            <mat-icon>check_circle</mat-icon>
+            Confirm & Dispense Items
+          </button>
+        </div>
+      </div>
+    }
+
+    <h2 class="block-title">Prescription Items</h2>
     <div class="sgh-card table-card">
       <table class="sgh-table" aria-label="Prescription items">
         <thead>
@@ -98,14 +173,16 @@
             </tr>
           </thead>
           <tbody>
-            @for (d of dispensings(); track d.id) {
+            @for (event of dispensings(); track event.id) {
               <tr>
-                <td>{{ d.dispensedAt | localDatetime }}</td>
-                <td>{{ pharmacistName(d.pharmacistId) }}</td>
+                <td>{{ event.dispensedAt | localDatetime }}</td>
+                <td>{{ pharmacistName(event.pharmacistId) }}</td>
                 <td>
-                  @for (line of d.lines; track line.itemIndex) {
-                    <div>{{ describeLine(line) }}</div>
-                  }
+                  <ul class="lines">
+                    @for (line of event.lines; track line.itemIndex) {
+                      <li>{{ describeLine(line) }}</li>
+                    }
+                  </ul>
                 </td>
               </tr>
             }

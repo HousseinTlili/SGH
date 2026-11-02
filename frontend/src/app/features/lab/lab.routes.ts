@@ -1,6 +1,5 @@
 import type { Routes } from '@angular/router';
 import { roleGuard } from '../../core/auth/auth.guard';
-import { FeaturePlaceholderComponent } from '../../shared/components/feature-placeholder/feature-placeholder.component';
 
 export const LAB_ROUTES: Routes = [
   {
@@ -9,8 +8,8 @@ export const LAB_ROUTES: Routes = [
     children: [
       {
         path: 'requests',
-        component: FeaturePlaceholderComponent,
-        data: { title: 'Lab requests', service: 'lab' },
+        loadComponent: () =>
+          import('./lab-queue/lab-queue.component').then((m) => m.LabQueueComponent),
       },
       {
         path: 'requests/:id',

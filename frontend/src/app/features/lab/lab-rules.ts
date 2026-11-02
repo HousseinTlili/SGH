@@ -1,4 +1,4 @@
-import type { LabResultLine } from '../../core/models/consultation';
+import type { LabFlag, LabResultLine } from '../../core/models/consultation';
 import type { LabStatus } from '../../core/models/lab';
 
 export type StepState = 'done' | 'current' | 'todo';
@@ -42,4 +42,19 @@ export function criticalResults(results: readonly LabResultLine[]): LabResultLin
 
 export function formatResultValue(value: number, unit: string): string {
   return `${value} ${unit}`.trim();
+}
+
+/** Flag computation based on reference ranges (LAB-3, LAB-4). */
+export function computeFlag(
+  value: number,
+  refLow: number,
+  refHigh: number,
+  criticalLow?: number | null,
+  criticalHigh?: number | null,
+): LabFlag {
+  if (criticalLow != null && value < criticalLow) return 'CRITICAL';
+  if (criticalHigh != null && value > criticalHigh) return 'CRITICAL';
+  if (value < refLow) return 'LOW';
+  if (value > refHigh) return 'HIGH';
+  return 'NORMAL';
 }

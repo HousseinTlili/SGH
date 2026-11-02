@@ -93,3 +93,35 @@
 tr.critical td {
   background: var(--sgh-tone-danger-bg);
 }
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sgh-space-3);
+}
+
+.edit-card {
+  margin: var(--sgh-space-4) 0;
+  padding: var(--sgh-space-4);
+}
+
+.section-desc {
+  color: var(--sgh-text-muted);
+  margin-top: 0;
+  margin-bottom: var(--sgh-space-3);
+}
+
+.value-input {
+  max-width: 130px;
+}
+
+.test-subname {
+  font-size: var(--sgh-text-xs);
+  color: var(--sgh-text-muted);
+}
+
+.form-actions {
+  margin-top: var(--sgh-space-4);
+  display: flex;
+  justify-content: flex-end;
+}
