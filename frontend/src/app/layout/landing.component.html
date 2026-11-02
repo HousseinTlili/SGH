@@ -1,24 +1,89 @@
 <div class="landing-page">
-  <!-- Minimalist Floating Header -->
+  <!-- Top Hospital Live Activity Ticker Bar -->
+  <aside class="live-ticker-bar" aria-label="Live hospital event stream">
+    <div class="ticker-inner">
+      <div class="ticker-badge">
+        <span class="live-dot" aria-hidden="true"></span>
+        <span class="badge-text">LIVE HOSPITAL OPERATIONS</span>
+      </div>
+
+      <div class="ticker-stream">
+        <div class="ticker-track">
+          <span
+            ><strong>[CONSULTATION]</strong> Care plan finalized for Visit #4410 by Dr. Amel
+            Trabelsi</span
+          >
+          <span class="separator">•</span>
+          <span
+            ><strong>[LABORATORY]</strong> Fasting Blood Glucose result ready: 115 mg/dL (Flagged
+            HIGH)</span
+          >
+          <span class="separator">•</span>
+          <span
+            ><strong>[PHARMACY]</strong> Prescription ready for pickup: Amoxicillin 500mg × 21
+            caps</span
+          >
+          <span class="separator">•</span>
+          <span
+            ><strong>[ADMISSIONS]</strong> Patient Y. Mansouri checked in → Internal Medicine Room
+            304B</span
+          >
+          <span class="separator">•</span>
+          <span
+            ><strong>[PATIENT PORTAL]</strong> Outpatient appointment confirmed for Thu 10:00
+            AM</span
+          >
+          <span class="separator">•</span>
+          <span
+            ><strong>[CONSULTATION]</strong> Care plan finalized for Visit #4410 by Dr. Amel
+            Trabelsi</span
+          >
+          <span class="separator">•</span>
+          <span
+            ><strong>[LABORATORY]</strong> Fasting Blood Glucose result ready: 115 mg/dL (Flagged
+            HIGH)</span
+          >
+        </div>
+      </div>
+
+      <div class="ticker-meta">
+        <span>Average Triage Wait: <strong>8 mins</strong></span>
+        <span class="meta-sep">|</span>
+        <span class="status-online">All Systems Online 24/7</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Floating Minimal Header -->
   <header class="header" role="banner">
     <div class="header-inner">
       <div class="brand">
         <div class="brand-emblem" aria-hidden="true">
-          <mat-icon>local_hospital</mat-icon>
+          <svg
+            class="emblem-svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            <circle cx="12" cy="12" r="3" fill="currentColor" />
+          </svg>
         </div>
         <div class="brand-text">
-          <span class="hospital-title">St. Gabriel Hospital</span>
-          <span class="hospital-sub">Connected Health Network</span>
+          <span class="hospital-title">SGH — St. Gabriel Hospital</span>
+          <span class="hospital-sub">Système de Gestion Hospitalière</span>
         </div>
       </div>
 
       <nav class="nav" aria-label="Main navigation">
-        <a href="#services" class="nav-link">Clinical Services</a>
+        <a href="#workflows" class="nav-link">Clinical Workflows</a>
+        <a href="#portal" class="nav-link">Patient Portal</a>
         <a href="#telemetry" class="nav-link">Live Telemetry</a>
         <a href="#gateways" class="nav-link">Role Gateways</a>
-        <a routerLink="/status" class="status-chip">
+        <a routerLink="/status" class="status-pill" title="View infrastructure microservice health">
           <span class="status-dot" aria-hidden="true"></span>
-          <span>Systems Online</span>
+          <span>6/6 Services Online</span>
         </a>
       </nav>
 
@@ -41,9 +106,9 @@
             <span>My Workspace ({{ auth.user()?.fullName }})</span>
           </button>
         } @else {
-          <a mat-flat-button class="cta-pill" routerLink="/login">
+          <a mat-flat-button class="cta-pill" routerLink="/login" href="/login">
             <mat-icon>account_circle</mat-icon>
-            <span>Sign In to Portal</span>
+            <span>Sign In / Portal Access</span>
           </a>
         }
       </div>
@@ -54,232 +119,707 @@
     <!-- Hero Section -->
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero-inner">
+        <!-- Left: Value Proposition & CTAs -->
         <div class="hero-copy">
           <div class="eyebrow">
             <span class="eyebrow-dot" aria-hidden="true"></span>
-            <span>Accredited Clinical Platform</span>
+            <span>SYSTÈME DE GESTION HOSPITALIÈRE</span>
           </div>
 
           <h1 id="hero-title" class="hero-heading">
-            Compassionate Care,<br />
-            <span class="hero-gradient">Powered by Connected Medicine.</span>
+            Connected Hospital Care &amp;<br />
+            <span class="hero-highlight">Unified Clinical Operations.</span>
           </h1>
 
           <p class="hero-lead">
-            Experience modern healthcare built around you. St. Gabriel Hospital unites physician
-            consultations, instant laboratory diagnostics, electronic prescriptions, and secure
-            patient records into one continuous care platform.
+            Experience modern hospital management built around patient safety and care coordination.
+            SGH (St. Gabriel Hospital) unites physician consultations, instant laboratory
+            diagnostics, electronic prescriptions, and transparent patient records into one
+            continuous care platform. Compassionate Care powered by reliable distributed technology.
           </p>
 
           <div class="hero-actions">
             @if (auth.isAuthenticated()) {
               <button mat-flat-button class="btn-primary" type="button" (click)="goToPortal()">
-                <span>Enter Workspace</span>
+                <span>Open Staff Workspace</span>
                 <mat-icon>arrow_forward</mat-icon>
               </button>
             } @else {
-              <a mat-flat-button class="btn-primary" routerLink="/login">
-                <span>Access Patient Portal</span>
+              <a mat-flat-button class="btn-primary" routerLink="/login" href="/login">
+                <span>Sign In to Staff Workspace</span>
                 <mat-icon>arrow_forward</mat-icon>
               </a>
             }
 
-            <a mat-stroked-button class="btn-secondary" href="#services">
-              <span>Explore Clinical Services</span>
+            <a mat-stroked-button class="btn-secondary" href="#portal">
+              <mat-icon>person</mat-icon>
+              <span>Access Patient Portal</span>
             </a>
           </div>
 
-          <div class="hero-emergency">
-            <mat-icon class="emergency-icon">emergency</mat-icon>
-            <div class="emergency-text">
-              <span class="emergency-label">24/7 Rapid Emergency Care</span>
-              <strong class="emergency-phone">Dial 198 / +216 71 800 000</strong>
+          <div class="roles-strip">
+            <span class="roles-label">DEDICATED WORKSPACES FOR EVERY CARE TEAM:</span>
+            <div class="roles-tags">
+              <span class="role-tag">Physicians</span>
+              <span class="role-tag">Triage Nurses</span>
+              <span class="role-tag">Pathology Specialists</span>
+              <span class="role-tag">Hospital Pharmacists</span>
+              <span class="role-tag">Admissions &amp; Billing</span>
             </div>
           </div>
         </div>
 
-        <!-- Hero Showcase: Integrated Real Photography & Floating Live Telemetry -->
-        <div class="hero-showcase" id="telemetry">
-          <div class="showcase-frame">
-            <img
-              src="/images/hero-care.jpg"
-              alt="Physician consulting with patient at St. Gabriel Hospital"
-              class="showcase-img"
-              loading="eager"
-              width="640"
-              height="420"
-            />
-            <div class="showcase-caption">
-              <span class="caption-dot" aria-hidden="true"></span>
-              <span>Cardiology Care Pavilion &bull; Inpatient Suite 302</span>
-            </div>
-          </div>
+        <!-- Right: Interactive 3D Clinical Workstation Preview Card -->
+        <div class="hero-preview">
+          <div class="workstation-card">
+            <!-- Window Top Bar with Patient Tabs -->
+            <div class="workstation-topbar">
+              <div class="topbar-title">
+                <span class="topbar-pulse" aria-hidden="true"></span>
+                <span>CLINICAL CHART PREVIEW // ACTIVE PATIENT</span>
+              </div>
 
-          <!-- Floating Live Telemetry Card -->
-          <div class="telemetry-card">
-            <div class="telemetry-head">
-              <div class="telemetry-patient">
-                <div class="patient-dot" aria-hidden="true"></div>
-                <div>
-                  <span class="patient-title">Patient Live Telemetry</span>
-                  <span class="patient-sub">Bed 04-A &bull; Monitored</span>
+              <div class="patient-switcher" role="tablist" aria-label="Select patient chart">
+                @for (p of patientCharts; track p.id; let idx = $index) {
+                  <button
+                    type="button"
+                    class="patient-tab"
+                    [class.active]="activePatientIndex() === idx"
+                    (click)="selectPatient(idx)"
+                  >
+                    {{ p.name.split(' ')[0][0] }}. {{ p.name.split(' ')[1] }} ({{ p.ageGender }})
+                  </button>
+                }
+              </div>
+            </div>
+
+            @if (activePatient(); as pt) {
+              <!-- Patient Demographic Header -->
+              <div class="patient-header">
+                <div class="patient-avatar">{{ pt.initials }}</div>
+                <div class="patient-info">
+                  <div class="patient-title-row">
+                    <h2 class="patient-name">{{ pt.name }}</h2>
+                    <span class="mrn-badge">{{ pt.mrn }}</span>
+                  </div>
+                  <p class="patient-submeta">
+                    DOB: {{ pt.dob }} • Blood: <strong>{{ pt.bloodType }}</strong> • Allergies:
+                    <strong class="allergy-alert">{{ pt.allergies }}</strong>
+                  </p>
+                </div>
+                <span class="ward-badge">{{ pt.room }}</span>
+              </div>
+
+              <!-- Workstation Content -->
+              <div class="workstation-body">
+                <!-- 1. Vitals Triage Strip with Live ECG Pulse Trace -->
+                <div class="vitals-section">
+                  <div class="section-label-row">
+                    <span class="section-label">1. NURSE VITALS TRIAGE</span>
+                    <div class="ecg-monitor">
+                      <svg class="ecg-svg" viewBox="0 0 100 20" preserveAspectRatio="none">
+                        <path
+                          d="M0 10 L25 10 L30 3 L35 17 L40 8 L45 12 L50 10 L75 10 L80 4 L85 16 L90 9 L95 11 L100 10"
+                          fill="none"
+                          stroke="var(--sgh-tone-success-solid)"
+                          stroke-width="1.8"
+                        />
+                      </svg>
+                      <span class="ecg-label">LEAD II • 25mm/s</span>
+                    </div>
+                  </div>
+
+                  <div class="vitals-grid">
+                    <div class="vital-card">
+                      <div class="vital-head">
+                        <span>Blood Pressure</span>
+                        <span
+                          class="vital-flag"
+                          [attr.data-tone]="pt.bpStatus === 'NORMAL' ? 'success' : 'warning'"
+                        >
+                          {{ pt.bpStatus }}
+                        </span>
+                      </div>
+                      <div class="vital-value-row">
+                        <span class="vital-number">{{ pt.bp }}</span>
+                        <span class="vital-unit">mmHg</span>
+                      </div>
+                    </div>
+
+                    <div class="vital-card">
+                      <div class="vital-head">
+                        <span>Heart Rate</span>
+                        <span class="vital-flag" data-tone="success">NORMAL</span>
+                      </div>
+                      <div class="vital-value-row">
+                        <span class="vital-number">{{ pt.hr }}</span>
+                        <span class="vital-unit">bpm</span>
+                      </div>
+                    </div>
+
+                    <div class="vital-card">
+                      <div class="vital-head">
+                        <span>O₂ Saturation</span>
+                        <span class="vital-flag" data-tone="success">ROOM AIR</span>
+                      </div>
+                      <div class="vital-value-row">
+                        <span class="vital-number">{{ pt.spo2 }}</span>
+                        <span class="vital-unit">%</span>
+                      </div>
+                    </div>
+
+                    <div class="vital-card">
+                      <div class="vital-head">
+                        <span>Core Temp</span>
+                        <span
+                          class="vital-flag"
+                          [attr.data-tone]="pt.tempStatus === 'NORMAL' ? 'success' : 'warning'"
+                        >
+                          {{ pt.tempStatus }}
+                        </span>
+                      </div>
+                      <div class="vital-value-row">
+                        <span class="vital-number">{{ pt.temp }}</span>
+                        <span class="vital-unit">°C</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 2. Split Row: Diagnostic Labs + E-Prescriptions -->
+                <div class="clinical-split-row">
+                  <!-- Diagnostic Labs -->
+                  <div class="clinical-subpanel">
+                    <div class="subpanel-header">
+                      <span class="section-label">2. DIAGNOSTIC LABORATORY</span>
+                      <span class="order-ref">{{ pt.labOrder }} • {{ pt.analyzer }}</span>
+                    </div>
+                    <div class="lab-test-list">
+                      @for (test of pt.labTests; track test.code) {
+                        <div class="lab-test-row">
+                          <div class="test-desc">
+                            <span class="test-code">{{ test.code }}</span>
+                            <span class="test-name">{{ test.name }}</span>
+                          </div>
+                          <div class="test-val-wrap">
+                            <span class="test-range">Range: {{ test.range }}</span>
+                            <span class="test-val">{{ test.value }} {{ test.unit }}</span>
+                            <span class="flag-badge" [attr.data-flag]="test.flag">
+                              {{ test.flag }}
+                            </span>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- E-Prescriptions -->
+                  <div class="clinical-subpanel">
+                    <div class="subpanel-header">
+                      <span class="section-label">3. E-PRESCRIPTIONS</span>
+                      <span class="verified-tag">VERIFIED STOCK</span>
+                    </div>
+                    <div class="rx-list">
+                      @for (rx of pt.rxItems; track rx.name) {
+                        <div class="rx-item">
+                          <strong class="rx-name">{{ rx.name }}</strong>
+                          <span class="rx-regimen"
+                            >{{ rx.dosage }} • {{ rx.frequency }} • {{ rx.duration }}</span
+                          >
+                        </div>
+                      }
+                    </div>
+                    <div class="rx-footer">
+                      <span class="rx-status-text">Status: <strong>Ready at Pharmacy</strong></span>
+                      <a class="rx-action-link" routerLink="/pharmacy/prescriptions"
+                        >View Queue &rarr;</a
+                      >
+                    </div>
+                  </div>
                 </div>
               </div>
-              <span class="telemetry-tag">LIVE</span>
-            </div>
-
-            <div class="vitals-strip">
-              <div class="vital-item">
-                <span class="vital-label">Heart Rate</span>
-                <span class="vital-val red">{{ heartRate() }} <small>bpm</small></span>
-                <span class="vital-sub">Normal Sinus</span>
-              </div>
-              <div class="vital-item">
-                <span class="vital-label">Blood Pressure</span>
-                <span class="vital-val blue">{{ bloodPressure() }} <small>mmHg</small></span>
-                <span class="vital-sub">Optimal</span>
-              </div>
-              <div class="vital-item">
-                <span class="vital-label">Oxygen (SpO2)</span>
-                <span class="vital-val green">{{ oxygen() }}<small>%</small></span>
-                <span class="vital-sub">Room Air</span>
-              </div>
-              <div class="vital-item">
-                <span class="vital-label">Temperature</span>
-                <span class="vital-val amber">{{ temp() }} <small>&deg;C</small></span>
-                <span class="vital-sub">Afebrile</span>
-              </div>
-            </div>
+            }
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Clinical Architecture / Services (The 3 Core Pillars) -->
-    <section class="services-section" id="services" aria-labelledby="services-title">
-      <div class="section-container">
-        <div class="section-header">
-          <span class="section-badge">Integrated Clinical Architecture</span>
-          <h2 id="services-title" class="section-title">Connected Care Modules Under One Roof</h2>
-          <p class="section-subtitle">
-            Every hospital division operates with high availability and resilient contracts,
-            ensuring complete clinical visibility from admissions to diagnostics.
+    <!-- 4. Clinical & Department Workflows Section -->
+    <section id="workflows" class="workflows-section" aria-labelledby="workflows-title">
+      <div class="section-inner">
+        <div class="section-heading-block">
+          <span class="section-eyebrow">COORDINATED HOSPITAL DEPARTMENTS</span>
+          <h2 id="workflows-title" class="section-title">
+            Comprehensive Clinical &amp; Administrative Capabilities
+          </h2>
+          <p class="section-sub">
+            Every department in SGH operates autonomously with dedicated business rules while
+            staying in real-time sync through an asynchronous message broker.
           </p>
         </div>
 
-        <div class="pillars-grid">
-          <!-- Pillar 1: Consultations -->
-          <article class="pillar-card">
-            <div class="pillar-top">
-              <div class="pillar-icon">
-                <mat-icon>stethoscope</mat-icon>
-              </div>
-              <span class="pillar-tag">CLINICAL</span>
-            </div>
-            <h3 class="pillar-name">Consultations &amp; SOAP Notes</h3>
-            <p class="pillar-text">
-              Comprehensive clinical workstations with structured Subjective, Objective, Assessment,
-              and Plan documentation, ICD-10 diagnostic coding, and historical vitals charting.
-            </p>
-            <ul class="pillar-features">
-              <li><mat-icon>check</mat-icon> Structured SOAP Workspace</li>
-              <li><mat-icon>check</mat-icon> Real-time Vitals History</li>
-              <li><mat-icon>check</mat-icon> ICD-10 Codification</li>
-            </ul>
-          </article>
+        <!-- Workflow Tabs -->
+        <div class="workflow-tabs" role="tablist">
+          <button
+            type="button"
+            class="tab-btn"
+            [class.active]="activeWorkflowTab() === 'consultation'"
+            (click)="selectWorkflow('consultation')"
+          >
+            <mat-icon>stethoscope</mat-icon>
+            <span>Consultations &amp; SOAP Notes</span>
+          </button>
+          <button
+            type="button"
+            class="tab-btn"
+            [class.active]="activeWorkflowTab() === 'lab'"
+            (click)="selectWorkflow('lab')"
+          >
+            <mat-icon>biotech</mat-icon>
+            <span>Diagnostic Laboratory</span>
+          </button>
+          <button
+            type="button"
+            class="tab-btn"
+            [class.active]="activeWorkflowTab() === 'pharmacy'"
+            (click)="selectWorkflow('pharmacy')"
+          >
+            <mat-icon>medication</mat-icon>
+            <span>Hospital Pharmacy</span>
+          </button>
+          <button
+            type="button"
+            class="tab-btn"
+            [class.active]="activeWorkflowTab() === 'reception'"
+            (click)="selectWorkflow('reception')"
+          >
+            <mat-icon>event_available</mat-icon>
+            <span>Reception &amp; Admissions</span>
+          </button>
+          <button
+            type="button"
+            class="tab-btn"
+            [class.active]="activeWorkflowTab() === 'billing'"
+            (click)="selectWorkflow('billing')"
+          >
+            <mat-icon>receipt_long</mat-icon>
+            <span>Billing &amp; Invoices</span>
+          </button>
+        </div>
 
-          <!-- Pillar 2: Diagnostics Laboratory (With Photography) -->
-          <article class="pillar-card lab-card">
-            <div class="lab-photo-wrap">
-              <img
-                src="/images/lab-diagnostics.jpg"
-                alt="Clinical technologist in pathology diagnostics laboratory"
-                class="lab-photo"
-                loading="lazy"
-                width="400"
-                height="160"
-              />
-              <span class="stat-badge"><mat-icon>biotech</mat-icon> 24/7 STAT Pathology</span>
-            </div>
-            <div class="pillar-top">
-              <div class="pillar-icon">
-                <mat-icon>biotech</mat-icon>
+        <!-- Workflow Content Pane -->
+        <div class="workflow-card sgh-card">
+          @switch (activeWorkflowTab()) {
+            @case ('consultation') {
+              <div class="workflow-pane">
+                <div class="pane-text">
+                  <span class="pane-tag">DOCTOR &amp; NURSE CARE</span>
+                  <h3 class="pane-title">Structured SOAP Clinical Consultations</h3>
+                  <p class="pane-lead">
+                    Physicians record structured clinical observations (Subjective, Objective,
+                    Assessment, Plan), nurse-captured vital signs, electronic prescriptions, and
+                    diagnostic lab test orders in one coherent view.
+                  </p>
+                  <ul class="feature-bullets">
+                    <li>
+                      <mat-icon>check_circle</mat-icon>
+                      <strong>Immutable Patient Snapshots:</strong> Preserves demographic details at
+                      the moment of consultation creation (CON-3).
+                    </li>
+                    <li>
+                      <mat-icon>check_circle</mat-icon>
+                      <strong>Nurse Vitals Triage:</strong> Pre-populates BP, HR, SpO2, Temperature,
+                      and Weight directly into the chart.
+                    </li>
+                    <li>
+                      <mat-icon>check_circle</mat-icon>
+                      <strong>Event-Driven Order Publishing:</strong> Dispatches lab test requests
+                      and pharmacy prescriptions asynchronously over RabbitMQ.
+                    </li>
+                  </ul>
+                  <a mat-flat-button class="pane-cta" routerLink="/consultations"
+                    >Access Consultation Desk &rarr;</a
+                  >
+                </div>
+                <div class="pane-visual">
+                  <div class="mock-soap-card">
+                    <div class="mock-soap-header">
+                      <span>SOAP CLINICAL NOTE #f7f7f7f7</span>
+                      <span class="status-chip signed">SIGNED</span>
+                    </div>
+                    <div class="mock-soap-body">
+                      <p>
+                        <strong>[S] Subjective:</strong> Patient presents with mild bilateral
+                        frontal headache for 48h, worsened with fatigue.
+                      </p>
+                      <p>
+                        <strong>[O] Objective:</strong> BP 120/80 mmHg, HR 72 bpm, SpO2 98%.
+                        Neurological exam non-focal. Hydration adequate.
+                      </p>
+                      <p>
+                        <strong>[A] Assessment:</strong> Episodic tension-type headache (G44.2).
+                        Stress-related etiology.
+                      </p>
+                      <p>
+                        <strong>[P] Plan:</strong> Prescribe Paracetamol 500mg. Recommend sleep
+                        hygiene and hydration. Follow up in 2 weeks.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <span class="pillar-tag">PATHOLOGY</span>
-            </div>
-            <h3 class="pillar-name">Diagnostic Laboratory</h3>
-            <p class="pillar-text">
-              Automated electronic test requisitions with barcode specimen tracking. Pathologists
-              validate hematology, biochemistry, and urinalysis panels with real-time telemetry
-              sync.
-            </p>
-            <ul class="pillar-features">
-              <li><mat-icon>check</mat-icon> Automated Orders</li>
-              <li><mat-icon>check</mat-icon> Critical Results Flagging</li>
-              <li><mat-icon>check</mat-icon> Instant Telemetry Sync</li>
-            </ul>
-          </article>
-
-          <!-- Pillar 3: Dispensary -->
-          <article class="pillar-card">
-            <div class="pillar-top">
-              <div class="pillar-icon">
-                <mat-icon>medication</mat-icon>
+            }
+            @case ('lab') {
+              <div class="workflow-pane">
+                <div class="pane-text">
+                  <span class="pane-tag">DIAGNOSTIC PATHOLOGY</span>
+                  <h3 class="pane-title">High-Throughput Laboratory Work Queue</h3>
+                  <p class="pane-lead">
+                    Laboratory technicians process pending test orders automatically prioritized
+                    with URGENT orders first. Analyzer readings are validated against biological
+                    thresholds with automated flag computation.
+                  </p>
+                  <ul class="feature-bullets">
+                    <li>
+                      <mat-icon>check_circle</mat-icon>
+                      <strong>Automated Reference Flags:</strong> Calculates NORMAL, HIGH, LOW, or
+                      CRITICAL flags using biological catalogue thresholds.
+                    </li>
+                    <li>
+                      <mat-icon>check_circle</mat-icon>
+                      <strong>Safety Confirmation Gates:</strong> Prompts technicians with an
+                      explicit confirmation dialog before validating critical results.
+                    </li>
+                    <li>
+                      <mat-icon>check_circle</mat-icon>
+                      <strong>Asynchronous Result Delivery:</strong> Publishes
+                      <code>lab.result.ready</code> back to the attending doctor's consultation
+                      record.
+                    </li>
+                  </ul>
+                  <a mat-flat-button class="pane-cta" routerLink="/lab/requests"
+                    >Open Laboratory Queue &rarr;</a
+                  >
+                </div>
+                <div class="pane-visual">
+                  <div class="mock-lab-card">
+                    <div class="mock-soap-header">
+                      <span>ORDER #f9f9f9f9 • BLOOD GLUCOSE &amp; CBC</span>
+                      <span class="status-chip urgent">URGENT</span>
+                    </div>
+                    <div class="mock-table-wrap">
+                      <table class="sgh-table">
+                        <thead>
+                          <tr>
+                            <th>Parameter</th>
+                            <th>Value</th>
+                            <th>Range</th>
+                            <th>Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>Fasting Blood Glucose</td>
+                            <td><strong>115.0 mg/dL</strong></td>
+                            <td>70.0 - 100.0</td>
+                            <td><span class="flag-badge" data-flag="HIGH">HIGH</span></td>
+                          </tr>
+                          <tr>
+                            <td>Hemoglobin (HGB)</td>
+                            <td><strong>14.2 g/dL</strong></td>
+                            <td>12.0 - 17.0</td>
+                            <td><span class="flag-badge" data-flag="NORMAL">NORMAL</span></td>
+                          </tr>
+                          <tr>
+                            <td>White Blood Cells (WBC)</td>
+                            <td><strong>8.4 × 10^9/L</strong></td>
+                            <td>4.0 - 11.0</td>
+                            <td><span class="flag-badge" data-flag="NORMAL">NORMAL</span></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <span class="pillar-tag">DISPENSARY</span>
-            </div>
-            <h3 class="pillar-name">Hospital Dispensary</h3>
-            <p class="pillar-text">
-              Direct electronic prescription routing from physician consults to the hospital
-              dispensary with full safety dosage verification and automated inventory management.
-            </p>
-            <ul class="pillar-features">
-              <li><mat-icon>check</mat-icon> Direct E-Prescriptions</li>
-              <li><mat-icon>check</mat-icon> Safety Dosage Validation</li>
-              <li><mat-icon>check</mat-icon> Live Dispensary Tracking</li>
-            </ul>
-          </article>
+            }
+            @case ('pharmacy') {
+              <div class="workflow-pane">
+                <div class="pane-text">
+                  <span class="pane-tag">MEDICATION DISPENSARY</span>
+                  <h3 class="pane-title">Closed-Loop Pharmacy &amp; Inventory Control</h3>
+                  <p class="pane-lead">
+                    Hospital pharmacists review electronic prescriptions directly from consultation
+                    rooms. Medication dispensing executes in atomic transactions with explicit row
+                    locking to eliminate stock inconsistencies.
+                  </p>
+                  <ul class="feature-bullets">
+                    <li>
+                      <mat-icon>check_circle</mat-icon>
+                      <strong>Atomic Stock Deduction:</strong> Deducts medication inventory and
+                      records dispensing audit lines simultaneously.
+                    </li>
+                    <li>
+                      <mat-icon>check_circle</mat-icon>
+                      <strong>Automated Reorder Alerts:</strong> Automatically surfaces medications
+                      with stock at or below critical thresholds (PHA-8).
+                    </li>
+                    <li>
+                      <mat-icon>check_circle</mat-icon>
+                      <strong>Autonomous Resilience:</strong> Continues dispensing from local
+                      prescription copies even during Consultation service downtime.
+                    </li>
+                  </ul>
+                  <a mat-flat-button class="pane-cta" routerLink="/pharmacy/drugs"
+                    >Manage Drugs &amp; Inventory &rarr;</a
+                  >
+                </div>
+                <div class="pane-visual">
+                  <div class="mock-soap-card">
+                    <div class="mock-soap-header">
+                      <span>INVENTORY WATCHLIST</span>
+                      <span class="status-chip warning">LOW STOCK ALERT</span>
+                    </div>
+                    <div class="mock-table-wrap">
+                      <table class="sgh-table">
+                        <thead>
+                          <tr>
+                            <th>Medication</th>
+                            <th>Form &amp; Strength</th>
+                            <th>In Stock</th>
+                            <th>Threshold</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr class="alert-row">
+                            <td>Amoxicillin</td>
+                            <td>Capsule 500mg</td>
+                            <td><strong class="text-danger">55 caps</strong></td>
+                            <td>60 caps</td>
+                          </tr>
+                          <tr>
+                            <td>Paracetamol</td>
+                            <td>Tablet 500mg</td>
+                            <td>500 tabs</td>
+                            <td>100 tabs</td>
+                          </tr>
+                          <tr>
+                            <td>Atorvastatin</td>
+                            <td>Tablet 20mg</td>
+                            <td>180 tabs</td>
+                            <td>50 tabs</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+            @case ('reception') {
+              <div class="workflow-pane">
+                <div class="pane-text">
+                  <span class="pane-tag">FRONT DESK &amp; SCHEDULING</span>
+                  <h3 class="pane-title">Frictionless Patient Admission &amp; Appointments</h3>
+                  <p class="pane-lead">
+                    Admissions staff coordinate appointments across outpatient departments, checking
+                    doctor availability in standard 30-minute time slots and verifying patient
+                    identities.
+                  </p>
+                  <ul class="feature-bullets">
+                    <li>
+                      <mat-icon>check_circle</mat-icon>
+                      <strong>Conflict-Free Scheduling:</strong> Database indexes guarantee zero
+                      doctor double-booking across concurrent requests.
+                    </li>
+                    <li>
+                      <mat-icon>check_circle</mat-icon>
+                      <strong>One-Click Check-in:</strong> Fast-tracks arriving patients directly to
+                      triage and clinical queue desks.
+                    </li>
+                    <li>
+                      <mat-icon>check_circle</mat-icon>
+                      <strong>Automated Verification Jobs:</strong> Background reconciliation links
+                      newly created patients with existing appointments.
+                    </li>
+                  </ul>
+                  <a mat-flat-button class="pane-cta" routerLink="/reception/appointments"
+                    >Open Appointments Desk &rarr;</a
+                  >
+                </div>
+                <div class="pane-visual">
+                  <div class="mock-soap-card">
+                    <div class="mock-soap-header">
+                      <span>DOCTOR CALENDAR // 30-MIN SLOTS</span>
+                      <span class="status-chip success">SLOTS OPEN</span>
+                    </div>
+                    <div class="slot-list">
+                      <div class="slot-item booked">
+                        <span>09:00 - 09:30 UTC</span>
+                        <strong>Youssef Mansouri (Checked In)</strong>
+                      </div>
+                      <div class="slot-item available">
+                        <span>09:30 - 10:00 UTC</span> <span class="slot-free">Available Slot</span>
+                      </div>
+                      <div class="slot-item booked">
+                        <span>10:00 - 10:30 UTC</span> <strong>Amel Ben Salah (Scheduled)</strong>
+                      </div>
+                      <div class="slot-item available">
+                        <span>10:30 - 11:00 UTC</span> <span class="slot-free">Available Slot</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+            @case ('billing') {
+              <div class="workflow-pane">
+                <div class="pane-text">
+                  <span class="pane-tag">BILLING &amp; ACCOUNTING</span>
+                  <h3 class="pane-title">Itemized Statements &amp; Payment Processing</h3>
+                  <p class="pane-lead">
+                    Reception and billing officers generate consolidated hospital invoices with
+                    server-computed totals, recording cash settlements or processing secure online
+                    card payments.
+                  </p>
+                  <ul class="feature-bullets">
+                    <li>
+                      <mat-icon>check_circle</mat-icon>
+                      <strong>Server-Computed Totals:</strong> Line items and quantities calculate
+                      totals on the server to prevent client-side tampering.
+                    </li>
+                    <li>
+                      <mat-icon>check_circle</mat-icon>
+                      <strong>Dual Payment Settlement:</strong> Supports both Cash payment at the
+                      reception counter and Card payment via the portal.
+                    </li>
+                    <li>
+                      <mat-icon>check_circle</mat-icon>
+                      <strong>Transparent Care History:</strong> Invoices remain accessible directly
+                      on the patient's personal portal.
+                    </li>
+                  </ul>
+                  <a mat-flat-button class="pane-cta" routerLink="/reception/invoices"
+                    >View Invoicing Desk &rarr;</a
+                  >
+                </div>
+                <div class="pane-visual">
+                  <div class="mock-soap-card">
+                    <div class="mock-soap-header">
+                      <span>INVOICE #e5e5e5e5 • STATEMENT BREAKDOWN</span>
+                      <span class="status-chip success">PAID IN CASH</span>
+                    </div>
+                    <div class="invoice-summary">
+                      <div class="inv-line">
+                        <span>Specialist Cardiology Consultation</span> <strong>60.00 TND</strong>
+                      </div>
+                      <div class="inv-line">
+                        <span>Blood Chemistry Panel (GLU, HGB)</span> <strong>15.00 TND</strong>
+                      </div>
+                      <div class="inv-total">
+                        <span>Total Settled:</span> <strong>75.00 TND</strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          }
         </div>
       </div>
     </section>
 
-    <!-- Role Gateways (1-Click Launch into Workspaces) -->
-    <section class="gateways-section" id="gateways" aria-labelledby="gateways-title">
-      <div class="section-container">
-        <div class="section-header">
-          <span class="section-badge">Interactive Role Gateways</span>
-          <h2 id="gateways-title" class="section-title">
-            Experience St. Gabriel Across Specialized Healthcare Roles
+    <!-- 5. Patient Self-Service Portal Section -->
+    <section id="portal" class="portal-section" aria-labelledby="portal-title">
+      <div class="section-inner">
+        <div class="section-heading-block">
+          <span class="section-eyebrow">PATIENT SELF-SERVICE</span>
+          <h2 id="portal-title" class="section-title">
+            Empowering Patients with 24/7 Digital Health Records
           </h2>
-          <p class="section-subtitle">
-            Explore dedicated workstations designed specifically for patients, cardiologists, triage
-            nurses, and diagnostic techs:
+          <p class="section-sub">
+            Patients log in securely through Keycloak to inspect their upcoming visits, clinical
+            doctor notes, and billing records from any device.
           </p>
         </div>
 
-        <div class="gateways-grid">
+        <div class="portal-cards-grid">
+          <div class="portal-card sgh-card">
+            <div class="portal-card-icon"><mat-icon>event</mat-icon></div>
+            <h3 class="portal-card-title">My Appointments</h3>
+            <p class="portal-card-desc">
+              Review your upcoming appointment slots, specialist names, and hospital room locations.
+              Cancel visits online when plans change.
+            </p>
+            <a routerLink="/my/appointments" class="portal-card-link"
+              >View Scheduled Visits &rarr;</a
+            >
+          </div>
+
+          <div class="portal-card sgh-card">
+            <div class="portal-card-icon"><mat-icon>medical_information</mat-icon></div>
+            <h3 class="portal-card-title">My Consultations</h3>
+            <p class="portal-card-desc">
+              Access your signed doctor visit notes, clinical assessments, treatment plans, and
+              verified lifestyle recommendations.
+            </p>
+            <a routerLink="/my/consultations" class="portal-card-link"
+              >View Clinical Notes &rarr;</a
+            >
+          </div>
+
+          <div class="portal-card sgh-card">
+            <div class="portal-card-icon"><mat-icon>receipt</mat-icon></div>
+            <h3 class="portal-card-title">My Invoices</h3>
+            <p class="portal-card-desc">
+              Transparent itemized billing statements showing every care item, fee breakdowns in
+              TND, and online card payment options.
+            </p>
+            <a routerLink="/my/invoices" class="portal-card-link"
+              >Pay &amp; Review Invoices &rarr;</a
+            >
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Role-Based Quick Gateways / Persona Launchpad -->
+    <section id="gateways" class="gateways-section" aria-labelledby="gateways-title">
+      <div class="section-inner">
+        <div class="section-heading-block">
+          <span class="section-eyebrow">DEVELOPER &amp; CLINICAL LAUNCHPAD</span>
+          <h2 id="gateways-title" class="section-title">
+            Instant Role Gateways (Seeded Test Accounts)
+          </h2>
+          <p class="section-sub">
+            Test the platform across all seven hospital roles. Password for all development accounts
+            is <code>Sgh@dev2026</code>.
+          </p>
+        </div>
+
+        <div class="persona-grid">
           @for (persona of quickPersonas; track persona.username) {
-            <div class="gateway-card">
-              <div class="gateway-top">
-                <div class="gateway-avatar" aria-hidden="true">
+            <div class="persona-card sgh-card">
+              <div class="persona-header">
+                <div class="persona-icon">
                   <mat-icon>{{ persona.icon }}</mat-icon>
                 </div>
-                <div class="gateway-info">
-                  <h3 class="gateway-name">{{ persona.fullName }}</h3>
-                  <span class="gateway-role"
-                    >{{ persona.roleLabel }} &bull; {{ persona.title }}</span
+                <div class="persona-meta">
+                  <strong class="persona-name">{{ persona.fullName }}</strong>
+                  <span class="persona-role"
+                    >{{ persona.roleLabel }} (<code>{{ persona.username }}</code
+                    >)</span
                   >
                 </div>
               </div>
-              <p class="gateway-desc">{{ persona.description }}</p>
+              <p class="persona-desc">{{ persona.description }}</p>
               <button
                 mat-stroked-button
+                class="persona-btn"
                 type="button"
-                class="gateway-btn"
                 (click)="quickSignIn(persona.username)"
               >
-                <span>Launch as {{ persona.roleLabel }}</span>
-                <mat-icon>arrow_forward</mat-icon>
+                Launch as {{ persona.username }}
               </button>
             </div>
           }
@@ -287,91 +827,171 @@
       </div>
     </section>
 
-    <!-- Standards & Accreditations -->
-    <section class="standards-section" aria-labelledby="standards-title">
-      <div class="section-container">
-        <div class="standards-card">
-          <div class="standards-left">
-            <h2 id="standards-title" class="standards-heading">
-              World-Class Patient Safety &amp; Security Standards
-            </h2>
-            <p class="standards-lead">
-              Every medical record is guarded by role-segregated authorization, automated audit
-              trails, and strict international healthcare compliance protocols.
-            </p>
-            <div class="standards-badges">
-              <span class="badge"><mat-icon>verified</mat-icon> JCI Quality Standards</span>
-              <span class="badge"><mat-icon>shield</mat-icon> HIPAA &amp; GDPR Compliant</span>
-              <span class="badge"><mat-icon>sync</mat-icon> HL7 / FHIR Interoperable</span>
-              <span class="badge"><mat-icon>accessibility</mat-icon> WCAG 2.1 AA Accessible</span>
+    <!-- 7. Distributed Architecture & Telemetry Section -->
+    <section id="telemetry" class="telemetry-section" aria-labelledby="telemetry-title">
+      <div class="section-inner">
+        <div class="section-heading-block">
+          <span class="section-eyebrow">ARCHITECTURE &amp; TELEMETRY</span>
+          <h2 id="telemetry-title" class="section-title">Decoupled Polyglot Microservices</h2>
+          <p class="section-sub">
+            Six independent services behind one reactive Spring Cloud Gateway, authenticated by
+            Keycloak OIDC, decoupled by a RabbitMQ topic exchange, and backed by isolated PostgreSQL
+            databases.
+          </p>
+        </div>
+
+        <!-- 6 Microservice Live Telemetry Cards -->
+        <div class="services-status-grid">
+          <div class="service-pill sgh-card">
+            <div class="service-pill-head">
+              <span class="service-dot" [class.online]="status.isUp('patient')"></span>
+              <strong class="service-name">patient-service</strong>
+              <span class="service-port">:8081</span>
+            </div>
+            <span class="service-stack">Spring Boot 3.4 • PostgreSQL</span>
+            <span class="service-desc"
+              >Patient registration, medical history, demographic snapshots</span
+            >
+          </div>
+
+          <div class="service-pill sgh-card">
+            <div class="service-pill-head">
+              <span class="service-dot" [class.online]="status.isUp('reception')"></span>
+              <strong class="service-name">reception-service</strong>
+              <span class="service-port">:8082</span>
+            </div>
+            <span class="service-stack">Express 5 (TS) • PostgreSQL</span>
+            <span class="service-desc"
+              >Doctor availability, 30-min booking slots, itemized billing</span
+            >
+          </div>
+
+          <div class="service-pill sgh-card">
+            <div class="service-pill-head">
+              <span class="service-dot" [class.online]="status.isUp('consultation')"></span>
+              <strong class="service-name">doctor-service</strong>
+              <span class="service-port">:8083</span>
+            </div>
+            <span class="service-stack">Express 5 (TS) • PostgreSQL</span>
+            <span class="service-desc"
+              >SOAP clinical notes, vitals triage, prescriptions, lab orders</span
+            >
+          </div>
+
+          <div class="service-pill sgh-card">
+            <div class="service-pill-head">
+              <span class="service-dot" [class.online]="status.isUp('lab')"></span>
+              <strong class="service-name">lab-service</strong>
+              <span class="service-port">:8084</span>
+            </div>
+            <span class="service-stack">FastAPI (Python) • PostgreSQL</span>
+            <span class="service-desc"
+              >Analyzer work queue, reference flag computation, validation</span
+            >
+          </div>
+
+          <div class="service-pill sgh-card">
+            <div class="service-pill-head">
+              <span class="service-dot" [class.online]="status.isUp('pharmacy')"></span>
+              <strong class="service-name">pharmacy-service</strong>
+              <span class="service-port">:8085</span>
+            </div>
+            <span class="service-stack">Express 5 (TS) • PostgreSQL</span>
+            <span class="service-desc"
+              >Electronic prescriptions, atomic dispensing, stock alert thresholds</span
+            >
+          </div>
+
+          <div class="service-pill sgh-card">
+            <div class="service-pill-head">
+              <span class="service-dot" [class.online]="status.isUp('staff')"></span>
+              <strong class="service-name">staff-service</strong>
+              <span class="service-port">:8086</span>
+            </div>
+            <span class="service-stack">Spring Boot 3.4 • PostgreSQL</span>
+            <span class="service-desc"
+              >Practitioner directory, staff identities, hospital role catalogue</span
+            >
+          </div>
+        </div>
+
+        <!-- System Architecture Highlights -->
+        <div class="architecture-highlights">
+          <div class="arch-box">
+            <mat-icon>shield</mat-icon>
+            <div>
+              <strong>Keycloak 26 IAM (Port 8180)</strong>
+              <p>
+                PKCE Authorization Code Flow, stateless RS256 JWT validation, fine-grained realm
+                roles.
+              </p>
             </div>
           </div>
-          <div class="standards-right">
-            <a mat-flat-button class="standards-cta" routerLink="/login">
-              <mat-icon>lock</mat-icon>
-              <span>Access Secure Portal</span>
-            </a>
+          <div class="arch-box">
+            <mat-icon>sync_alt</mat-icon>
+            <div>
+              <strong>RabbitMQ 4.3 (Port 5672)</strong>
+              <p>
+                Topic exchange <code>sgh.events</code>, dead-letter exchange
+                <code>sgh.events.dlx</code>, idempotent consumers.
+              </p>
+            </div>
+          </div>
+          <div class="arch-box">
+            <mat-icon>storage</mat-icon>
+            <div>
+              <strong>PostgreSQL 16 (Port 5432)</strong>
+              <p>
+                Strict Database-per-Service isolation across 6 independent schemas with versioned
+                migrations.
+              </p>
+            </div>
           </div>
         </div>
       </div>
     </section>
   </main>
 
-  <!-- Hospital Footer -->
+  <!-- Clean Enterprise Footer -->
   <footer class="footer" role="contentinfo">
-    <div class="footer-container">
+    <div class="footer-inner">
       <div class="footer-brand">
         <div class="brand">
-          <div class="brand-emblem" aria-hidden="true">
+          <div class="brand-emblem small">
             <mat-icon>local_hospital</mat-icon>
           </div>
-          <div class="brand-text">
-            <span class="hospital-title">St. Gabriel Hospital</span>
-            <span class="hospital-sub">Healthcare Management System</span>
-          </div>
+          <span class="hospital-title">SGH — Système de Gestion Hospitalière</span>
         </div>
-        <p class="footer-summary">
-          Integrated multi-specialty clinical hospital platform providing real-time telemetry,
-          electronic prescriptions, and diagnostic pathology.
+        <p class="footer-note">
+          Designed and built for the <em>Applications Web Distribuées</em> course at ESPRIT. Local
+          microservices architecture demonstration.
         </p>
       </div>
 
-      <div class="footer-nav">
-        <span class="nav-title">Clinical Portals</span>
-        <a routerLink="/login">Patient Health Portal</a>
-        <a routerLink="/login">Consultations &amp; SOAP</a>
-        <a routerLink="/login">Diagnostic Laboratory</a>
-        <a routerLink="/status">System Availability Status</a>
+      <div class="footer-links-group">
+        <strong>Hospital Workspaces</strong>
+        <a routerLink="/consultations">Physician Desk</a>
+        <a routerLink="/lab/requests">Laboratory Queue</a>
+        <a routerLink="/pharmacy/prescriptions">Dispensary</a>
+        <a routerLink="/reception/appointments">Admissions</a>
       </div>
 
-      <div class="footer-contact">
-        <span class="nav-title">24/7 Clinical Contact</span>
-        <div class="contact-line">
-          <mat-icon class="em-icon">emergency</mat-icon>
-          <div>
-            <strong>Emergency Desk: Dial 198</strong>
-            <span>Toll Free &bull; Immediate Ambulance Triage</span>
-          </div>
-        </div>
-        <div class="contact-line">
-          <mat-icon>call</mat-icon>
-          <div>
-            <strong>Hospital Main: +216 71 800 000</strong>
-            <span>Avenue Habib Bourguiba, Tunis</span>
-          </div>
-        </div>
+      <div class="footer-links-group">
+        <strong>Self-Service Portal</strong>
+        <a routerLink="/my/appointments">My Appointments</a>
+        <a routerLink="/my/consultations">My Consultations</a>
+        <a routerLink="/my/invoices">My Invoices</a>
+      </div>
+
+      <div class="footer-links-group">
+        <strong>System &amp; Verification</strong>
+        <a routerLink="/status">Service Status (6/6)</a>
+        <a routerLink="/staff/directory">Doctor Directory</a>
+        <a routerLink="/login">Portal Login</a>
       </div>
     </div>
-
     <div class="footer-bottom">
-      <div class="bottom-container">
-        <span>&copy; 2026 St. Gabriel Hospital System. All rights reserved.</span>
-        <div class="bottom-links">
-          <span>Medical Confidentiality Guarantee</span>
-          <span>&bull;</span>
-          <a routerLink="/status">Infrastructure Status</a>
-        </div>
-      </div>
+      <p>&copy; 2026 SGH Hospital Management System. All local microservices operational.</p>
     </div>
   </footer>
 </div>
