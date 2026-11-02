@@ -1,98 +1,50 @@
+import fs from "node:fs";
+import path from "node:path";
 import { pool } from "./pool.js";
+import { logger } from "../middleware/logger.js";
 
+// Same relative path from src/db (tsx) and dist/db (compiled): the service root.
+const MIGRATIONS_DIR = path.resolve(import.meta.dirname, "../../migrations");
+
+// Arbitrary constant: serialises runners so two instances cannot apply a file twice.
+const MIGRATION_LOCK_ID = 83_001;
+
+/** Applies `migrations/*.sql` in filename order, each in its own transaction, once. */
 export async function runMigrations(): Promise<void> {
+  const files = fs
+    .readdirSync(MIGRATIONS_DIR)
+    .filter((f) => f.endsWith(".sql"))
+    .sort();
+
   const client = await pool.connect();
   try {
-    await client.query("BEGIN");
-
+    await client.query("SELECT pg_advisory_lock($1)", [MIGRATION_LOCK_ID]);
     await client.query(`
-      CREATE TABLE IF NOT EXISTS consultations (
-        id UUID PRIMARY KEY,
-        appointment_id UUID,
-        patient_id UUID NOT NULL,
-        patient_snapshot JSONB,
-        doctor_id UUID NOT NULL,
-        subjective TEXT,
-        objective TEXT,
-        assessment TEXT,
-        plan TEXT,
-        status VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
-        signed_at TIMESTAMPTZ,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-      );
-
-      CREATE TABLE IF NOT EXISTS vital_signs (
-        id UUID PRIMARY KEY,
-        patient_id UUID NOT NULL,
-        consultation_id UUID REFERENCES consultations(id) ON DELETE SET NULL,
-        recorded_by UUID NOT NULL,
-        temperature NUMERIC(4, 1),
-        heart_rate INT,
-        systolic INT,
-        diastolic INT,
-        spo2 INT,
-        weight NUMERIC(5, 1),
-        recorded_at TIMESTAMPTZ NOT NULL DEFAULT now()
-      );
-
-      CREATE TABLE IF NOT EXISTS prescriptions (
-        id UUID PRIMARY KEY,
-        consultation_id UUID NOT NULL REFERENCES consultations(id) ON DELETE CASCADE,
-        patient_id UUID NOT NULL,
-        doctor_id UUID NOT NULL,
-        status VARCHAR(20) NOT NULL DEFAULT 'ISSUED',
-        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-      );
-
-      CREATE TABLE IF NOT EXISTS prescription_items (
-        id UUID PRIMARY KEY,
-        prescription_id UUID NOT NULL REFERENCES prescriptions(id) ON DELETE CASCADE,
-        drug_name VARCHAR(120) NOT NULL,
-        dosage VARCHAR(60) NOT NULL,
-        frequency VARCHAR(60) NOT NULL,
-        duration VARCHAR(60) NOT NULL,
-        item_order INT NOT NULL DEFAULT 0
-      );
-
-      CREATE TABLE IF NOT EXISTS lab_orders (
-        id UUID PRIMARY KEY,
-        consultation_id UUID NOT NULL REFERENCES consultations(id) ON DELETE CASCADE,
-        patient_id UUID NOT NULL,
-        doctor_id UUID NOT NULL,
-        priority VARCHAR(20) NOT NULL,
-        status VARCHAR(20) NOT NULL DEFAULT 'REQUESTED',
-        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-      );
-
-      CREATE TABLE IF NOT EXISTS lab_order_tests (
-        id UUID PRIMARY KEY,
-        lab_order_id UUID NOT NULL REFERENCES lab_orders(id) ON DELETE CASCADE,
-        code VARCHAR(10) NOT NULL,
-        name VARCHAR(100) NOT NULL
-      );
-
-      CREATE TABLE IF NOT EXISTS lab_result_copies (
-        lab_request_id UUID PRIMARY KEY,
-        consultation_id UUID NOT NULL REFERENCES consultations(id) ON DELETE CASCADE,
-        patient_id UUID NOT NULL,
-        validated_by UUID NOT NULL,
-        validated_at TIMESTAMPTZ NOT NULL,
-        results JSONB NOT NULL
-      );
-
-      CREATE TABLE IF NOT EXISTS processed_events (
-        event_id UUID PRIMARY KEY,
-        event_type VARCHAR(100) NOT NULL,
-        processed_at TIMESTAMPTZ NOT NULL DEFAULT now()
-      );
+      CREATE TABLE IF NOT EXISTS schema_migrations (
+        filename TEXT PRIMARY KEY,
+        applied_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      )
     `);
+    const applied = new Set(
+      (await client.query("SELECT filename FROM schema_migrations")).rows.map((r) => r.filename)
+    );
 
-    await client.query("COMMIT");
-  } catch (error) {
-    await client.query("ROLLBACK");
-    throw error;
+    for (const file of files) {
+      if (applied.has(file)) continue;
+      const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, file), "utf8");
+      try {
+        await client.query("BEGIN");
+        await client.query(sql);
+        await client.query("INSERT INTO schema_migrations (filename) VALUES ($1)", [file]);
+        await client.query("COMMIT");
+        logger.info({ file }, "Applied migration");
+      } catch (err) {
+        await client.query("ROLLBACK").catch(() => undefined);
+        throw err;
+      }
+    }
   } finally {
+    await client.query("SELECT pg_advisory_unlock($1)", [MIGRATION_LOCK_ID]).catch(() => undefined);
     client.release();
   }
 }

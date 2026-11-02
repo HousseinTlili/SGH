@@ -34,6 +34,15 @@ export class AuthService {
     return roles.some((r) => mine.includes(r));
   }
 
+  async loginWithCredentials(username: string, password?: string): Promise<AuthUser> {
+    if (this.backend.loginWithCredentials) {
+      const user = await this.backend.loginWithCredentials(username, password);
+      this.current.set(user);
+      return user;
+    }
+    throw new Error('Direct credentials login not supported by backend');
+  }
+
   login(): void {
     this.backend.login();
   }

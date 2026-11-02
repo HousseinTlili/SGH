@@ -12,7 +12,7 @@ gateway/             API gateway, Spring Cloud Gateway, port 8080
 frontend/            Angular app, port 4200
 services/            one folder per module (D21):
   patient-service 8081 Spring Boot      sgh_patient
-  reception-service 8082 NestJS         sgh_reception
+  reception-service 8082 Express (TS)      sgh_reception
   doctor-service 8083 Express (TS)      sgh_consultation   (Service 3, logical name "consultation")
   lab-service 8084 FastAPI              sgh_lab
   pharmacy-service 8085 Express (TS)    sgh_pharmacy

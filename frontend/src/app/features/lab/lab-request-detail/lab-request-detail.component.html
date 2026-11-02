@@ -1,10 +1,46 @@
 <div *appServiceGate="'lab'">
   <app-page-header title="Lab request" subtitle="Status and results of one laboratory request">
-    <button mat-stroked-button type="button" (click)="back()">
-      <mat-icon>arrow_back</mat-icon>
-      Back
-    </button>
+    <div class="header-actions">
+      <button mat-stroked-button type="button" (click)="back()">
+        <mat-icon>arrow_back</mat-icon>
+        Back
+      </button>
+
+      @if (request(); as req) {
+        @if (isLabTechnician()) {
+          @if (req.status === 'REQUESTED') {
+            <button
+              mat-flat-button
+              color="primary"
+              type="button"
+              [disabled]="actionLoading()"
+              (click)="startAnalysis()"
+            >
+              <mat-icon>play_arrow</mat-icon>
+              Start Analysis
+            </button>
+          }
+
+          @if (req.status === 'RESULT_ENTERED') {
+            <button
+              mat-flat-button
+              color="accent"
+              type="button"
+              [disabled]="actionLoading()"
+              (click)="validateAnalysis()"
+            >
+              <mat-icon>check_circle</mat-icon>
+              Validate Request
+            </button>
+          }
+        }
+      }
+    </div>
   </app-page-header>
+
+  @if (actionError(); as aErr) {
+    <app-error-state [error]="aErr" (retry)="load()" />
+  }
 
   @if (loading() && !request()) {
     <app-loading-state label="Loading lab request..." />
@@ -93,7 +129,72 @@
       </div>
     }
 
-    <h2 class="results-title">Results</h2>
+    <!-- Technician Input Form when IN_PROGRESS or RESULT_ENTERED -->
+    @if (isLabTechnician() && (req.status === 'IN_PROGRESS' || req.status === 'RESULT_ENTERED')) {
+      <div class="sgh-card edit-card">
+        <h2 class="results-title">Enter Test Measurements</h2>
+        <p class="section-desc">
+          Enter values measured by the analyzer. Flags (LOW, HIGH, CRITICAL) are automatically previewed.
+        </p>
+
+        <table class="sgh-table" aria-label="Enter results">
+          <thead>
+            <tr>
+              <th scope="col">Test</th>
+              <th scope="col">Value</th>
+              <th scope="col">Unit</th>
+              <th scope="col">Reference Range</th>
+              <th scope="col">Computed Flag</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of resultRows(); track row.testCode) {
+              <tr>
+                <td>
+                  <strong>{{ row.testCode }}</strong>
+                  <div class="test-subname">{{ row.testName }}</div>
+                </td>
+                <td>
+                  <mat-form-field appearance="outline" class="value-input">
+                    <input
+                      matInput
+                      type="number"
+                      step="any"
+                      [value]="row.value ?? ''"
+                      (input)="onValueChanged(row, $any($event.target).value)"
+                    />
+                  </mat-form-field>
+                </td>
+                <td>{{ row.unit }}</td>
+                <td>{{ row.refRange || '—' }}</td>
+                <td>
+                  @if (row.flag) {
+                    <app-flag-badge [flag]="row.flag" />
+                  } @else {
+                    <span class="muted">—</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <div class="form-actions">
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            [disabled]="actionLoading()"
+            (click)="saveResults()"
+          >
+            <mat-icon>save</mat-icon>
+            Save Measurements
+          </button>
+        </div>
+      </div>
+    }
+
+    <h2 class="results-title">Recorded Results</h2>
     @if (req.results.length === 0) {
       <app-empty-state
         icon="science"

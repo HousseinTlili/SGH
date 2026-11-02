@@ -1,4 +1,4 @@
-# Reception service (port 8082, stack NestJS (TypeScript))
+# Reception service (port 8082, stack Express 5 (TypeScript))
 
 Scope: this folder only. Do not edit other folders.
 

@@ -10,7 +10,7 @@ import { environment } from '../environments/environment';
 import { AUTH_BACKEND } from './core/auth/auth-backend';
 import { AuthService } from './core/auth/auth.service';
 import { MockAuthBackend } from './core/auth/mock-auth.backend';
-import { PendingKeycloakBackend } from './core/auth/pending-keycloak.backend';
+import { KeycloakAuthBackend } from './core/auth/keycloak-auth.backend';
 import { authInterceptor } from './core/http/auth.interceptor';
 import { errorInterceptor } from './core/http/error.interceptor';
 import { mockInterceptor } from './core/http/mock.interceptor';
@@ -29,7 +29,7 @@ export const appConfig: ApplicationConfig = {
     ),
     {
       provide: AUTH_BACKEND,
-      useExisting: environment.mockAuth ? MockAuthBackend : PendingKeycloakBackend,
+      useExisting: environment.mockAuth ? MockAuthBackend : KeycloakAuthBackend,
     },
     // the app does not render before the sign-in state is known
     provideAppInitializer(() => inject(AuthService).init()),

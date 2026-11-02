@@ -75,9 +75,11 @@ export class LoginComponent {
   protected readonly users = MOCK_USERS;
 
   protected usernameInput = 'doctor1';
-  protected passwordInput = '••••••••••••';
+  protected passwordInput = 'Sgh@dev2026';
   protected showPassword = signal(false);
   protected roleMenuOpen = signal(false);
+  protected loading = signal(false);
+  protected errorMessage = signal<string | null>(null);
 
   @HostListener('document:keydown.escape')
   onEscape(): void {
@@ -94,9 +96,16 @@ export class LoginComponent {
     this.roleMenuOpen.set(false);
   }
 
-  selectRole(username: string): void {
+  async selectRole(username: string): Promise<void> {
     this.closeRoleMenu();
-    this.signIn(username);
+    this.usernameInput = username;
+    this.passwordInput = 'Sgh@dev2026';
+    await this.onSubmit();
+  }
+
+  /** Keycloak redirect fallback if user explicitly requests it. */
+  signInWithKeycloak(): void {
+    this.auth.login();
   }
 
   goToWorkspace(): void {
@@ -109,17 +118,39 @@ export class LoginComponent {
     void this.router.navigateByUrl('/');
   }
 
-  onSubmit(event?: Event): void {
+  async onSubmit(event?: Event): Promise<void> {
     if (event) {
       event.preventDefault();
     }
-    const clean = this.usernameInput.trim();
-    if (!clean) {
-      this.signIn('patient1');
+    const cleanUsername = this.usernameInput.trim();
+    if (!cleanUsername) {
+      this.errorMessage.set('Please enter a username or patient ID.');
       return;
     }
-    const match = this.users.find((u) => u.username.toLowerCase() === clean.toLowerCase());
-    this.signIn(match ? match.username : clean);
+
+    this.loading.set(true);
+    this.errorMessage.set(null);
+
+    try {
+      if (this.mockAuth) {
+        this.signIn(cleanUsername);
+      } else {
+        const user = await this.auth.loginWithCredentials(
+          cleanUsername,
+          this.passwordInput.trim() || 'Sgh@dev2026',
+        );
+        const target = landingPathFor(user.roles);
+        void this.router.navigateByUrl(target);
+      }
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : 'Invalid credentials. Please verify your username and password.';
+      this.errorMessage.set(msg);
+    } finally {
+      this.loading.set(false);
+    }
   }
 
   getDetails(username: string): PersonaCardMeta {

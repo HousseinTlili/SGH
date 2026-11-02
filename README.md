@@ -47,6 +47,18 @@ SGH orchestrates the full patient care lifecycle across specialized clinical and
 
 ---
 
+## Implementation status
+
+| Part | Status |
+|---|---|
+| `contracts/`, `infra/` | Done |
+| `services/patient-service`, `staff-service` (Spring Boot), `reception-service`, `doctor-service`, `pharmacy-service` (Express), `lab-service` (FastAPI) | Implemented, each with its own test suite; verified together by `scripts/e2e.sh` |
+| `gateway/` (Spring Cloud Gateway 5) | Implemented: route table and role rules as data, JWT, CORS, correlation id, 503 fallback, `/gateway/health/services` |
+| `scripts/e2e.sh` | Scenarios 1-7 and 12 through the gateway; `--resilience` adds 8-11 (stops Lab, Patient, Consultation and RabbitMQ for real) |
+| `frontend/` Angular app | Built and tested against the mock servers and, in real mode, against Keycloak and the gateway (browser sign-in as doctor1/patient1, reload keeps the session, logout ends it) |
+
+---
+
 ## 2. High-Level Architecture
 
 The system strictly follows the **Database-per-Service** pattern, centralized OAuth2/OIDC security, and asynchronous message broker decoupling:
@@ -68,12 +80,12 @@ flowchart TB
     end
 
     subgraph Services ["Polyglot Microservices"]
-        S1["patient-service\nSpring Boot 4 (Port 8081)"]
-        S2["reception-service\nNestJS (Port 8082)"]
+        S1["patient-service\nSpring Boot 3.4 (Port 8081)"]
+        S2["reception-service\nExpress 5 + TS (Port 8082)"]
         S3["doctor-service\nExpress 5 + TS (Port 8083)"]
         S4["lab-service\nFastAPI (Port 8084)"]
         S5["pharmacy-service\nExpress 5 + TS (Port 8085)"]
-        S6["staff-service\nSpring Boot 4 (Port 8086)"]
+        S6["staff-service\nSpring Boot 3.4 (Port 8086)"]
     end
 
     subgraph Databases ["PostgreSQL 16 Databases"]
@@ -118,12 +130,12 @@ flowchart TB
 
 | Microservice | Folder | Port | Stack & Framework | Database | Key Responsibilities |
 |---|---|---|---|---|---|
-| **Patient Service** | `services/patient-service` | `8081` | Spring Boot 4, JDK 17, JPA, Flyway | `sgh_patient` | Patient master index, demographics, medical file notes, patient search. |
-| **Reception Service** | `services/reception-service` | `8082` | NestJS 12, TypeORM, `@nestjs/schedule` | `sgh_reception` | Appointment scheduling, slot availability, check-in, billing, invoices. |
+| **Patient Service** | `services/patient-service` | `8081` | Spring Boot 3.4, JDK 17, JPA, Flyway | `sgh_patient` | Patient master index, demographics, medical file notes, patient search. |
+| **Reception Service** | `services/reception-service` | `8082` | Express 5, TypeScript, `pg`, Zod, Pino, background jobs | `sgh_reception` | Appointment scheduling, slot availability, check-in, billing, invoices. |
 | **Doctor Service** | `services/doctor-service` | `8083` | Express 5, TypeScript, `pg`, Zod, Pino | `sgh_consultation` | SOAP consultations, signing/locking, vital signs, prescriptions, lab orders. |
 | **Lab Service** | `services/lab-service` | `8084` | FastAPI, Python 3.12, SQLAlchemy, Alembic | `sgh_lab` | Test catalogue, sample processing, automated flag computation, result validation. |
 | **Pharmacy Service** | `services/pharmacy-service` | `8085` | Express 5, TypeScript, `pg`, Zod, Pino | `sgh_pharmacy` | Drug catalog, inventory levels, low-stock alerts, atomic dispensing. |
-| **Staff Service** | `services/staff-service` | `8086` | Spring Boot 4, JDK 17, JPA, Flyway | `sgh_staff` | Staff directory, practitioner licensing, roles, department assignment. |
+| **Staff Service** | `services/staff-service` | `8086` | Spring Boot 3.4, JDK 17, JPA, Flyway | `sgh_staff` | Staff directory, practitioner licensing, roles, department assignment. |
 | **API Gateway** | `gateway` | `8080` | Spring Cloud Gateway WebFlux | *None* | Central ingress, reverse proxy, JWT token relay, CORS, correlation ID injection. |
 | **Frontend** | `frontend` | `4200` | Angular 22, Zoneless, Angular Material | *None* | Responsive clinical workstation, doctor/nurse/patient/admin dashboards. |
 
@@ -206,14 +218,14 @@ Authentication and role-based access control (RBAC) are centralized using **Keyc
 
 | Username | Role | Associated Entity ID | Description |
 |---|---|---|---|
-| `doctor1` | `DOCTOR` | `staffId: b2b2b2b2-0000-4000-8000-000000000001` | Dr. Alice Martin (General Practitioner) |
-| `doctor2` | `DOCTOR` | `staffId: b2b2b2b2-0000-4000-8000-000000000002` | Dr. Bernard Dupont (Cardiologist) |
-| `nurse1` | `NURSE` | `staffId: b2b2b2b2-0000-4000-8000-000000000003` | Clara Nurse (Triage & Vital Signs) |
-| `patient1` | `PATIENT` | `patientId: a1a1a1a1-0000-4000-8000-000000000001` | Jean Dupont (Restricted to own records) |
-| `pharmacist1` | `PHARMACIST` | `staffId: b2b2b2b2-0000-4000-8000-000000000004` | Pharmacist Denis |
-| `lab1` | `LAB_TECH` | `staffId: b2b2b2b2-0000-4000-8000-000000000005` | Laboratory Technician Emma |
-| `reception1` | `RECEPTIONIST` | `staffId: b2b2b2b2-0000-4000-8000-000000000006` | Front Desk Receptionist |
-| `admin1` | `ADMIN` | — | System Administrator |
+| `doctor1` | `DOCTOR` | `staffId: b2b2b2b2-0000-4000-8000-000000000001` | Amel Trabelsi (Cardiology) |
+| `doctor2` | `DOCTOR` | `staffId: b2b2b2b2-0000-4000-8000-000000000002` | Karim Jlassi (General practice) |
+| `nurse1` | `NURSE` | `staffId: b2b2b2b2-0000-4000-8000-000000000003` | Sonia Gharbi (Triage & vital signs) |
+| `lab1` | `LAB_TECHNICIAN` | `staffId: b2b2b2b2-0000-4000-8000-000000000004` | Walid Mansouri (Laboratory) |
+| `pharmacist1` | `PHARMACIST` | `staffId: b2b2b2b2-0000-4000-8000-000000000005` | Ines Chaabane (Pharmacy) |
+| `reception1` | `RECEPTIONIST` | `staffId: b2b2b2b2-0000-4000-8000-000000000006` | Rim Bouazizi (Front desk) |
+| `admin1` | `ADMIN` | `staffId: b2b2b2b2-0000-4000-8000-000000000007` | Sami Hamdi (IT) |
+| `patient1` | `PATIENT` | `patientId: a1a1a1a1-0000-4000-8000-000000000001` | Youssef Ben Salah (restricted to own records) |
 
 ---
 
@@ -233,7 +245,7 @@ Authentication and role-based access control (RBAC) are centralized using **Keyc
 ├── frontend/                      # Angular 22 Zoneless SPA (Port 4200)
 ├── services/                      # Microservices source code
 │   ├── patient-service/           # Module 1 (Spring Boot - Port 8081)
-│   ├── reception-service/         # Module 2 (NestJS - Port 8082)
+│   ├── reception-service/         # Module 2 (Express TS - Port 8082)
 │   ├── doctor-service/            # Module 3 (Express TS - Port 8083)
 │   ├── lab-service/               # Module 4 (FastAPI - Port 8084)
 │   ├── pharmacy-service/          # Module 5 (Express TS - Port 8085)
@@ -286,28 +298,21 @@ The infrastructure exposes:
 # Check connectivity and health
 ./scripts/health.sh
 
-# Generate a JWT for Dr. Alice Martin
+# Generate a JWT for doctor1 (Amel Trabelsi)
 ./scripts/token.sh doctor1
 ```
 
-### 3. Run a Microservice (Example: `doctor-service`)
+### 3. Run the services and the gateway
 ```bash
-cd services/doctor-service
-
-# Install dependencies
-npm install
-
-# Run Vitest test suite
-npm test
-
-# Build and start the service
-npm run build
-npm start
+# Starts patient, reception, consultation, lab, pharmacy, staff and the gateway with the command from
+# each README (the first start installs dependencies and builds: a few minutes)
+./scripts/dev-services.sh start
+./scripts/dev-services.sh status          # or: ./scripts/health.sh
+curl -s localhost:8080/gateway/health/services | jq
 ```
-The doctor service runs on `http://localhost:8083`:
-* Health check: `http://localhost:8083/health`
-* Swagger UI Docs: `http://localhost:8083/docs`
-* OpenAPI JSON: `http://localhost:8083/openapi.json`
+Stop one with `./scripts/dev-services.sh stop lab`. Logs are in `.run/logs/`. Every service README also has its own run and test commands (for example `cd services/doctor-service && npm start`).
+
+Everything is reached through the gateway on `http://localhost:8080` (for example `curl -H "Authorization: Bearer $(./scripts/token.sh doctor1)" localhost:8080/api/consultations`).
 
 ### 4. Run the Angular Frontend
 ```bash
@@ -328,17 +333,28 @@ Open your browser at `http://localhost:4200`.
 
 ## 10. Testing & Verification
 
-Each service includes standalone unit and integration suites that test domain rules, authentication gates, and resilience fallbacks:
+Each service and the gateway have their own suite, run with the command in their README. Together they cover business rules, authentication (including forged tokens), concurrency, fallbacks, events validated against `contracts/events/*.json`, and migrations:
 
 ```bash
-# Verify contracts are byte-identical across services
-./scripts/check-contracts.sh
+./scripts/check-contracts.sh                       # service copies equal contracts/openapi
+cd services/patient-service   && ./mvnw test       # Spring Boot (PostgreSQL)
+cd services/staff-service     && ./mvnw test       # Spring Boot (in-memory H2)
+cd services/reception-service && npm test          # Express (PostgreSQL, RabbitMQ optional)
+cd services/doctor-service    && npm test          # Express (PostgreSQL, RabbitMQ optional)
+cd services/pharmacy-service  && npm test          # Express (PostgreSQL, RabbitMQ optional)
+cd services/lab-service       && ./.venv/bin/pytest   # FastAPI (PostgreSQL, RabbitMQ optional)
+cd gateway                    && ./mvnw test       # no infrastructure needed
+cd frontend                   && npm test          # Angular, 266 tests
+```
+The tests of the services use their own databases (`sgh_<service>_test`, created on first run), so running them never touches the development data. Tests that need RabbitMQ skip themselves when no broker is running.
 
-# Run Doctor Service test suite (29 integration tests)
-cd services/doctor-service && npm test
+Black-box checks against the running system (infrastructure, services and gateway up):
 
-# Run Frontend unit test suite (266 tests)
-cd frontend && npm test
+```bash
+./scripts/e2e.sh                      # scenarios 1-7 and 12 through the gateway, repeatable
+./scripts/e2e.sh --resilience         # + 8-11: stops and restarts Lab, Patient, Consultation and RabbitMQ
+./scripts/check-roles.py patient 8081 # every endpoint x every role from the contract, plus forged tokens
+./scripts/stub-check.sh 8083 doctor-service   # the stub acceptance list for one service
 ```
 
 ---
@@ -360,3 +376,4 @@ This project strictly adheres to the course collaboration rules:
    * [x] Asynchronous event publisher and consumer with idempotency (`processed_events`).
    * [x] 100% passing automated test suite covering success, validation, and error paths.
    * [x] Resilience verified: Starts up cleanly even if DB or Broker is down (Rule X-6/X-8).
+   * [ ] `scripts/stub-check.sh` stub acceptance list passes (script not written yet).

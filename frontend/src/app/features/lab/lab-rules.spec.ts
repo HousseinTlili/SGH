@@ -1,5 +1,5 @@
 import type { LabResultLine } from '../../core/models/consultation';
-import { LAB_FLOW, criticalResults, formatResultValue, labSteps } from './lab-rules';
+import { LAB_FLOW, computeFlag, criticalResults, formatResultValue, labSteps } from './lab-rules';
 
 const line = (testCode: string, flag: LabResultLine['flag']): LabResultLine => ({
   testCode,
@@ -52,5 +52,21 @@ describe('formatResultValue', () => {
 
   it('has no trailing space without a unit', () => {
     expect(formatResultValue(3, '')).toBe('3');
+  });
+});
+
+describe('computeFlag (LAB-3, LAB-4)', () => {
+  it('computes NORMAL, LOW, HIGH, CRITICAL correctly', () => {
+    expect(computeFlag(85, 70, 100, 50, 150)).toBe('NORMAL');
+    expect(computeFlag(65, 70, 100, 50, 150)).toBe('LOW');
+    expect(computeFlag(110, 70, 100, 50, 150)).toBe('HIGH');
+    expect(computeFlag(45, 70, 100, 50, 150)).toBe('CRITICAL');
+    expect(computeFlag(160, 70, 100, 50, 150)).toBe('CRITICAL');
+  });
+
+  it('handles optional critical thresholds', () => {
+    expect(computeFlag(60, 70, 100)).toBe('LOW');
+    expect(computeFlag(110, 70, 100)).toBe('HIGH');
+    expect(computeFlag(80, 70, 100)).toBe('NORMAL');
   });
 });

@@ -1,0 +1,81 @@
+{
+  "info": {
+    "name": "SGH Patient Service",
+    "_postman_id": "8122c2a1-0001-4000-8000-000000000001",
+    "description": "Postman collection for SGH Patient Service (Port 8081 / Gateway 8080)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
+    { "key": "token", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/patients/health",
+        "header": []
+      }
+    },
+    {
+      "name": "List Patients",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/patients?page=0&size=20",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "patients"],
+          "query": [{ "key": "page", "value": "0" }, { "key": "size", "value": "20" }]
+        },
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+      }
+    },
+    {
+      "name": "Get Patient by ID",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/patients/a1a1a1a1-0000-4000-8000-000000000001",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+      }
+    },
+    {
+      "name": "Create Patient",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/patients",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"Samir\",\n  \"lastName\": \"Ben Salem\",\n  \"birthDate\": \"1985-04-12\",\n  \"gender\": \"MALE\",\n  \"nationalId\": \"08765432\",\n  \"phone\": \"+21698111222\",\n  \"email\": \"samir.bensalem@sgh.local\",\n  \"address\": \"12 Rue de Marseille, Tunis\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Update Patient",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/api/patients/a1a1a1a1-0000-4000-8000-000000000001",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"+21698999888\",\n  \"email\": \"mohamed.ali.updated@sgh.local\",\n  \"address\": \"45 Avenue Habib Bourguiba, Tunis\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Get Medical File Entries",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/patients/a1a1a1a1-0000-4000-8000-000000000001/medical-file",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+      }
+    }
+  ]
+}
