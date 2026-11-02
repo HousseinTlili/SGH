@@ -3,6 +3,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
+import { provideFakeAuth } from '../../../../testing/auth';
 import { PharmacyApi } from '../../../core/api/pharmacy.api';
 import { NameLookupService } from '../../../core/lookup/name-lookup.service';
 import type { Dispensing, PharmacyPrescription } from '../../../core/models/pharmacy';
@@ -49,16 +50,19 @@ const history: Dispensing[] = [
 ];
 
 function setup(
-  api: Partial<Record<'getPrescription' | 'getDispensings', ReturnType<typeof vi.fn>>> = {},
+  api: Partial<Record<'getPrescription' | 'getDispensings' | 'listDrugs' | 'dispense', ReturnType<typeof vi.fn>>> = {},
 ) {
   const pharmacy = {
     getPrescription: vi.fn(() => of(rx)),
     getDispensings: vi.fn(() => of(history)),
+    listDrugs: vi.fn(() => of({ content: [], totalElements: 0 })),
+    dispense: vi.fn(() => of(rx)),
     ...api,
   };
   TestBed.configureTestingModule({
     providers: [
       provideRouter([]),
+      provideFakeAuth(),
       provideHttpClient(),
       provideHttpClientTesting(),
       {

@@ -1,6 +1,6 @@
 import type { Routes } from '@angular/router';
 import { roleGuard } from '../../core/auth/auth.guard';
-import { FeaturePlaceholderComponent } from '../../shared/components/feature-placeholder/feature-placeholder.component';
+
 export const PORTAL_ROUTES: Routes = [
   {
     path: '',
@@ -8,18 +8,22 @@ export const PORTAL_ROUTES: Routes = [
     children: [
       {
         path: 'appointments',
-        component: FeaturePlaceholderComponent,
-        data: { title: 'My appointments', service: 'reception' },
+        loadComponent: () =>
+          import('./my-appointments/my-appointments.component').then(
+            (m) => m.MyAppointmentsComponent,
+          ),
       },
       {
         path: 'invoices',
-        component: FeaturePlaceholderComponent,
-        data: { title: 'My invoices', service: 'reception' },
+        loadComponent: () =>
+          import('./my-invoices/my-invoices.component').then((m) => m.MyInvoicesComponent),
       },
       {
         path: 'consultations',
-        component: FeaturePlaceholderComponent,
-        data: { title: 'My consultations', service: 'consultation' },
+        loadComponent: () =>
+          import('./my-consultations/my-consultations.component').then(
+            (m) => m.MyConsultationsComponent,
+          ),
       },
     ],
   },

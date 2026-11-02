@@ -3,6 +3,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
+import { provideFakeAuth } from '../../../../testing/auth';
 import { LabApi } from '../../../core/api/lab.api';
 import { NameLookupService } from '../../../core/lookup/name-lookup.service';
 import type { LabRequest } from '../../../core/models/lab';
@@ -33,16 +34,22 @@ const request = (over: Partial<LabRequest> = {}): LabRequest => ({
 });
 
 function setup(getRequest = vi.fn(() => of(request()))) {
+  const getTests = vi.fn(() => of([]));
+  const startRequest = vi.fn(() => of(request({ status: 'IN_PROGRESS' })));
+  const enterResults = vi.fn(() => of(request({ status: 'RESULT_ENTERED' })));
+  const validateRequest = vi.fn(() => of(request({ status: 'VALIDATED' })));
+
   TestBed.configureTestingModule({
     providers: [
       provideRouter([]),
+      provideFakeAuth(),
       provideHttpClient(),
       provideHttpClientTesting(),
       {
         provide: ActivatedRoute,
         useValue: { snapshot: { paramMap: convertToParamMap({ id: ID }) } },
       },
-      { provide: LabApi, useValue: { getRequest } },
+      { provide: LabApi, useValue: { getRequest, getTests, startRequest, enterResults, validateRequest } },
       {
         provide: NameLookupService,
         useValue: {
@@ -54,7 +61,7 @@ function setup(getRequest = vi.fn(() => of(request()))) {
   });
   const fixture = TestBed.createComponent(LabRequestDetailComponent);
   const el = fixture.nativeElement as HTMLElement;
-  return { fixture, el, getRequest, text: () => el.textContent ?? '' };
+  return { fixture, el, getRequest, startRequest, enterResults, validateRequest, text: () => el.textContent ?? '' };
 }
 
 const stepStates = (el: HTMLElement) =>
