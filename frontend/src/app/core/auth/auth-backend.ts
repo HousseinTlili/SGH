@@ -23,6 +23,8 @@ export interface AuthBackend {
   /** Sends the user to the sign-in step. */
   login(): void;
   logout(): void;
+  /** Direct credentials login without external redirection. */
+  loginWithCredentials?(username: string, password?: string): Promise<AuthUser>;
 }
 
 export const AUTH_BACKEND = new InjectionToken<AuthBackend>('AUTH_BACKEND');
