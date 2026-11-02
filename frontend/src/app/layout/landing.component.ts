@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  ElementRef,
+  afterNextRender,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Router, RouterLink } from '@angular/router';
@@ -66,6 +75,8 @@ export class LandingComponent {
   protected readonly status = inject(ServiceStatusService);
   private readonly router = inject(Router);
   private readonly mock = inject(MockAuthBackend);
+  private readonly elementRef = inject(ElementRef);
+  private readonly destroyRef = inject(DestroyRef);
   protected readonly mockAuth = inject(MOCK_AUTH_ENABLED);
 
   // Active chart preview
@@ -73,6 +84,11 @@ export class LandingComponent {
   protected readonly activeWorkflowTab = signal<
     'consultation' | 'lab' | 'pharmacy' | 'reception' | 'billing'
   >('consultation');
+
+  // Scroll animations & telemetry signals
+  readonly scrollPercent = signal(0);
+  readonly activeSection = signal('OVERVIEW // CLINICAL CARE');
+  readonly showScrollHud = signal(false);
 
   protected readonly allServicesUp = computed(() => {
     return (
@@ -84,6 +100,12 @@ export class LandingComponent {
       this.status.isUp('staff')
     );
   });
+
+  constructor() {
+    afterNextRender(() => {
+      this.initScrollAnimations();
+    });
+  }
 
   protected readonly patientCharts: readonly PatientChart[] = [
     {
@@ -99,13 +121,13 @@ export class LandingComponent {
       vitalsTime: 'Recorded 14 mins ago by Nurse Sonia',
       bp: '120/80',
       bpStatus: 'NORMAL',
-      hr: 76,
+      hr: 72,
       hrStatus: 'NORMAL',
-      spo2: 98.4,
-      temp: '37.8',
-      tempStatus: 'LOW-GRADE',
-      labOrder: '#LAB-8921',
-      analyzer: 'Cobas c503',
+      spo2: 98,
+      temp: '37.1',
+      tempStatus: 'NORMAL',
+      labOrder: 'ORDER #f9f9f9f9',
+      analyzer: 'Roche Cobas 6000',
       labTests: [
         {
           code: 'GLU',
@@ -125,25 +147,25 @@ export class LandingComponent {
         },
         {
           code: 'WBC',
-          name: 'White Blood Cell Count',
+          name: 'White Blood Cells',
           value: '8.4',
-          unit: '10^9/L',
+          unit: '× 10^9/L',
           range: '4.0 - 11.0',
           flag: 'NORMAL',
         },
       ],
       rxItems: [
         {
-          name: 'Amoxicillin 500 mg',
-          dosage: '1 capsule',
-          frequency: '3 per day',
-          duration: '7 days',
+          name: 'Paracetamol 500mg',
+          dosage: '1 tab orally',
+          frequency: 'Every 8h as needed',
+          duration: '5 days',
         },
         {
-          name: 'Paracetamol 500 mg',
-          dosage: '1 tablet',
-          frequency: 'As needed for fever',
-          duration: '3 days',
+          name: 'Metformin 850mg',
+          dosage: '1 tab orally with meals',
+          frequency: 'Twice daily',
+          duration: '30 days',
         },
       ],
     },
@@ -151,140 +173,170 @@ export class LandingComponent {
       id: 'p2',
       name: 'Amel Ben Salah',
       initials: 'AB',
-      mrn: 'MRN-2026-0412',
-      ageGender: '58F',
-      dob: '22/09/1968 (58y)',
+      mrn: 'MRN-2026-0312',
+      ageGender: '35F',
+      dob: '22/11/1990 (35y)',
       bloodType: 'A+',
-      allergies: 'Penicillin (Severe)',
-      room: 'Cardiology Clinic • Consultation 2B',
-      vitalsTime: 'Recorded 8 mins ago by Triage Nurse',
+      allergies: 'Penicillin (Severe anaphylaxis)',
+      room: 'Cardiology Clinic • Room 102',
+      vitalsTime: 'Recorded 5 mins ago by Nurse Leila',
       bp: '138/88',
       bpStatus: 'ELEVATED',
-      hr: 82,
+      hr: 88,
       hrStatus: 'NORMAL',
-      spo2: 97.2,
+      spo2: 99,
       temp: '36.8',
       tempStatus: 'NORMAL',
-      labOrder: '#LAB-8930',
-      analyzer: 'Architect ci4100',
+      labOrder: 'ORDER #a1b2c3d4',
+      analyzer: 'Sysmex XN-1000',
       labTests: [
         {
           code: 'CHOL',
           name: 'Total Cholesterol',
-          value: '228.0',
+          value: '224.0',
           unit: 'mg/dL',
-          range: '125.0 - 200.0',
+          range: '< 200.0',
           flag: 'HIGH',
         },
         {
-          code: 'TRIG',
-          name: 'Triglycerides',
-          value: '145.0',
-          unit: 'mg/dL',
-          range: '50.0 - 150.0',
+          code: 'K+',
+          name: 'Potassium Serum',
+          value: '4.2',
+          unit: 'mmol/L',
+          range: '3.5 - 5.0',
           flag: 'NORMAL',
         },
         {
-          code: 'K+',
-          name: 'Serum Potassium',
-          value: '4.2',
-          unit: 'mmol/L',
-          range: '3.5 - 5.1',
+          code: 'CRP',
+          name: 'C-Reactive Protein',
+          value: '1.2',
+          unit: 'mg/L',
+          range: '< 5.0',
           flag: 'NORMAL',
         },
       ],
       rxItems: [
         {
-          name: 'Atorvastatin 20 mg',
-          dosage: '1 tablet',
-          frequency: 'Once daily at bedtime',
+          name: 'Atorvastatin 20mg',
+          dosage: '1 tab orally at bedtime',
+          frequency: 'Once daily',
+          duration: '90 days',
+        },
+        {
+          name: 'Amlodipine 5mg',
+          dosage: '1 tab orally in the morning',
+          frequency: 'Once daily',
           duration: '30 days',
         },
       ],
     },
     {
       id: 'p3',
-      name: 'Karim Trabelsi',
-      initials: 'KT',
-      mrn: 'MRN-2026-1102',
-      ageGender: '29M',
-      dob: '03/11/1997 (29y)',
+      name: 'Mohamed Cherif',
+      initials: 'MC',
+      mrn: 'MRN-2026-1104',
+      ageGender: '58M',
+      dob: '03/09/1967 (58y)',
       bloodType: 'B+',
-      allergies: 'None recorded (NKDA)',
-      room: 'Outpatient Triage • Bay 01',
+      allergies: 'No Known Drug Allergies (NKDA)',
+      room: 'Pulmonology • Room 208',
       vitalsTime: 'Recorded 22 mins ago by Nurse Sonia',
-      bp: '118/74',
+      bp: '125/82',
       bpStatus: 'NORMAL',
-      hr: 68,
+      hr: 76,
       hrStatus: 'NORMAL',
-      spo2: 99.1,
-      temp: '36.6',
-      tempStatus: 'NORMAL',
-      labOrder: '#LAB-8942',
-      analyzer: 'Sysmex XN-1000',
+      spo2: 95,
+      temp: '38.4',
+      tempStatus: 'FEBRILE',
+      labOrder: 'ORDER #e8f9a0b1',
+      analyzer: 'bioMérieux Vitek 2',
       labTests: [
         {
-          code: 'PLT',
-          name: 'Platelet Count',
-          value: '245.0',
-          unit: '10^9/L',
-          range: '150.0 - 450.0',
-          flag: 'NORMAL',
+          code: 'WBC',
+          name: 'White Blood Cells',
+          value: '14.8',
+          unit: '× 10^9/L',
+          range: '4.0 - 11.0',
+          flag: 'HIGH',
         },
         {
           code: 'CRP',
           name: 'C-Reactive Protein',
-          value: '2.1',
+          value: '48.0',
           unit: 'mg/L',
-          range: '0.0 - 5.0',
-          flag: 'NORMAL',
+          range: '< 5.0',
+          flag: 'HIGH',
+        },
+        {
+          code: 'SpO2',
+          name: 'Blood Gas pO2',
+          value: '72.0',
+          unit: 'mmHg',
+          range: '75.0 - 100.0',
+          flag: 'LOW',
         },
       ],
       rxItems: [
         {
-          name: 'Cetirizine 10 mg',
-          dosage: '1 tablet',
+          name: 'Azithromycin 500mg',
+          dosage: '1 tab orally',
           frequency: 'Once daily',
-          duration: '7 days',
+          duration: '3 days',
+        },
+        {
+          name: 'Salbutamol Inhaler 100mcg',
+          dosage: '2 puffs via spacer',
+          frequency: 'Every 6h as needed',
+          duration: '10 days',
         },
       ],
     },
   ];
 
-  protected readonly activePatient = computed(() => this.patientCharts[this.activePatientIndex()]);
+  protected readonly activePatient = computed(() => {
+    return this.patientCharts[this.activePatientIndex()] ?? this.patientCharts[0];
+  });
 
   protected readonly quickPersonas: readonly PersonaQuickLaunch[] = [
     {
       username: 'doctor1',
       fullName: 'Dr. Amel Trabelsi',
-      roleLabel: 'Attending Physician',
-      title: 'Clinical Consultation',
+      roleLabel: 'Cardiologist',
+      title: 'Physician Workstation',
       icon: 'stethoscope',
-      description: 'Author SOAP notes, review vital histories, and order diagnostic labs.',
+      description: 'Sign clinical SOAP notes, prescribe medications, and order diagnostic labs.',
     },
     {
       username: 'nurse1',
-      fullName: 'Sonia Gharbi',
-      roleLabel: 'Clinical Nurse',
-      title: 'Triage & Vital Signs',
-      icon: 'healing',
-      description: 'Record patient vital signs (BP, HR, SpO2, Temp) and clinical triage.',
-    },
-    {
-      username: 'lab1',
-      fullName: 'Walid Mansouri',
-      roleLabel: 'Pathology Specialist',
-      title: 'Diagnostic Laboratory',
-      icon: 'biotech',
-      description: 'Analyze urgent requisitions, compute reference flags, and validate tests.',
+      fullName: 'Sonia Mabrouk',
+      roleLabel: 'Triage Nurse',
+      title: 'Triage Desk',
+      icon: 'monitor_heart',
+      description: 'Record vitals (BP, HR, SpO2, Temp), triage queues, and prepare patients.',
     },
     {
       username: 'pharmacist1',
-      fullName: 'Ines Chaabane',
-      roleLabel: 'Hospital Pharmacist',
-      title: 'Dispensary & Inventory',
+      fullName: 'Dr. Tarek Jaziri',
+      roleLabel: 'Chief Pharmacist',
+      title: 'Hospital Dispensary',
       icon: 'medication',
-      description: 'Dispense electronic prescriptions and manage medication stock thresholds.',
+      description: 'Review e-prescriptions, execute atomic dispensations, and monitor drug stock.',
+    },
+    {
+      username: 'tech1',
+      fullName: 'Ines Ben Amor',
+      roleLabel: 'Senior Lab Technician',
+      title: 'Diagnostic Pathology',
+      icon: 'biotech',
+      description: 'Validate analyzer test samples, compute biological flags, and report findings.',
+    },
+    {
+      username: 'biller1',
+      fullName: 'Moncef Gharbi',
+      roleLabel: 'Hospital Cashier',
+      title: 'Billing Counter',
+      icon: 'receipt_long',
+      description: 'Generate itemized statements, settle cash payments, and confirm invoices.',
     },
     {
       username: 'reception1',
@@ -328,5 +380,67 @@ export class LandingComponent {
     } else {
       void this.router.navigateByUrl('/login');
     }
+  }
+
+  scrollToTop(): void {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  private initScrollAnimations(): void {
+    if (typeof window === 'undefined') return;
+
+    const hostEl = this.elementRef.nativeElement as HTMLElement;
+    const revealElements = hostEl.querySelectorAll<HTMLElement>('.scroll-reveal');
+
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-inview');
+            }
+          }
+        },
+        { threshold: 0.08, rootMargin: '0px 0px -30px 0px' },
+      );
+
+      revealElements.forEach((el) => observer.observe(el));
+      this.destroyRef.onDestroy(() => observer.disconnect());
+    } else {
+      revealElements.forEach((el) => el.classList.add('is-inview'));
+    }
+
+    const trackedSections = [
+      { id: 'hero-title', label: 'OVERVIEW // CLINICAL CARE' },
+      { id: 'workflows', label: 'DEPARTMENTS // 5 CARE TEAMS' },
+      { id: 'portal', label: 'PATIENTS // DIGITAL HEALTH' },
+      { id: 'gateways', label: 'GATEWAYS // 7 ROLE WORKSPACES' },
+      { id: 'telemetry', label: 'TELEMETRY // 6/6 SERVICES' },
+    ];
+
+    const onScroll = () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const pct =
+        docHeight > 0 ? Math.min(100, Math.max(0, Math.round((scrollTop / docHeight) * 100))) : 0;
+      this.scrollPercent.set(pct);
+      this.showScrollHud.set(scrollTop > 160);
+
+      for (const sec of trackedSections) {
+        const el = document.getElementById(sec.id);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= 280) {
+            this.activeSection.set(sec.label);
+          }
+        }
+      }
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    this.destroyRef.onDestroy(() => window.removeEventListener('scroll', onScroll));
   }
 }
