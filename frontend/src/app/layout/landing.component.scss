@@ -8,7 +8,56 @@
 }
 
 // -----------------------------------------------------------------------------
-// Top Live Activity Ticker Bar
+// Scroll Progress Line
+// -----------------------------------------------------------------------------
+.scroll-progress-line {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--sgh-brand) 0%, var(--sgh-tone-success-solid) 100%);
+  z-index: 102;
+  transition: width 0.1s ease-out;
+  pointer-events: none;
+}
+
+// -----------------------------------------------------------------------------
+// Multi-Directional Scroll Reveal Choreography
+// -----------------------------------------------------------------------------
+.scroll-reveal {
+  opacity: 0;
+  will-change: transform, opacity, filter;
+  transition:
+    opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  filter: blur(4px);
+
+  &[data-reveal='up'] {
+    transform: translateY(32px);
+  }
+
+  &[data-reveal='left'] {
+    transform: translateX(-36px);
+  }
+
+  &[data-reveal='right'] {
+    transform: translateX(36px);
+  }
+
+  &[data-reveal='scale'] {
+    transform: scale(0.95) translateY(20px);
+  }
+
+  &.is-inview {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+    filter: blur(0);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Top Live Activity Ticker Bar (Seamless Infinite Marquee)
 // -----------------------------------------------------------------------------
 .live-ticker-bar {
   background: var(--sgh-surface-1);
@@ -69,28 +118,37 @@
   flex: 1;
   overflow: hidden;
   white-space: nowrap;
-  mask-image: linear-gradient(90deg, transparent 0%, black 5%, black 95%, transparent 100%);
-  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 5%, black 95%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, black 4%, black 96%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 4%, black 96%, transparent 100%);
 }
 
 .ticker-track {
-  display: inline-flex;
-  align-items: center;
-  gap: 16px;
-  animation: ticker-slide 38s linear infinite;
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 36s linear infinite;
 
   &:hover {
     animation-play-state: paused;
   }
+}
+
+.ticker-segment {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  padding-right: 16px;
+  flex-shrink: 0;
+
   span strong {
     color: var(--sgh-text);
   }
+
   .separator {
     color: var(--sgh-border);
   }
 }
 
-@keyframes ticker-slide {
+@keyframes marquee-scroll {
   0% {
     transform: translateX(0);
   }
@@ -630,6 +688,26 @@
   width: 70px;
   height: 14px;
 }
+.ecg-path {
+  stroke-dasharray: 200;
+  stroke-dashoffset: 200;
+  animation: ecg-sweep 2.8s linear infinite;
+}
+
+@keyframes ecg-sweep {
+  0% {
+    stroke-dashoffset: 200;
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.3;
+  }
+}
+
 .ecg-label {
   font-family: var(--sgh-font-mono);
   font-size: 0.62rem;
@@ -1493,6 +1571,112 @@
       padding: 1px 4px;
       border-radius: var(--sgh-radius-sm);
     }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Floating Scroll & Telemetry HUD Indicator
+// -----------------------------------------------------------------------------
+.scroll-hud-pill {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: color-mix(in srgb, var(--sgh-surface) 88%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--sgh-border);
+  box-shadow: var(--sgh-shadow-lg);
+  border-radius: var(--sgh-radius-pill);
+  padding: 6px 8px 6px 14px;
+  animation: hud-slide-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+  @media (max-width: 600px) {
+    bottom: 16px;
+    right: 16px;
+    padding: 4px 6px 4px 10px;
+  }
+}
+
+@keyframes hud-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hud-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hud-pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sgh-brand);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sgh-brand) 25%, transparent);
+}
+
+.hud-section-name {
+  font-family: var(--sgh-font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--sgh-text);
+  letter-spacing: 0.04em;
+
+  @media (max-width: 600px) {
+    display: none;
+  }
+}
+
+.hud-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hud-pct {
+  font-family: var(--sgh-font-mono);
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--sgh-brand);
+  background: var(--sgh-brand-container);
+  padding: 2px 6px;
+  border-radius: var(--sgh-radius-pill);
+}
+
+.hud-top-btn {
+  background: var(--sgh-surface-2);
+  border: 1px solid var(--sgh-border-subtle);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sgh-text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  .mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    background: var(--sgh-brand);
+    color: var(--sgh-on-brand);
+    border-color: var(--sgh-brand);
   }
 }
 
