@@ -1,7 +1,14 @@
 export type Role =
   'PATIENT' | 'DOCTOR' | 'NURSE' | 'LAB_TECHNICIAN' | 'PHARMACIST' | 'RECEPTIONIST' | 'ADMIN';
 
-export type ServiceName = 'patient' | 'reception' | 'consultation' | 'lab' | 'pharmacy' | 'staff';
+export type ServiceName =
+  | 'patient'
+  | 'reception'
+  | 'consultation'
+  | 'lab'
+  | 'pharmacy'
+  | 'staff'
+  | 'notification';
 
 export interface Paged<T> {
   content: T[];

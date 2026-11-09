@@ -90,18 +90,19 @@ describe('ServiceStatusBarComponent', () => {
     });
   });
 
-  it('shows six dots, one per service, with readable states', async () => {
+  it('shows dots, one per service, with readable states', async () => {
     const status = TestBed.inject(ServiceStatusService);
     status.markDown('lab');
     const fixture = TestBed.createComponent(ServiceStatusBarComponent);
     await fixture.whenStable();
     const dots = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('li.dot'));
-    expect(dots).toHaveLength(6);
+    expect(dots).toHaveLength(7);
     expect(dots.map((d) => d.getAttribute('data-state'))).toEqual([
       'UNKNOWN',
       'UNKNOWN',
       'UNKNOWN',
       'DOWN',
+      'UNKNOWN',
       'UNKNOWN',
       'UNKNOWN',
     ]);

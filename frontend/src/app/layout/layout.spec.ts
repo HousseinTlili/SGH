@@ -46,7 +46,7 @@ describe('ShellComponent (role-based menu)', () => {
   it('shows the user name, the service status bar and a skip link', async () => {
     const el = await render('doctor1');
     expect(el.textContent).toContain('Amel Trabelsi');
-    expect(el.querySelectorAll('app-service-status-bar li.dot')).toHaveLength(6);
+    expect(el.querySelectorAll('app-service-status-bar li.dot')).toHaveLength(7);
     expect(el.querySelector('a.sgh-skip-link')?.getAttribute('href')).toBe('#main-content');
   });
 
@@ -130,14 +130,14 @@ describe('ProfileComponent', () => {
 });
 
 describe('StatusComponent', () => {
-  it('has a card for the gateway and for each of the six services, with an explanation line', async () => {
+  it('has a card for the gateway and for each of the services, with an explanation line', async () => {
     TestBed.configureTestingModule({ providers: baseProviders() });
     const status = TestBed.inject(ServiceStatusService);
     status.markDown('consultation');
     const fixture = TestBed.createComponent(StatusComponent);
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelectorAll('li.card')).toHaveLength(7);
+    expect(el.querySelectorAll('li.card')).toHaveLength(8);
     expect(el.textContent).toContain('If a service is down, only its own screens are affected.');
     const consultation = Array.from(el.querySelectorAll('li.card')).find((c) =>
       c.textContent?.includes('Consultation'),

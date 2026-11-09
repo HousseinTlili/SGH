@@ -4,6 +4,7 @@ export interface Consultation {
   patientId: string;
   patientSnapshot: { fullName: string; birthDate: string } | null;
   doctorId: string;
+  doctorSpecialty?: string | null;
   subjective?: string;
   objective?: string;
   assessment?: string;
@@ -12,6 +13,26 @@ export interface Consultation {
   signedAt?: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Attachment {
+  id: string;
+  consultationId: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  data: string;
+  caption: string | null;
+  uploadedBy: string;
+  uploadedAt: string;
+}
+
+export interface AttachmentInput {
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  data: string;
+  caption?: string | null;
 }
 export interface VitalSigns {
   id: string;

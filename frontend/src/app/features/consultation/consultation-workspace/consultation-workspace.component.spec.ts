@@ -52,6 +52,7 @@ describe('ConsultationWorkspaceComponent', () => {
       getPrescriptions: vi.fn().mockReturnValue(of([])),
       getLabOrders: vi.fn().mockReturnValue(of([])),
       getLabResults: vi.fn().mockReturnValue(of([])),
+      getAttachments: vi.fn().mockReturnValue(of([])),
     };
     patientApi = {
       get: vi.fn().mockReturnValue(
