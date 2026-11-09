@@ -6,3 +6,4 @@ CREATE DATABASE sgh_consultation;
 CREATE DATABASE sgh_lab;
 CREATE DATABASE sgh_pharmacy;
 CREATE DATABASE sgh_staff;
+CREATE DATABASE sgh_notification;

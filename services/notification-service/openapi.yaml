@@ -1,0 +1,330 @@
+openapi: 3.0.3
+info:
+  title: SGH Notification Service
+  description: Event-driven clinical notifications and alerts service
+  version: 1.0.0
+servers:
+  - url: http://localhost:8087
+    description: Direct service
+  - url: http://localhost:8080
+    description: Via API Gateway
+
+paths:
+  /health:
+    get:
+      summary: Service health check
+      responses:
+        '200':
+          description: Service status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: UP
+
+  /api/notifications:
+    get:
+      summary: List notifications
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: read
+          in: query
+          schema:
+            type: string
+            enum: ['true', 'false']
+        - name: type
+          in: query
+          schema:
+            type: string
+        - name: severity
+          in: query
+          schema:
+            type: string
+            enum: [INFO, WARNING, CRITICAL]
+        - name: q
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        '200':
+          description: Paginated notifications list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPage'
+
+    post:
+      summary: Create notification manually
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNotificationRequest'
+      responses:
+        '201':
+          description: Created notification
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+
+  /api/notifications/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: Get notification by id
+      responses:
+        '200':
+          description: Notification details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '404':
+          description: Not found
+    delete:
+      summary: Delete notification
+      responses:
+        '204':
+          description: Deleted successfully
+        '404':
+          description: Not found
+
+  /api/notifications/{id}/read:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      summary: Mark notification as read
+      responses:
+        '200':
+          description: Updated notification
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+
+  /api/notifications/{id}/unread:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      summary: Mark notification as unread
+      responses:
+        '200':
+          description: Updated notification
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+
+  /api/notifications/read-all:
+    patch:
+      summary: Mark all notifications as read
+      responses:
+        '200':
+          description: Count of updated notifications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updated:
+                    type: integer
+
+  /api/notifications/unread-count:
+    get:
+      summary: Get unread notifications count
+      responses:
+        '200':
+          description: Unread count
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  unread:
+                    type: integer
+
+  /api/notifications/stats:
+    get:
+      summary: Get notification telemetry stats
+      responses:
+        '200':
+          description: Telemetry stats
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationStats'
+
+  /api/notifications/bulk:
+    post:
+      summary: Bulk read, unread, or delete
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action, ids]
+              properties:
+                action:
+                  type: string
+                  enum: [read, unread, delete]
+                ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        '200':
+          description: Count of affected notifications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  affected:
+                    type: integer
+
+  /api/notifications/read:
+    delete:
+      summary: Delete all read notifications
+      responses:
+        '200':
+          description: Deleted count
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: integer
+
+components:
+  schemas:
+    Notification:
+      type: object
+      required: [id, type, title, message, read, severity, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+        title:
+          type: string
+        message:
+          type: string
+        payload:
+          type: object
+        read:
+          type: boolean
+        severity:
+          type: string
+          enum: [INFO, WARNING, CRITICAL]
+        created_at:
+          type: string
+          format: date-time
+
+    CreateNotificationRequest:
+      type: object
+      required: [type, title, message]
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        message:
+          type: string
+        severity:
+          type: string
+          enum: [INFO, WARNING, CRITICAL]
+          default: INFO
+        payload:
+          type: object
+
+    NotificationPage:
+      type: object
+      required: [content, page, size, totalElements, totalPages]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+
+    NotificationStats:
+      type: object
+      required: [total, unread, byType, bySeverity, last7Days]
+      properties:
+        total:
+          type: integer
+        unread:
+          type: integer
+        byType:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              count:
+                type: integer
+        bySeverity:
+          type: array
+          items:
+            type: object
+            properties:
+              severity:
+                type: string
+              count:
+                type: integer
+        last7Days:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+              count:
+                type: integer
