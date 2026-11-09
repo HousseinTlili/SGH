@@ -39,6 +39,7 @@ paths:
       parameters:
         - { name: patientId, in: query, schema: { type: string, format: uuid } }
         - { name: doctorId, in: query, schema: { type: string, format: uuid } }
+        - { name: specialty, in: query, schema: { type: string } }
         - { name: status, in: query, schema: { $ref: "#/components/schemas/ConsultationStatus" } }
         - { $ref: "#/components/parameters/page" }
         - { $ref: "#/components/parameters/size" }
@@ -149,6 +150,70 @@ paths:
         "422": { $ref: "#/components/responses/Unprocessable" }
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/consultations/{id}/attachments:
+    parameters:
+      - { $ref: "#/components/parameters/id" }
+    get:
+      tags: [consultations]
+      operationId: listConsultationAttachments
+      summary: List clinical attachments and imaging for a consultation
+      description: "Roles: DOCTOR, NURSE, ADMIN, PATIENT (own patient only)."
+      x-roles: [DOCTOR, NURSE, ADMIN, PATIENT]
+      responses:
+        "200":
+          description: List of attachments
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Attachment" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+    post:
+      tags: [consultations]
+      operationId: uploadConsultationAttachment
+      summary: Upload a clinical image or document attachment to a consultation
+      description: "Roles: DOCTOR, NURSE."
+      x-roles: [DOCTOR, NURSE]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AttachmentInput" }
+      responses:
+        "201":
+          description: Attachment uploaded successfully
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Attachment" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/consultations/{id}/attachments/{attachmentId}:
+    parameters:
+      - { $ref: "#/components/parameters/id" }
+      - name: attachmentId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    delete:
+      tags: [consultations]
+      operationId: deleteConsultationAttachment
+      summary: Delete an attachment from a consultation
+      description: "Roles: DOCTOR, ADMIN. Cannot delete from a SIGNED consultation unless ADMIN."
+      x-roles: [DOCTOR, ADMIN]
+      responses:
+        "204":
+          description: Attachment deleted
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
         "503": { $ref: "#/components/responses/DatabaseUnavailable" }
   /api/vitals:
     get:
@@ -417,6 +482,7 @@ components:
       properties:
         patientId: { type: string, format: uuid }
         appointmentId: { type: string, format: uuid, nullable: true }
+        doctorSpecialty: { type: string, maxLength: 80, nullable: true }
         subjective: { type: string, maxLength: 4000, nullable: true }
         objective: { type: string, maxLength: 4000, nullable: true }
         assessment: { type: string, maxLength: 4000, nullable: true }
@@ -443,6 +509,7 @@ components:
             fullName: { type: string }
             birthDate: { type: string, format: date }
         doctorId: { type: string, format: uuid }
+        doctorSpecialty: { type: string, maxLength: 80, nullable: true }
         subjective: { type: string, nullable: true }
         objective: { type: string, nullable: true }
         assessment: { type: string, nullable: true }
@@ -451,6 +518,28 @@ components:
         signedAt: { type: string, format: date-time, nullable: true }
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
+    Attachment:
+      type: object
+      required: [id, consultationId, fileName, fileType, fileSize, data, uploadedBy, uploadedAt]
+      properties:
+        id: { type: string, format: uuid }
+        consultationId: { type: string, format: uuid }
+        fileName: { type: string }
+        fileType: { type: string }
+        fileSize: { type: integer }
+        data: { type: string }
+        caption: { type: string, nullable: true }
+        uploadedBy: { type: string }
+        uploadedAt: { type: string, format: date-time }
+    AttachmentInput:
+      type: object
+      required: [fileName, fileType, fileSize, data]
+      properties:
+        fileName: { type: string, minLength: 1, maxLength: 255 }
+        fileType: { type: string, minLength: 1, maxLength: 100 }
+        fileSize: { type: integer }
+        data: { type: string, minLength: 1 }
+        caption: { type: string, maxLength: 1000, nullable: true }
     VitalSignsInput:
       type: object
       required: [patientId]
