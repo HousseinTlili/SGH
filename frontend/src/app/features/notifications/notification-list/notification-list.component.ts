@@ -10,6 +10,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -24,6 +25,7 @@ import type {
   NotificationStats,
 } from '../../../core/models/notification';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+import { CreateNotificationDialogComponent } from '../create-notification-dialog/create-notification-dialog.component';
 
 export type FilterTab = 'ALL' | 'UNREAD' | 'CRITICAL' | 'WARNING' | 'INFO';
 
@@ -36,6 +38,7 @@ export type FilterTab = 'ALL' | 'UNREAD' | 'CRITICAL' | 'WARNING' | 'INFO';
     MatButtonModule,
     MatCardModule,
     MatChipsModule,
+    MatDialogModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -49,6 +52,7 @@ export type FilterTab = 'ALL' | 'UNREAD' | 'CRITICAL' | 'WARNING' | 'INFO';
 })
 export class NotificationListComponent implements OnInit {
   private readonly api = inject(NotificationApi);
+  private readonly dialog = inject(MatDialog);
 
   readonly searchControl = new FormControl('', { nonNullable: true });
   readonly activeTab = signal<FilterTab>('ALL');
@@ -71,6 +75,18 @@ export class NotificationListComponent implements OnInit {
         this.page.set(0);
         this.loadNotifications();
       });
+  }
+
+  openCreateDialog(): void {
+    const ref = this.dialog.open(CreateNotificationDialogComponent, {
+      width: '540px',
+    });
+    ref.afterClosed().subscribe((created) => {
+      if (created) {
+        this.loadNotifications();
+        this.loadStats();
+      }
+    });
   }
 
   setTab(tab: FilterTab): void {

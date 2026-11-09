@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { pool } from './db';
+import { pool, initDb } from './db';
 
 const patients = ['Jean Dupont', 'Amira Ben Salah', 'Karim Trabelsi', 'Sonia Mansour', 'Yassine Gharbi', 'Leila Hammami', 'Mohamed Jlassi', 'Nour Chaabane'];
 const doctors = ['Dr Alice Martin', 'Dr Bernard Dupont'];
@@ -10,6 +10,7 @@ function pick<T>(a: T[]): T {
 
 (async () => {
   try {
+    await initDb();
     for (let i = 0; i < 28; i++) {
       const cancelled = Math.random() < 0.3;
       const patient = pick(patients);

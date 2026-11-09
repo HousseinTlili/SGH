@@ -23,6 +23,16 @@
     </button>
     <button
       mat-flat-button
+      color="accent"
+      class="action-btn-create"
+      (click)="openCreateDialog()"
+      [disabled]="loading()"
+    >
+      <mat-icon>add_alert</mat-icon>
+      <span>New Alert</span>
+    </button>
+    <button
+      mat-flat-button
       color="primary"
       class="action-btn-primary"
       (click)="markAllAsRead()"
