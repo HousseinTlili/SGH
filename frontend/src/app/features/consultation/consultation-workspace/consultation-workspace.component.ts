@@ -24,6 +24,8 @@ import { PharmacyApi } from '../../../core/api/pharmacy.api';
 import { AuthService } from '../../../core/auth/auth.service';
 import { NameLookupService } from '../../../core/lookup/name-lookup.service';
 import type {
+  Attachment,
+  AttachmentInput,
   Consultation,
   LabOrder,
   LabResultLine,
@@ -116,6 +118,10 @@ interface FlattenedLabResult {
             <div class="patient-title-row">
               <h1 class="patient-name">{{ patientDisplayName() }}</h1>
               <app-status-badge [status]="consultation()!.status" />
+              <div class="specialty-badge-pill" [class.specialty-cardiology]="isCardiology()">
+                <mat-icon class="specialty-icon">{{ isCardiology() ? 'favorite' : 'medical_services' }}</mat-icon>
+                <span>{{ doctorSpecialty() }}</span>
+              </div>
               @if (consultation()!.status === 'SIGNED' && consultation()!.signedAt) {
                 <span class="signed-info">
                   Signed {{ consultation()!.signedAt | localDatetime }}
@@ -157,6 +163,30 @@ interface FlattenedLabResult {
                 <div class="sgh-form-error" role="alert">
                   <mat-icon>error</mat-icon>
                   <span>{{ soapError() }}</span>
+                </div>
+              }
+
+              @if (isCardiology()) {
+                <div class="cardiology-assistant-card">
+                  <div class="card-header">
+                    <div class="card-title-group">
+                      <mat-icon class="pulse-icon">monitor_heart</mat-icon>
+                      <span class="card-title">Cardiology Clinical Assistant</span>
+                    </div>
+                    <span class="cardiology-badge">Cardiology Active</span>
+                  </div>
+                  <p class="card-desc">Specialty examination guidelines and quick assessment inserts:</p>
+                  <div class="cue-chips">
+                    <button type="button" class="cue-btn" (click)="insertCue('obj', 'Cardiac Auscultation: Normal S1/S2 rhythm, regular rate. No murmurs, rubs, or gallops audible.')">
+                      <mat-icon>add</mat-icon> Heart Sounds (Normal)
+                    </button>
+                    <button type="button" class="cue-btn" (click)="insertCue('obj', 'Peripheral Vascular: Radial & dorsalis pedis pulses 2+ symmetric. Capillary refill < 2s. No jugular venous distension (JVD) or lower extremity edema.')">
+                      <mat-icon>add</mat-icon> Vascular & Edema Exam
+                    </button>
+                    <button type="button" class="cue-btn" (click)="insertCue('assess', 'Atypical chest discomfort. Hemodynamically stable. Rule out acute coronary syndrome; recommended 12-lead ECG and cardiac enzymes.')">
+                      <mat-icon>add</mat-icon> Cardiac Assessment
+                    </button>
+                  </div>
                 </div>
               }
 
@@ -527,7 +557,134 @@ interface FlattenedLabResult {
               }
             </div>
           </mat-tab>
+
+          <!-- TAB 5: Clinical Imaging & Attachments -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">photo_library</mat-icon>
+              <span>Attachments</span>
+              @if (attachments().length > 0) {
+                <span class="tab-count-badge">{{ attachments().length }}</span>
+              }
+            </ng-template>
+
+            <div class="tab-pane">
+              <div class="attachments-header">
+                <div>
+                  <h3 class="pane-title">Clinical Imaging & Documents</h3>
+                  <p class="pane-subtitle">
+                    Diagnostic X-rays, ECG tracings, ultrasound captures, and clinical photography.
+                  </p>
+                </div>
+
+                @if (isEditable()) {
+                  <div class="upload-actions">
+                    <input
+                      #fileInput
+                      type="file"
+                      accept="image/*,.pdf,.svg"
+                      style="display: none"
+                      (change)="onFileSelected($event)"
+                    />
+                    <button
+                      mat-flat-button
+                      color="primary"
+                      type="button"
+                      [disabled]="uploadingAttachment()"
+                      (click)="fileInput.click()"
+                    >
+                      <mat-icon>cloud_upload</mat-icon>
+                      {{ uploadingAttachment() ? 'Uploading...' : 'Upload Clinical Image' }}
+                    </button>
+                  </div>
+                }
+              </div>
+
+              @if (attachmentsLoading()) {
+                <app-loading-state message="Loading attachments..." />
+              } @else if (attachments().length === 0) {
+                <app-empty-state
+                  icon="add_photo_alternate"
+                  title="No clinical attachments yet"
+                  message="Attach electrocardiograms, imaging studies, or wound images for this encounter."
+                />
+              } @else {
+                <div class="attachments-grid">
+                  @for (att of attachments(); track att.id) {
+                    <div class="attachment-card">
+                      <div class="attachment-preview" (click)="openPreview(att)">
+                        @if (isImage(att.fileType)) {
+                          <img [src]="att.data" [alt]="att.fileName" class="preview-img" />
+                        } @else {
+                          <div class="doc-placeholder">
+                            <mat-icon>description</mat-icon>
+                            <span>{{ att.fileType }}</span>
+                          </div>
+                        }
+                        <div class="overlay">
+                          <mat-icon>zoom_in</mat-icon>
+                          <span>View</span>
+                        </div>
+                      </div>
+
+                      <div class="attachment-body">
+                        <div class="file-name" [matTooltip]="att.fileName">{{ att.fileName }}</div>
+                        @if (att.caption) {
+                          <div class="file-caption">{{ att.caption }}</div>
+                        }
+                        <div class="file-meta">
+                          <span>{{ formatFileSize(att.fileSize) }}</span>
+                          <span>•</span>
+                          <span>{{ att.uploadedAt | localDatetime }}</span>
+                        </div>
+                      </div>
+
+                      @if (isEditable()) {
+                        <div class="attachment-card-actions">
+                          <button
+                            mat-icon-button
+                            color="warn"
+                            type="button"
+                            aria-label="Delete attachment"
+                            (click)="confirmDeleteAttachment(att)"
+                          >
+                            <mat-icon>delete</mat-icon>
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </mat-tab>
         </mat-tab-group>
+
+        <!-- Preview Modal -->
+        @if (previewAttachment(); as prev) {
+          <div class="modal-backdrop" (click)="closePreview()">
+            <div class="modal-content" (click)="$event.stopPropagation()">
+              <div class="modal-header">
+                <div>
+                  <h3 class="modal-title">{{ prev.fileName }}</h3>
+                  @if (prev.caption) {
+                    <p class="modal-caption">{{ prev.caption }}</p>
+                  }
+                </div>
+                <button mat-icon-button type="button" aria-label="Close preview" (click)="closePreview()">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+              <div class="modal-body">
+                @if (isImage(prev.fileType)) {
+                  <img [src]="prev.data" [alt]="prev.fileName" class="full-preview-img" />
+                } @else {
+                  <iframe [src]="prev.data" class="full-doc-preview"></iframe>
+                }
+              </div>
+            </div>
+          </div>
+        }
       }
     </div>
   `,
@@ -755,6 +912,294 @@ interface FlattenedLabResult {
       background: var(--sgh-tone-danger-bg);
       color: var(--sgh-tone-danger-fg);
     }
+    .specialty-badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: var(--sgh-radius-pill);
+      font-size: 0.8rem;
+      font-weight: 700;
+      background: var(--sgh-surface-1);
+      color: var(--sgh-text-muted);
+      border: 1px solid var(--sgh-border-subtle);
+    }
+    .specialty-cardiology {
+      background: rgba(239, 68, 68, 0.12);
+      color: #ef4444;
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+    .specialty-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+    .cardiology-assistant-card {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.05), rgba(59, 130, 246, 0.05));
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      border-radius: var(--sgh-radius);
+      padding: 16px 20px;
+      margin-bottom: 20px;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .card-title-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pulse-icon {
+      color: #ef4444;
+      animation: heartPulse 1.8s ease-in-out infinite;
+    }
+    @keyframes heartPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.18); }
+    }
+    .card-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--sgh-text);
+    }
+    .cardiology-badge {
+      background: #ef4444;
+      color: #ffffff;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 9999px;
+    }
+    .card-desc {
+      margin: 0 0 12px 0;
+      font-size: 0.84rem;
+      color: var(--sgh-text-muted);
+    }
+    .cue-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .cue-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--sgh-surface);
+      border: 1px solid var(--sgh-border-subtle);
+      border-radius: 9999px;
+      padding: 6px 14px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--sgh-text);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .cue-btn:hover {
+      background: var(--sgh-brand);
+      color: #ffffff;
+      border-color: var(--sgh-brand);
+    }
+    .cue-btn mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+    .tab-icon {
+      margin-right: 6px;
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+    .tab-count-badge {
+      display: inline-block;
+      margin-left: 6px;
+      background: var(--sgh-brand);
+      color: white;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 10px;
+    }
+    .attachments-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+    .pane-title {
+      margin: 0 0 4px 0;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--sgh-text);
+    }
+    .pane-subtitle {
+      margin: 0;
+      font-size: 0.85rem;
+      color: var(--sgh-text-muted);
+    }
+    .attachments-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+    }
+    .attachment-card {
+      background: var(--sgh-surface);
+      border: 1px solid var(--sgh-border-subtle);
+      border-radius: var(--sgh-radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: var(--sgh-shadow-sm);
+      transition: all 0.2s ease;
+    }
+    .attachment-card:hover {
+      box-shadow: var(--sgh-shadow-md);
+      transform: translateY(-2px);
+      border-color: var(--sgh-brand);
+    }
+    .attachment-preview {
+      height: 180px;
+      background: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    .preview-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .doc-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: #94a3b8;
+      font-size: 0.8rem;
+    }
+    .doc-placeholder mat-icon {
+      font-size: 40px;
+      width: 40px;
+      height: 40px;
+    }
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      color: #ffffff;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    .attachment-preview:hover .overlay {
+      opacity: 1;
+    }
+    .attachment-body {
+      padding: 14px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .file-name {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--sgh-text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .file-caption {
+      font-size: 0.8rem;
+      color: var(--sgh-text-muted);
+      line-height: 1.4;
+    }
+    .file-meta {
+      display: flex;
+      gap: 8px;
+      font-size: 0.75rem;
+      color: var(--sgh-text-muted);
+      margin-top: auto;
+      padding-top: 8px;
+    }
+    .attachment-card-actions {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 50%;
+      backdrop-filter: blur(4px);
+    }
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 24px;
+    }
+    .modal-content {
+      background: var(--sgh-surface);
+      border-radius: var(--sgh-radius);
+      max-width: 90vw;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--sgh-border-subtle);
+    }
+    .modal-title {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--sgh-text);
+    }
+    .modal-caption {
+      margin: 4px 0 0 0;
+      font-size: 0.82rem;
+      color: var(--sgh-text-muted);
+    }
+    .modal-body {
+      padding: 20px;
+      overflow: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #090d16;
+    }
+    .full-preview-img {
+      max-width: 100%;
+      max-height: 75vh;
+      object-fit: contain;
+      border-radius: var(--sgh-radius-sm);
+    }
+    .full-doc-preview {
+      width: 80vw;
+      height: 75vh;
+      border: none;
+    }
   `,
 })
 export class ConsultationWorkspaceComponent implements OnInit {
@@ -794,6 +1239,21 @@ export class ConsultationWorkspaceComponent implements OnInit {
   readonly labOrdersLoading = signal(false);
   readonly labResults = signal<FlattenedLabResult[]>([]);
   readonly labResultsLoading = signal(false);
+
+  // Attachments State
+  readonly attachments = signal<Attachment[]>([]);
+  readonly attachmentsLoading = signal(false);
+  readonly uploadingAttachment = signal(false);
+  readonly previewAttachment = signal<Attachment | null>(null);
+
+  // Doctor Specialty
+  protected readonly doctorSpecialty = computed(() => {
+    return this.consultation()?.doctorSpecialty || 'General practice';
+  });
+
+  protected readonly isCardiology = computed(() => {
+    return (this.doctorSpecialty() || '').toLowerCase().includes('cardio');
+  });
 
   // Permissions & computed states
   protected readonly isDoctor = computed(() => this.auth.hasRole('DOCTOR'));
@@ -905,6 +1365,7 @@ export class ConsultationWorkspaceComponent implements OnInit {
         this.loadPrescriptions(c.id);
         this.loadLabOrders(c.id);
         this.loadLabResults(c.id);
+        this.loadAttachments(c.id);
       },
       error: () => {
         this.loading.set(false);
@@ -1158,5 +1619,114 @@ export class ConsultationWorkspaceComponent implements OnInit {
 
   staffName(staffId: string): Observable<string> {
     return this.nameLookup.getDoctorName(staffId);
+  }
+
+  insertCue(target: 'obj' | 'assess', text: string): void {
+    const control = target === 'obj' ? this.soapForm.controls.objective : this.soapForm.controls.assessment;
+    const current = control.value;
+    const next = current ? `${current}\n${text}` : text;
+    control.setValue(next);
+    control.markAsDirty();
+  }
+
+  loadAttachments(consultationId: string): void {
+    this.attachmentsLoading.set(true);
+    this.consultationApi.getAttachments(consultationId).subscribe({
+      next: (items) => {
+        this.attachments.set(items);
+        this.attachmentsLoading.set(false);
+      },
+      error: () => this.attachmentsLoading.set(false),
+    });
+  }
+
+  isImage(fileType: string): boolean {
+    return fileType.startsWith('image/') || fileType.includes('svg');
+  }
+
+  formatFileSize(bytes: number): string {
+    if (!bytes) return '0 B';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  openPreview(att: Attachment): void {
+    this.previewAttachment.set(att);
+  }
+
+  closePreview(): void {
+    this.previewAttachment.set(null);
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    const file = input.files[0];
+    const c = this.consultation();
+    if (!c) return;
+
+    if (file.size > 15 * 1024 * 1024) {
+      this.snackBar.open('File size must be under 15MB', 'Dismiss', { duration: 3000 });
+      return;
+    }
+
+    this.uploadingAttachment.set(true);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      this.consultationApi
+        .uploadAttachment(c.id, {
+          fileName: file.name,
+          fileType: file.type || 'application/octet-stream',
+          fileSize: file.size,
+          data: dataUrl,
+          caption: `Clinical capture (${this.doctorSpecialty()})`,
+        })
+        .subscribe({
+          next: (created) => {
+            this.uploadingAttachment.set(false);
+            this.attachments.update((list) => [...list, created]);
+            this.snackBar.open('Clinical attachment uploaded successfully', 'Dismiss', { duration: 3000 });
+            input.value = '';
+          },
+          error: (err: { message?: string }) => {
+            this.uploadingAttachment.set(false);
+            this.snackBar.open(err.message || 'Failed to upload attachment', 'Dismiss', { duration: 3000 });
+            input.value = '';
+          },
+        });
+    };
+    reader.onerror = () => {
+      this.uploadingAttachment.set(false);
+      this.snackBar.open('Failed to read file', 'Dismiss', { duration: 3000 });
+      input.value = '';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  confirmDeleteAttachment(att: Attachment): void {
+    const c = this.consultation();
+    if (!c) return;
+
+    this.confirm
+      .confirm({
+        title: 'Delete Attachment',
+        message: `Are you sure you want to delete "${att.fileName}"? This cannot be undone.`,
+        confirmLabel: 'Delete',
+        danger: true,
+      })
+      .subscribe((confirmed) => {
+        if (!confirmed) return;
+        this.consultationApi.deleteAttachment(c.id, att.id).subscribe({
+          next: () => {
+            this.attachments.update((list) => list.filter((a) => a.id !== att.id));
+            this.snackBar.open('Attachment removed', 'Dismiss', { duration: 3000 });
+          },
+          error: (err: { message?: string }) => {
+            this.snackBar.open(err.message || 'Failed to delete attachment', 'Dismiss', { duration: 3000 });
+          },
+        });
+      });
   }
 }

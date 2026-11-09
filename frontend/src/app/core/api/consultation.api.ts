@@ -4,6 +4,8 @@ import type { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type { Paged } from '../models/common';
 import type {
+  Attachment,
+  AttachmentInput,
   Consultation,
   LabOrder,
   LabResultCopy,
@@ -17,6 +19,7 @@ import { clampPaging, toHttpParams } from '../../shared/util/paging';
 export interface ConsultationFilters {
   patientId?: string;
   doctorId?: string;
+  specialty?: string;
   status?: string;
   page?: number;
   size?: number;
@@ -25,6 +28,7 @@ export interface ConsultationFilters {
 export interface CreateConsultationInput {
   patientId: string;
   appointmentId?: string | null;
+  doctorSpecialty?: string | null;
 }
 
 export interface UpdateConsultationNotesInput {
@@ -67,6 +71,7 @@ export class ConsultationApi {
     const params = toHttpParams({
       patientId: filters.patientId,
       doctorId: filters.doctorId,
+      specialty: filters.specialty,
       status: filters.status,
       page: paging.page,
       size: paging.size,
@@ -125,5 +130,17 @@ export class ConsultationApi {
 
   getLabResults(id: string): Observable<LabResultCopy[]> {
     return this.http.get<LabResultCopy[]>(`${this.base}/consultations/${id}/lab-results`);
+  }
+
+  getAttachments(id: string): Observable<Attachment[]> {
+    return this.http.get<Attachment[]>(`${this.base}/consultations/${id}/attachments`);
+  }
+
+  uploadAttachment(id: string, input: AttachmentInput): Observable<Attachment> {
+    return this.http.post<Attachment>(`${this.base}/consultations/${id}/attachments`, input);
+  }
+
+  deleteAttachment(consultationId: string, attachmentId: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/consultations/${consultationId}/attachments/${attachmentId}`);
   }
 }

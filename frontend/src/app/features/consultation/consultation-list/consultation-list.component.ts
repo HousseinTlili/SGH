@@ -115,6 +115,15 @@ import { LocalDatetimePipe } from '../../../shared/pipes/local-datetime.pipe';
           </mat-select>
         </mat-form-field>
 
+        <mat-form-field appearance="outline" class="specialty-field">
+          <mat-label>Specialty</mat-label>
+          <mat-select formControlName="specialty">
+            <mat-option value="">All specialties</mat-option>
+            <mat-option value="Cardiology">Cardiology</mat-option>
+            <mat-option value="General practice">General practice</mat-option>
+          </mat-select>
+        </mat-form-field>
+
         <button
           mat-icon-button
           type="button"
@@ -144,7 +153,7 @@ import { LocalDatetimePipe } from '../../../shared/pipes/local-datetime.pipe';
               <tr>
                 <th>Date</th>
                 <th>Patient</th>
-                <th>Doctor</th>
+                <th>Doctor & Specialty</th>
                 <th>Assessment</th>
                 <th>Status</th>
               </tr>
@@ -154,7 +163,17 @@ import { LocalDatetimePipe } from '../../../shared/pipes/local-datetime.pipe';
                 <tr class="clickable-row" (click)="openConsultation(c)">
                   <td>{{ c.createdAt | localDatetime }}</td>
                   <td>{{ patientDisplay(c) }}</td>
-                  <td>{{ (doctorName(c.doctorId) | async) || '—' }}</td>
+                  <td>
+                    <div class="doctor-cell">
+                      <span class="doc-name">Dr. {{ (doctorName(c.doctorId) | async) || '—' }}</span>
+                      <span
+                        class="specialty-tag"
+                        [class.cardiology-tag]="(c.doctorSpecialty || '').toLowerCase().includes('cardio')"
+                      >
+                        {{ c.doctorSpecialty || 'General practice' }}
+                      </span>
+                    </div>
+                  </td>
                   <td>{{ truncateAssessment(c.assessment) }}</td>
                   <td>
                     <app-status-badge [status]="c.status" />
@@ -197,6 +216,33 @@ import { LocalDatetimePipe } from '../../../shared/pipes/local-datetime.pipe';
     }
     .doctor-field {
       width: 230px;
+    }
+    .specialty-field {
+      width: 200px;
+    }
+    .doctor-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .doc-name {
+      font-weight: 600;
+    }
+    .specialty-tag {
+      display: inline-block;
+      width: fit-content;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: var(--sgh-radius-pill);
+      background: var(--sgh-surface-1);
+      color: var(--sgh-text-muted);
+      border: 1px solid var(--sgh-border-subtle);
+    }
+    .cardiology-tag {
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+      border-color: rgba(239, 68, 68, 0.3);
     }
     .refresh-btn {
       color: var(--sgh-text-muted);
@@ -251,6 +297,7 @@ export class ConsultationListComponent implements OnInit {
     status: new FormControl<string>('', { nonNullable: true }),
     patientSearch: new FormControl<string>('', { nonNullable: true }),
     doctorId: new FormControl<string>('', { nonNullable: true }),
+    specialty: new FormControl<string>('', { nonNullable: true }),
   });
 
   ngOnInit(): void {
@@ -266,6 +313,11 @@ export class ConsultationListComponent implements OnInit {
     });
 
     this.filterForm.controls.doctorId.valueChanges.subscribe(() => {
+      this.page.set(0);
+      this.loadConsultations();
+    });
+
+    this.filterForm.controls.specialty.valueChanges.subscribe(() => {
       this.page.set(0);
       this.loadConsultations();
     });
@@ -318,6 +370,7 @@ export class ConsultationListComponent implements OnInit {
         status: raw.status || undefined,
         patientId: this.selectedPatientId() ?? undefined,
         doctorId,
+        specialty: raw.specialty || undefined,
         page: this.page(),
         size: this.size(),
       })

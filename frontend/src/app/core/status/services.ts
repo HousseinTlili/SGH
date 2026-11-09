@@ -7,6 +7,7 @@ export const SERVICES: readonly ServiceName[] = [
   'lab',
   'pharmacy',
   'staff',
+  'notification',
 ];
 
 const LABELS: Record<ServiceName, string> = {
@@ -16,6 +17,7 @@ const LABELS: Record<ServiceName, string> = {
   lab: 'Lab',
   pharmacy: 'Pharmacy',
   staff: 'Staff',
+  notification: 'Notification',
 };
 
 export function serviceLabel(service: ServiceName): string {
