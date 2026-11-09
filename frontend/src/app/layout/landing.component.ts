@@ -8,8 +8,6 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../core/auth/auth.service';
 import { MOCK_AUTH_ENABLED, MockAuthBackend } from '../core/auth/mock-auth.backend';
@@ -17,54 +15,54 @@ import { landingPathFor } from '../core/auth/roles';
 import { ServiceStatusService } from '../core/status/service-status.service';
 import { ThemeService } from '../core/theme/theme.service';
 
-export interface PatientChart {
+export interface PatientLabItem {
+  readonly test: string;
+  readonly value: string;
+  readonly ref: string;
+  readonly flag: 'NORMAL' | 'HIGH' | 'LOW' | 'CRITICAL';
+  readonly pct: number;
+  readonly barColor: string;
+  readonly flagClass: string;
+}
+
+export interface PatientRxItem {
+  readonly drug: string;
+  readonly sig: string;
+  readonly stock: string;
+}
+
+export interface HeroPatient {
   readonly id: string;
-  readonly name: string;
   readonly initials: string;
+  readonly name: string;
   readonly mrn: string;
-  readonly ageGender: string;
-  readonly dob: string;
-  readonly bloodType: string;
-  readonly allergies: string;
-  readonly room: string;
+  readonly meta: string;
+  readonly ward: string;
   readonly vitalsTime: string;
   readonly bp: string;
   readonly bpStatus: string;
-  readonly hr: number;
+  readonly bpColor: string;
+  readonly hr: string;
   readonly hrStatus: string;
-  readonly spo2: number;
+  readonly hrColor: string;
+  readonly spo2: string;
   readonly temp: string;
   readonly tempStatus: string;
-  readonly labOrder: string;
-  readonly analyzer: string;
-  readonly labTests: readonly {
-    code: string;
-    name: string;
-    value: string;
-    unit: string;
-    range: string;
-    flag: 'NORMAL' | 'HIGH' | 'LOW' | 'CRITICAL';
-  }[];
-  readonly rxItems: readonly {
-    name: string;
-    dosage: string;
-    frequency: string;
-    duration: string;
-  }[];
+  readonly tempColor: string;
+  readonly labs: readonly PatientLabItem[];
+  readonly rx: readonly PatientRxItem[];
 }
 
-export interface PersonaQuickLaunch {
-  readonly username: string;
-  readonly fullName: string;
-  readonly roleLabel: string;
-  readonly title: string;
-  readonly icon: string;
-  readonly description: string;
+export interface CareEventLog {
+  readonly time: string;
+  readonly topic: string;
+  readonly detail: string;
+  readonly target: string;
 }
 
 @Component({
   selector: 'app-landing',
-  imports: [RouterLink, MatButtonModule, MatIconModule],
+  imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './landing.component.html',
   styleUrl: './landing.component.scss',
@@ -79,18 +77,56 @@ export class LandingComponent {
   private readonly destroyRef = inject(DestroyRef);
   protected readonly mockAuth = inject(MOCK_AUTH_ENABLED);
 
-  // Active chart preview
-  protected readonly activePatientIndex = signal(0);
-  protected readonly activeWorkflowTab = signal<
-    'consultation' | 'lab' | 'pharmacy' | 'reception' | 'billing'
-  >('consultation');
+  // Active view signals
+  readonly activePatientIndex = signal(0);
+  readonly activeDepartmentIndex = signal(0);
+  readonly activePortalTab = signal<'appointments' | 'consultations' | 'invoices'>('appointments');
+  readonly invoicePaid = signal(false);
 
-  // Scroll animations & telemetry signals
+  // Scroll & telemetry signals
   readonly scrollPercent = signal(0);
   readonly activeSection = signal('OVERVIEW // CLINICAL CARE');
+  readonly activeNavId = signal('hero-section');
   readonly showScrollHud = signal(false);
 
-  protected readonly allServicesUp = computed(() => {
+  // Auth Modal & Toast signals
+  readonly authModalOpen = signal(false);
+  readonly authModalMode = signal<'staff' | 'patient'>('staff');
+  readonly modalSelectedRole = signal('Attending Physician (Consultations)');
+  readonly modalIdValue = signal('dr.khelifi@sgh-hospital.org');
+  readonly modalFeedback = signal<string | null>(null);
+
+  readonly toastVisible = signal(false);
+  readonly toastTitle = signal('');
+  readonly toastBody = signal('');
+  private toastTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  // Live heart rate micro-fluctuation jitter
+  readonly liveJitterHr = signal<string | null>(null);
+
+  // Live AMQP care journey event feed
+  readonly amqpLog = signal<readonly CareEventLog[]>([
+    {
+      time: '19:04:12',
+      topic: 'New Prescription Sent',
+      detail: 'Amoxicillin 500mg × 21',
+      target: 'Hospital Pharmacy',
+    },
+    {
+      time: '19:04:18',
+      topic: 'Lab Alert Flagged',
+      detail: 'HIGH: Glucose 115 mg/dL',
+      target: 'Attending Physician',
+    },
+    {
+      time: '19:04:25',
+      topic: 'Medication Dispensed',
+      detail: 'Ready for Counter Pickup',
+      target: 'Patient Billing',
+    },
+  ]);
+
+  readonly allServicesUp = computed(() => {
     return (
       this.status.isUp('patient') &&
       this.status.isUp('reception') &&
@@ -101,267 +137,342 @@ export class LandingComponent {
     );
   });
 
-  constructor() {
-    afterNextRender(() => {
-      this.initScrollAnimations();
-    });
-  }
-
-  protected readonly patientCharts: readonly PatientChart[] = [
+  readonly heroPatients: readonly HeroPatient[] = [
     {
       id: 'p1',
-      name: 'Youssef Mansouri',
       initials: 'YM',
+      name: 'Youssef Mansouri',
       mrn: 'MRN-2026-0849',
-      ageGender: '42M',
-      dob: '14/05/1984 (42y)',
-      bloodType: 'O+',
-      allergies: 'Sulfonamides (Moderate)',
-      room: 'Internal Medicine • Room 304B',
-      vitalsTime: 'Recorded 14 mins ago by Nurse Sonia',
+      meta: 'DOB: 14/05/1984 (42y) • Blood: O+ • Allergies: Sulfonamides (Moderate)',
+      ward: 'Internal Medicine • Room 304B',
+      vitalsTime: 'Recorded 14 mins ago by Nurse S. Haddad',
       bp: '120/80',
       bpStatus: 'NORMAL',
-      hr: 72,
+      bpColor: 'emerald',
+      hr: '76',
       hrStatus: 'NORMAL',
-      spo2: 98,
-      temp: '37.1',
-      tempStatus: 'NORMAL',
-      labOrder: 'ORDER #f9f9f9f9',
-      analyzer: 'Roche Cobas 6000',
-      labTests: [
+      hrColor: 'emerald',
+      spo2: '98.4',
+      temp: '37.8',
+      tempStatus: 'LOW-GRADE',
+      tempColor: 'amber',
+      labs: [
         {
-          code: 'GLU',
-          name: 'Fasting Blood Glucose',
-          value: '115.0',
-          unit: 'mg/dL',
-          range: '70.0 - 100.0',
+          test: 'Fasting Blood Glucose',
+          value: '115 mg/dL',
+          ref: '70–99 mg/dL',
           flag: 'HIGH',
+          pct: 78,
+          barColor: 'bg-amber-500',
+          flagClass:
+            'bg-amber-100 dark:bg-amber-950/90 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800',
         },
         {
-          code: 'HGB',
-          name: 'Hemoglobin',
-          value: '14.2',
-          unit: 'g/dL',
-          range: '12.0 - 17.0',
-          flag: 'NORMAL',
+          test: 'White Blood Cell (WBC)',
+          value: '11.8 ×10³/µL',
+          ref: '4.5–11.0',
+          flag: 'HIGH',
+          pct: 74,
+          barColor: 'bg-amber-500',
+          flagClass:
+            'bg-amber-100 dark:bg-amber-950/90 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800',
         },
         {
-          code: 'WBC',
-          name: 'White Blood Cells',
-          value: '8.4',
-          unit: '× 10^9/L',
-          range: '4.0 - 11.0',
+          test: 'Serum Creatinine',
+          value: '0.92 mg/dL',
+          ref: '0.70–1.25',
           flag: 'NORMAL',
+          pct: 48,
+          barColor: 'bg-emerald-500',
+          flagClass:
+            'bg-emerald-100 dark:bg-emerald-950/90 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800',
+        },
+        {
+          test: 'Hemoglobin (Hb)',
+          value: '14.2 g/dL',
+          ref: '13.5–17.5',
+          flag: 'NORMAL',
+          pct: 55,
+          barColor: 'bg-emerald-500',
+          flagClass:
+            'bg-emerald-100 dark:bg-emerald-950/90 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800',
         },
       ],
-      rxItems: [
+      rx: [
         {
-          name: 'Paracetamol 500mg',
-          dosage: '1 tab orally',
-          frequency: 'Every 8h as needed',
-          duration: '5 days',
+          drug: 'Amoxicillin / Clavulanate 500mg',
+          sig: '1 tab PO q8h × 7 days',
+          stock: 'Dispensed (21 tabs) • Lot #AX-294',
         },
         {
-          name: 'Metformin 850mg',
-          dosage: '1 tab orally with meals',
-          frequency: 'Twice daily',
-          duration: '30 days',
+          drug: 'Paracetamol 1000mg',
+          sig: '1 tab PO q6h PRN fever > 38.0°C',
+          stock: 'In Stock (1,420 units)',
         },
       ],
     },
     {
       id: 'p2',
-      name: 'Amel Ben Salah',
       initials: 'AB',
-      mrn: 'MRN-2026-0312',
-      ageGender: '35F',
-      dob: '22/11/1990 (35y)',
-      bloodType: 'A+',
-      allergies: 'Penicillin (Severe anaphylaxis)',
-      room: 'Cardiology Clinic • Room 102',
-      vitalsTime: 'Recorded 5 mins ago by Nurse Leila',
-      bp: '138/88',
+      name: 'Amina Ben Salah',
+      mrn: 'MRN-2026-1192',
+      meta: 'DOB: 03/11/1968 (58y) • Blood: A- • Allergies: Penicillin (Severe Anaphylaxis)',
+      ward: 'Cardiology Monitoring • Bed 112A',
+      vitalsTime: 'Recorded 6 mins ago by Nurse M. Gharbi',
+      bp: '148/92',
       bpStatus: 'ELEVATED',
-      hr: 88,
+      bpColor: 'amber',
+      hr: '88',
       hrStatus: 'NORMAL',
-      spo2: 99,
-      temp: '36.8',
+      hrColor: 'emerald',
+      spo2: '96.9',
+      temp: '36.7',
       tempStatus: 'NORMAL',
-      labOrder: 'ORDER #a1b2c3d4',
-      analyzer: 'Sysmex XN-1000',
-      labTests: [
+      tempColor: 'emerald',
+      labs: [
         {
-          code: 'CHOL',
-          name: 'Total Cholesterol',
-          value: '224.0',
-          unit: 'mg/dL',
-          range: '< 200.0',
-          flag: 'HIGH',
+          test: 'Serum Potassium (K+)',
+          value: '5.8 mmol/L',
+          ref: '3.5–5.1 mmol/L',
+          flag: 'CRITICAL',
+          pct: 94,
+          barColor: 'bg-rose-500',
+          flagClass:
+            'bg-rose-100 dark:bg-rose-950/90 text-rose-800 dark:text-rose-300 border-rose-300 dark:border-rose-800',
         },
         {
-          code: 'K+',
-          name: 'Potassium Serum',
-          value: '4.2',
-          unit: 'mmol/L',
-          range: '3.5 - 5.0',
+          test: 'Troponin-I (High Sens)',
+          value: '11 ng/L',
+          ref: '< 14 ng/L',
           flag: 'NORMAL',
+          pct: 52,
+          barColor: 'bg-emerald-500',
+          flagClass:
+            'bg-emerald-100 dark:bg-emerald-950/90 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800',
         },
         {
-          code: 'CRP',
-          name: 'C-Reactive Protein',
-          value: '1.2',
-          unit: 'mg/L',
-          range: '< 5.0',
+          test: 'Blood Glucose (Random)',
+          value: '104 mg/dL',
+          ref: '70–140 mg/dL',
           flag: 'NORMAL',
+          pct: 50,
+          barColor: 'bg-emerald-500',
+          flagClass:
+            'bg-emerald-100 dark:bg-emerald-950/90 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800',
+        },
+        {
+          test: 'Serum Sodium (Na+)',
+          value: '133 mmol/L',
+          ref: '135–145 mmol/L',
+          flag: 'LOW',
+          pct: 22,
+          barColor: 'bg-sky-500',
+          flagClass:
+            'bg-sky-100 dark:bg-sky-950/90 text-sky-800 dark:text-sky-300 border-sky-300 dark:border-sky-800',
         },
       ],
-      rxItems: [
+      rx: [
         {
-          name: 'Atorvastatin 20mg',
-          dosage: '1 tab orally at bedtime',
-          frequency: 'Once daily',
-          duration: '90 days',
+          drug: 'Amlodipine Besylate 10mg',
+          sig: '1 tab PO once daily',
+          stock: 'Dispensed • Lot #CV-881',
         },
         {
-          name: 'Amlodipine 5mg',
-          dosage: '1 tab orally in the morning',
-          frequency: 'Once daily',
-          duration: '30 days',
+          drug: 'Atorvastatin 20mg',
+          sig: '1 tab PO qHS',
+          stock: 'In Stock (890 units)',
         },
       ],
     },
     {
       id: 'p3',
-      name: 'Mohamed Cherif',
-      initials: 'MC',
-      mrn: 'MRN-2026-1104',
-      ageGender: '58M',
-      dob: '03/09/1967 (58y)',
-      bloodType: 'B+',
-      allergies: 'No Known Drug Allergies (NKDA)',
-      room: 'Pulmonology • Room 208',
-      vitalsTime: 'Recorded 22 mins ago by Nurse Sonia',
-      bp: '125/82',
-      bpStatus: 'NORMAL',
-      hr: 76,
+      initials: 'KT',
+      name: 'Karim Trabelsi',
+      mrn: 'MRN-2026-1405',
+      meta: 'DOB: 22/08/1997 (29y) • Blood: B+ • Allergies: NKDA (No Known Allergies)',
+      ward: 'Outpatient Clinic • Consultation 02',
+      vitalsTime: 'Recorded 21 mins ago by Nurse S. Haddad',
+      bp: '118/76',
+      bpStatus: 'OPTIMAL',
+      bpColor: 'emerald',
+      hr: '64',
       hrStatus: 'NORMAL',
-      spo2: 95,
-      temp: '38.4',
-      tempStatus: 'FEBRILE',
-      labOrder: 'ORDER #e8f9a0b1',
-      analyzer: 'bioMérieux Vitek 2',
-      labTests: [
+      hrColor: 'emerald',
+      spo2: '99.2',
+      temp: '36.6',
+      tempStatus: 'NORMAL',
+      tempColor: 'emerald',
+      labs: [
         {
-          code: 'WBC',
-          name: 'White Blood Cells',
-          value: '14.8',
-          unit: '× 10^9/L',
-          range: '4.0 - 11.0',
-          flag: 'HIGH',
-        },
-        {
-          code: 'CRP',
-          name: 'C-Reactive Protein',
-          value: '48.0',
-          unit: 'mg/L',
-          range: '< 5.0',
-          flag: 'HIGH',
-        },
-        {
-          code: 'SpO2',
-          name: 'Blood Gas pO2',
-          value: '72.0',
-          unit: 'mmHg',
-          range: '75.0 - 100.0',
+          test: 'Serum Ferritin',
+          value: '18 ng/mL',
+          ref: '30–400 ng/mL',
           flag: 'LOW',
+          pct: 18,
+          barColor: 'bg-sky-500',
+          flagClass:
+            'bg-sky-100 dark:bg-sky-950/90 text-sky-800 dark:text-sky-300 border-sky-300 dark:border-sky-800',
+        },
+        {
+          test: 'Fasting Blood Glucose',
+          value: '89 mg/dL',
+          ref: '70–99 mg/dL',
+          flag: 'NORMAL',
+          pct: 46,
+          barColor: 'bg-emerald-500',
+          flagClass:
+            'bg-emerald-100 dark:bg-emerald-950/90 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800',
+        },
+        {
+          test: 'TSH (Ultrasensitive)',
+          value: '2.14 mIU/L',
+          ref: '0.40–4.50',
+          flag: 'NORMAL',
+          pct: 50,
+          barColor: 'bg-emerald-500',
+          flagClass:
+            'bg-emerald-100 dark:bg-emerald-950/90 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800',
         },
       ],
-      rxItems: [
+      rx: [
         {
-          name: 'Azithromycin 500mg',
-          dosage: '1 tab orally',
-          frequency: 'Once daily',
-          duration: '3 days',
-        },
-        {
-          name: 'Salbutamol Inhaler 100mcg',
-          dosage: '2 puffs via spacer',
-          frequency: 'Every 6h as needed',
-          duration: '10 days',
+          drug: 'Ferrous Sulfate 325mg (65mg Elem)',
+          sig: '1 tab PO daily with Ascorbic Acid',
+          stock: 'Ready for Pickup • Counter #2',
         },
       ],
     },
   ];
 
-  protected readonly activePatient = computed(() => {
-    return this.patientCharts[this.activePatientIndex()] ?? this.patientCharts[0];
+  readonly activePatient = computed(() => {
+    return this.heroPatients[this.activePatientIndex()] ?? this.heroPatients[0];
   });
 
-  protected readonly quickPersonas: readonly PersonaQuickLaunch[] = [
-    {
-      username: 'doctor1',
-      fullName: 'Dr. Amel Trabelsi',
-      roleLabel: 'Cardiologist',
-      title: 'Physician Workstation',
-      icon: 'stethoscope',
-      description: 'Sign clinical SOAP notes, prescribe medications, and order diagnostic labs.',
-    },
-    {
-      username: 'nurse1',
-      fullName: 'Sonia Mabrouk',
-      roleLabel: 'Triage Nurse',
-      title: 'Triage Desk',
-      icon: 'monitor_heart',
-      description: 'Record vitals (BP, HR, SpO2, Temp), triage queues, and prepare patients.',
-    },
-    {
-      username: 'pharmacist1',
-      fullName: 'Dr. Tarek Jaziri',
-      roleLabel: 'Chief Pharmacist',
-      title: 'Hospital Dispensary',
-      icon: 'medication',
-      description: 'Review e-prescriptions, execute atomic dispensations, and monitor drug stock.',
-    },
-    {
-      username: 'tech1',
-      fullName: 'Ines Ben Amor',
-      roleLabel: 'Senior Lab Technician',
-      title: 'Diagnostic Pathology',
-      icon: 'biotech',
-      description: 'Validate analyzer test samples, compute biological flags, and report findings.',
-    },
-    {
-      username: 'biller1',
-      fullName: 'Moncef Gharbi',
-      roleLabel: 'Hospital Cashier',
-      title: 'Billing Counter',
-      icon: 'receipt_long',
-      description: 'Generate itemized statements, settle cash payments, and confirm invoices.',
-    },
-    {
-      username: 'reception1',
-      fullName: 'Rim Bouazizi',
-      roleLabel: 'Admissions Officer',
-      title: 'Reception & Billing',
-      icon: 'badge',
-      description: 'Admit patients, coordinate doctor schedules, and process itemized invoices.',
-    },
-    {
-      username: 'patient1',
-      fullName: 'Youssef Ben Salah',
-      roleLabel: 'Outpatient',
-      title: 'Patient Self-Service',
-      icon: 'person',
-      description: 'View scheduled appointments, medical SOAP records, and billing statements.',
-    },
-  ];
-
-  selectPatient(index: number): void {
-    this.activePatientIndex.set(index);
+  constructor() {
+    afterNextRender(() => {
+      this.initEcgCanvas();
+      this.init3DTilt();
+      this.initScrollChoreography();
+      this.initVitalsJitter();
+    });
   }
 
-  selectWorkflow(tab: 'consultation' | 'lab' | 'pharmacy' | 'reception' | 'billing'): void {
-    this.activeWorkflowTab.set(tab);
+  switchHeroPatient(index: number): void {
+    this.activePatientIndex.set(index);
+    this.liveJitterHr.set(null);
+  }
+
+  selectDepartment(index: number): void {
+    this.activeDepartmentIndex.set(index);
+  }
+
+  switchPatientPortalTab(tab: 'appointments' | 'consultations' | 'invoices'): void {
+    this.activePortalTab.set(tab);
+  }
+
+  paySimulatedInvoice(): void {
+    this.invoicePaid.set(true);
+    this.showToast(
+      'Invoice #INV-2026-9042 Paid',
+      'Your payment of $121.50 has been confirmed and receipt #RCP-88412 is ready.',
+    );
+  }
+
+  simulateRabbitMQFlow(): void {
+    const now = new Date();
+    const timeStr = now.toTimeString().split(' ')[0];
+    const sampleEvents = [
+      {
+        topic: 'Consultation Completed',
+        target: 'Laboratory Team',
+        detail: 'Blood Panel Ordered',
+      },
+      {
+        topic: 'Lab Result Validated',
+        target: 'Attending Physician',
+        detail: 'HIGH: Blood Glucose 115 mg/dL',
+      },
+      {
+        topic: 'Medication Prepared',
+        target: 'Pharmacy Counter #2',
+        detail: 'Amoxicillin 500mg (21 tabs)',
+      },
+      {
+        topic: 'Statement Updated',
+        target: 'Patient Portal',
+        detail: 'Receipt #INV-2026-9042 ($121.50)',
+      },
+    ];
+    const picked = sampleEvents[Math.floor(Math.random() * sampleEvents.length)];
+
+    this.amqpLog.update((logs) => [
+      {
+        time: timeStr,
+        topic: picked.topic,
+        detail: picked.detail,
+        target: picked.target,
+      },
+      ...logs.slice(0, 5),
+    ]);
+
+    this.showToast('Care Update Shared', `${picked.topic}: ${picked.detail} sent to ${picked.target}.`);
+  }
+
+  triggerRxVerifyToast(): void {
+    this.showToast(
+      'Medication Handover Confirmed',
+      '21 tablets of Amoxicillin 500mg dispensed to patient and added to visit statement.',
+    );
+  }
+
+  openAuthModal(mode: 'staff' | 'patient', preselectedDept?: string): void {
+    this.authModalMode.set(mode);
+    this.modalFeedback.set(null);
+    this.authModalOpen.set(true);
+    if (mode === 'staff') {
+      this.modalIdValue.set('dr.khelifi@sgh-hospital.org');
+    } else {
+      this.modalIdValue.set('youssef.mansouri@patient.sgh.org');
+    }
+    if (preselectedDept) {
+      this.showToast('Department Selected', `Opening sign-in for ${preselectedDept}`);
+    }
+  }
+
+  closeAuthModal(): void {
+    this.authModalOpen.set(false);
+  }
+
+  setAuthModalMode(mode: 'staff' | 'patient'): void {
+    this.authModalMode.set(mode);
+    this.modalFeedback.set(null);
+    if (mode === 'staff') {
+      this.modalIdValue.set('dr.khelifi@sgh-hospital.org');
+    } else {
+      this.modalIdValue.set('youssef.mansouri@patient.sgh.org');
+    }
+  }
+
+  handleSimulatedLogin(e: Event): void {
+    e.preventDefault();
+    const role = this.modalSelectedRole();
+    this.modalFeedback.set(`✓ Welcome! Redirecting to your ${role} workspace...`);
+    setTimeout(() => {
+      this.closeAuthModal();
+      this.quickSignIn(this.authModalMode() === 'patient' ? 'patient1' : 'doctor1');
+    }, 900);
+  }
+
+  showToast(title: string, body: string): void {
+    this.toastTitle.set(title);
+    this.toastBody.set(body);
+    this.toastVisible.set(true);
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+    }
+    this.toastTimeout = setTimeout(() => {
+      this.toastVisible.set(false);
+    }, 4200);
   }
 
   quickSignIn(username: string): void {
@@ -388,11 +499,135 @@ export class LandingComponent {
     }
   }
 
-  private initScrollAnimations(): void {
+  // ---------------------------------------------------------------------------
+  // Canvas ECG Oscilloscope Implementation
+  // ---------------------------------------------------------------------------
+  private initEcgCanvas(): void {
     if (typeof window === 'undefined') return;
+    const canvas = this.elementRef.nativeElement.querySelector('#ecg-canvas') as HTMLCanvasElement;
+    if (!canvas) return;
 
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    canvas.width = 220;
+    canvas.height = 40;
+    const points: number[] = [];
+
+    const getECGOffset = (step: number) => {
+      const cycle = step % 55;
+      if (cycle === 10) return -3;
+      if (cycle === 14) return 4;
+      if (cycle === 16) return -15; // R-peak
+      if (cycle === 18) return 9; // S-wave
+      if (cycle === 26) return -5; // T-wave
+      if (cycle === 28) return -4;
+      return (Math.random() - 0.5) * 1.2;
+    };
+
+    let tick = 0;
+    let animId: number;
+
+    const drawECG = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const yMid = canvas.height / 2 + 2;
+      points.push(yMid + getECGOffset(tick));
+      if (points.length > canvas.width / 2) {
+        points.shift();
+      }
+
+      ctx.beginPath();
+      ctx.strokeStyle = '#2DD4BF';
+      ctx.lineWidth = 1.8;
+      for (let i = 0; i < points.length; i++) {
+        const px = i * 2;
+        const py = points[i];
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+
+      // Glowing lead dot
+      if (points.length > 0) {
+        const lastX = (points.length - 1) * 2;
+        const lastY = points[points.length - 1];
+        ctx.beginPath();
+        ctx.fillStyle = '#5EEAD4';
+        ctx.arc(lastX, lastY, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      tick++;
+      animId = requestAnimationFrame(drawECG);
+    };
+
+    drawECG();
+    this.destroyRef.onDestroy(() => cancelAnimationFrame(animId));
+  }
+
+  // ---------------------------------------------------------------------------
+  // 3D Mouse Perspective on Hero Clinical Workstation
+  // ---------------------------------------------------------------------------
+  private init3DTilt(): void {
+    if (typeof window === 'undefined') return;
+    const card = this.elementRef.nativeElement.querySelector('#hero-workstation-card') as HTMLElement;
+    if (
+      !card ||
+      typeof window.matchMedia !== 'function' ||
+      !window.matchMedia('(pointer: fine)').matches
+    ) {
+      return;
+    }
+
+    const onMouseMove = (e: MouseEvent) => {
+      const rect = card.getBoundingClientRect();
+      const xRel = (e.clientX - rect.left) / rect.width - 0.5;
+      const yRel = (e.clientY - rect.top) / rect.height - 0.5;
+      card.style.transform = `rotateY(${xRel * 6}deg) rotateX(${-yRel * 6}deg)`;
+    };
+
+    const onMouseLeave = () => {
+      card.style.transform = 'rotateY(0deg) rotateX(0deg)';
+    };
+
+    card.addEventListener('mousemove', onMouseMove);
+    card.addEventListener('mouseleave', onMouseLeave);
+    this.destroyRef.onDestroy(() => {
+      card.removeEventListener('mousemove', onMouseMove);
+      card.removeEventListener('mouseleave', onMouseLeave);
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Vitals Micro-fluctuation Loop (3.2s)
+  // ---------------------------------------------------------------------------
+  private initVitalsJitter(): void {
+    if (typeof window === 'undefined') return;
+    const interval = setInterval(() => {
+      const pt = this.activePatient();
+      const baseHr = parseInt(pt.hr, 10);
+      const delta = Math.floor(Math.random() * 3) - 1;
+      this.liveJitterHr.set(String(baseHr + delta));
+    }, 3200);
+
+    this.destroyRef.onDestroy(() => clearInterval(interval));
+  }
+
+  // ---------------------------------------------------------------------------
+  // Scroll Choreography: Reveal Observer, Progress Bar & Active Section Spy
+  // ---------------------------------------------------------------------------
+  private initScrollChoreography(): void {
+    if (typeof window === 'undefined') return;
     const hostEl = this.elementRef.nativeElement as HTMLElement;
     const revealElements = hostEl.querySelectorAll<HTMLElement>('.scroll-reveal');
+
+    // Reveal elements immediately if already inside viewport
+    const vh = window.innerHeight;
+    revealElements.forEach((el) => {
+      if (el.getBoundingClientRect().top < vh * 0.95) {
+        el.classList.add('is-inview');
+      }
+    });
 
     if ('IntersectionObserver' in window) {
       const observer = new IntersectionObserver(
@@ -403,9 +638,8 @@ export class LandingComponent {
             }
           }
         },
-        { threshold: 0.08, rootMargin: '0px 0px -30px 0px' },
+        { threshold: 0.1, rootMargin: '0px 0px -40px 0px' },
       );
-
       revealElements.forEach((el) => observer.observe(el));
       this.destroyRef.onDestroy(() => observer.disconnect());
     } else {
@@ -413,27 +647,33 @@ export class LandingComponent {
     }
 
     const trackedSections = [
-      { id: 'hero-title', label: 'OVERVIEW // CLINICAL CARE' },
-      { id: 'workflows', label: 'DEPARTMENTS // 5 CARE TEAMS' },
-      { id: 'portal', label: 'PATIENTS // DIGITAL HEALTH' },
-      { id: 'gateways', label: 'GATEWAYS // 7 ROLE WORKSPACES' },
-      { id: 'telemetry', label: 'TELEMETRY // 6/6 SERVICES' },
+      { id: 'hero-section', label: 'OVERVIEW // CLINICAL CARE' },
+      { id: 'clinical-workflows', label: 'DEPARTMENTS // 5 CARE TEAMS' },
+      { id: 'patient-portal', label: 'PATIENTS // SELF-SERVICE PORTAL' },
+      { id: 'system-status', label: 'STATUS // 24/7 AVAILABILITY' },
     ];
+
+    const heroParallaxWrap = hostEl.querySelector('#hero-parallax-wrap') as HTMLElement;
 
     const onScroll = () => {
       const scrollTop = window.scrollY;
       const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const pct =
+      const scrollPercent =
         docHeight > 0 ? Math.min(100, Math.max(0, Math.round((scrollTop / docHeight) * 100))) : 0;
-      this.scrollPercent.set(pct);
-      this.showScrollHud.set(scrollTop > 160);
+      this.scrollPercent.set(scrollPercent);
+      this.showScrollHud.set(scrollTop > 120);
+
+      if (heroParallaxWrap && scrollTop < 900 && window.innerWidth >= 1024) {
+        heroParallaxWrap.style.transform = `translateY(${scrollTop * 0.045}px)`;
+      }
 
       for (const sec of trackedSections) {
         const el = document.getElementById(sec.id);
         if (el) {
           const rect = el.getBoundingClientRect();
-          if (rect.top <= 280) {
+          if (rect.top <= 240) {
             this.activeSection.set(sec.label);
+            this.activeNavId.set(sec.id);
           }
         }
       }

@@ -2,10 +2,50 @@
 <html lang="en" data-theme="light">
   <head>
     <meta charset="utf-8" />
-    <title>SGH - Hospital Management</title>
+    <title>SGH — Système de Gestion Hospitalière | Modern Hospital Care & Patient Portal</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+    <!-- Google Fonts: Inter & JetBrains Mono for tabular clinical metrics -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Tailwind CSS (for rich clinical utility layouts) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: ['selector', '[data-theme="dark"]'],
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'system-ui', 'sans-serif'],
+              display: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
+            },
+            colors: {
+              clinical: {
+                slate: '#0F172A',
+                surface: '#F8FAFC',
+                sky: '#0284C7',
+                teal: '#0D9488',
+                border: '#E2E8F0',
+              },
+            },
+            boxShadow: {
+              clinical:
+                '0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 1px 3px -1px rgba(15, 23, 42, 0.04)',
+              'clinical-lg':
+                '0 20px 40px -12px rgba(15, 23, 42, 0.12), 0 4px 12px -2px rgba(15, 23, 42, 0.05)',
+            },
+          },
+        },
+      };
+    </script>
   </head>
   <body>
     <app-root></app-root>

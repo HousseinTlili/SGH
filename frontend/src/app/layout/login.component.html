@@ -1,6 +1,8 @@
 <main class="login-split-page">
-  <!-- Left Half: Editorial Art Direction Showcase -->
+  <!-- Left Half: Clinical Showcase & Live Telemetry Art Direction -->
   <aside class="showcase-half" aria-label="Hospital Overview and Clinical Excellence">
+    <div class="showcase-grid-bg" aria-hidden="true"></div>
+
     <div class="showcase-overlay">
       <div class="showcase-top">
         <div class="showcase-brand">
@@ -9,7 +11,7 @@
           </div>
           <div class="brand-headings">
             <span class="hospital-name">St. Gabriel Hospital</span>
-            <span class="hospital-tagline">Connected Clinical Health Network</span>
+            <span class="hospital-tagline">Système de Gestion Hospitalière</span>
           </div>
         </div>
       </div>
@@ -17,23 +19,40 @@
       <div class="showcase-body">
         <div class="quote-pill">
           <span class="pulse-emerald" aria-hidden="true"></span>
-          <span>Accredited Healthcare Platform</span>
+          <span>Accredited Clinical Platform</span>
         </div>
+
         <h2 class="showcase-title">
           Compassionate Care,<br />
           <span>Connected in Real Time.</span>
         </h2>
+
         <p class="showcase-lead">
-          Continuous medical telemetry, real-time pathology validation, and electronic
-          prescriptions—unifying patient dignity with specialist precision.
+          Continuous patient vitals telemetry, instant diagnostic laboratory reporting, and closed-loop electronic prescriptions—connecting care teams with patients without paper delays.
         </p>
+
+        <!-- Live Telemetry Mini-HUD -->
+        <div class="showcase-telemetry-hud" aria-label="Real-time Platform Telemetry">
+          <div class="telemetry-item">
+            <span class="telemetry-label">Microservices</span>
+            <span class="telemetry-val text-emerald">6/6 UP</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="telemetry-label">Security SLA</span>
+            <span class="telemetry-val text-sky">99.98%</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="telemetry-label">IAM Engine</span>
+            <span class="telemetry-val">OIDC 26</span>
+          </div>
+        </div>
 
         <div class="showcase-features">
           <div class="feature-item">
             <mat-icon class="feat-icon">monitor_heart</mat-icon>
             <div>
-              <strong>Live Telemetry Monitoring</strong>
-              <span>Immediate ICU &amp; cardiology vital signs sync</span>
+              <strong>Live Telemetry &amp; Consultation Triage</strong>
+              <span>Immediate ICU, cardiology, and outpatient vitals sync</span>
             </div>
           </div>
           <div class="feature-item">
@@ -76,7 +95,7 @@
           <mat-icon>{{ theme.mode() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
         </button>
 
-        <a routerLink="/status" class="status-chip">
+        <a routerLink="/status" class="status-chip" title="Inspect microservice health">
           <span class="status-dot" aria-hidden="true"></span>
           <span>Systems Online</span>
         </a>
@@ -112,7 +131,9 @@
             <span>Authorized Portal Access</span>
           </div>
 
-          <h1 id="login-title" class="form-title">Sign in {{ mockAuth ? '(mock mode)' : '' }}</h1>
+          <h1 id="login-title" class="form-title">
+            Sign in {{ mockAuth ? '(mock mode)' : '' }}
+          </h1>
           <p class="form-subtitle">
             @if (mockAuth) {
               Enter your clinical credentials or select any seeded persona to test specialist roles.
@@ -130,7 +151,7 @@
         }
 
         @if (mockAuth) {
-          <!-- Quick Demo Role Dropdown Menu (only in mock mode so button.user is not present in real mode) -->
+          <!-- Quick Demo Role Dropdown Menu (the 8 button.user elements for tests and quick test drives) -->
           <div class="role-selector-wrap" [class.is-open]="roleMenuOpen()">
             <span class="selector-label">Demo Quick Access</span>
             <button
@@ -154,7 +175,7 @@
               </mat-icon>
             </button>
 
-            <!-- Dropdown Options Menu (The 8 button.user elements) -->
+            <!-- Dropdown Options Menu -->
             <div class="selector-dropdown" [class.open]="roleMenuOpen()" role="menu">
               <div class="dropdown-header">
                 <span>Choose a persona to launch immediately:</span>
@@ -197,7 +218,7 @@
         <!-- Credentials Form (Active in BOTH modes: Direct Keycloak grant in real mode, mock in mock mode) -->
         <form class="signin-form" (submit)="onSubmit($event)">
           <div class="field-block">
-            <label for="username" class="field-label">Username or Staff ID</label>
+            <label for="username" class="field-label">Username or Staff ID / MRN</label>
             <div class="input-wrap">
               <mat-icon class="input-icon" aria-hidden="true">person</mat-icon>
               <input
@@ -276,6 +297,11 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Bottom Help Text -->
+    <div class="text-center text-xs text-slate-400 dark:text-slate-500 font-mono">
+      Clinical IT Helpdesk: Ext. 4400 • Emergency NOC: +216 71 800 440
     </div>
   </section>
 </main>
