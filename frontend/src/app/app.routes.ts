@@ -69,6 +69,13 @@ export const routes: Routes = [
         loadChildren: () => import('./features/staff/staff.routes').then((m) => m.STAFF_ROUTES),
       },
       {
+        path: 'notifications',
+        loadChildren: () =>
+          import('./features/notifications/notifications.routes').then(
+            (m) => m.NOTIFICATION_ROUTES
+          ),
+      },
+      {
         path: 'my',
         loadChildren: () => import('./features/portal/portal.routes').then((m) => m.PORTAL_ROUTES),
       },

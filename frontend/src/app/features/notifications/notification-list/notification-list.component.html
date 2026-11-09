@@ -1,0 +1,244 @@
+<app-page-header
+  title="Clinical Notification Center"
+  subtitle="Real-time clinical alerts, appointment updates, and system telemetries."
+>
+  <div class="header-actions">
+    <button
+      mat-stroked-button
+      class="action-btn"
+      (click)="loadNotifications()"
+      [disabled]="loading()"
+    >
+      <mat-icon>refresh</mat-icon>
+      <span>Refresh</span>
+    </button>
+    <button
+      mat-stroked-button
+      class="action-btn"
+      (click)="deleteRead()"
+      [disabled]="loading() || (stats()?.unread === stats()?.total)"
+    >
+      <mat-icon>delete_sweep</mat-icon>
+      <span>Clear Read</span>
+    </button>
+    <button
+      mat-flat-button
+      color="primary"
+      class="action-btn-primary"
+      (click)="markAllAsRead()"
+      [disabled]="loading() || stats()?.unread === 0"
+    >
+      <mat-icon>done_all</mat-icon>
+      <span>Mark All Read</span>
+    </button>
+  </div>
+</app-page-header>
+
+<!-- Telemetry KPI Overview Cards -->
+<section class="telemetry-grid" aria-label="Notification telemetry statistics">
+  <div class="telemetry-card">
+    <div class="card-icon info-icon">
+      <mat-icon>notifications</mat-icon>
+    </div>
+    <div class="card-data">
+      <span class="card-label">Total Notifications</span>
+      <span class="card-val">{{ stats()?.total ?? 0 }}</span>
+    </div>
+  </div>
+
+  <div class="telemetry-card highlight-unread">
+    <div class="card-icon unread-icon">
+      <mat-icon>mark_email_unread</mat-icon>
+    </div>
+    <div class="card-data">
+      <span class="card-label">Unread Alerts</span>
+      <span class="card-val">{{ stats()?.unread ?? 0 }}</span>
+    </div>
+  </div>
+
+  <div class="telemetry-card">
+    <div class="card-icon warning-icon">
+      <mat-icon>event_busy</mat-icon>
+    </div>
+    <div class="card-data">
+      <span class="card-label">Appointments</span>
+      <span class="card-val">
+        {{ stats()?.total ?? 0 }}
+      </span>
+    </div>
+  </div>
+
+  <div class="telemetry-card">
+    <div class="card-icon critical-icon">
+      <mat-icon>warning</mat-icon>
+    </div>
+    <div class="card-data">
+      <span class="card-label">Critical Alerts</span>
+      <span class="card-val text-critical">
+        {{ stats()?.unread ?? 0 > 0 ? (stats()?.unread ?? 0) : 0 }}
+      </span>
+    </div>
+  </div>
+</section>
+
+<!-- Filter Tabs & Search Bar -->
+<div class="filter-bar">
+  <div class="filter-tabs" role="tablist">
+    <button
+      type="button"
+      class="tab-chip"
+      [class.active]="activeTab() === 'ALL'"
+      (click)="setTab('ALL')"
+    >
+      All ({{ stats()?.total ?? 0 }})
+    </button>
+    <button
+      type="button"
+      class="tab-chip"
+      [class.active]="activeTab() === 'UNREAD'"
+      (click)="setTab('UNREAD')"
+    >
+      <span class="badge-dot" *ngIf="(stats()?.unread ?? 0) > 0"></span>
+      Unread ({{ stats()?.unread ?? 0 }})
+    </button>
+    <button
+      type="button"
+      class="tab-chip"
+      [class.active]="activeTab() === 'CRITICAL'"
+      (click)="setTab('CRITICAL')"
+    >
+      Critical
+    </button>
+    <button
+      type="button"
+      class="tab-chip"
+      [class.active]="activeTab() === 'WARNING'"
+      (click)="setTab('WARNING')"
+    >
+      Warnings
+    </button>
+    <button
+      type="button"
+      class="tab-chip"
+      [class.active]="activeTab() === 'INFO'"
+      (click)="setTab('INFO')"
+    >
+      Information
+    </button>
+  </div>
+
+  <div class="search-box">
+    <mat-icon class="search-icon">search</mat-icon>
+    <input
+      type="text"
+      placeholder="Search alerts by title or content..."
+      [formControl]="searchControl"
+    />
+    <button
+      *ngIf="searchControl.value"
+      type="button"
+      class="clear-btn"
+      (click)="searchControl.setValue('')"
+    >
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+</div>
+
+<mat-progress-bar *ngIf="loading()" mode="indeterminate" class="loader"></mat-progress-bar>
+
+<!-- Notifications Stream -->
+<section class="notification-stream" aria-label="Notification list">
+  <div *ngIf="!loading() && notifications().length === 0" class="empty-state">
+    <mat-icon class="empty-icon">notifications_off</mat-icon>
+    <h3>No notifications in this view</h3>
+    <p>All clinical alerts have been processed or no events match your current filter.</p>
+  </div>
+
+  <article
+    *ngFor="let item of notifications()"
+    class="notification-card"
+    [class.unread]="!item.read"
+    [class.severity-critical]="item.severity === 'CRITICAL'"
+    [class.severity-warning]="item.severity === 'WARNING'"
+    [class.severity-info]="item.severity === 'INFO'"
+    (click)="toggleRead(item)"
+  >
+    <div class="card-left-indicator">
+      <span class="status-dot" [class.read]="item.read"></span>
+      <mat-icon class="severity-icon">{{ getSeverityIcon(item.severity) }}</mat-icon>
+    </div>
+
+    <div class="card-body">
+      <div class="card-meta">
+        <span class="type-badge">{{ getTypeLabel(item.type) }}</span>
+        <span class="severity-badge" [attr.data-severity]="item.severity">{{ item.severity }}</span>
+        <span class="timestamp" [title]="item.created_at">
+          <mat-icon class="time-icon">schedule</mat-icon>
+          {{ formatTime(item.created_at) }}
+        </span>
+      </div>
+
+      <h4 class="card-title">{{ item.title }}</h4>
+      <p class="card-message">{{ item.message }}</p>
+
+      <!-- Optional payload toggle -->
+      <div *ngIf="item.payload" class="payload-container" (click)="$event.stopPropagation()">
+        <button
+          type="button"
+          class="payload-toggle-btn"
+          (click)="togglePayload(item.id)"
+        >
+          <mat-icon>{{ expandedPayloadId() === item.id ? 'expand_less' : 'expand_more' }}</mat-icon>
+          <span>{{ expandedPayloadId() === item.id ? 'Hide Event Details' : 'View Event Payload' }}</span>
+        </button>
+
+        <pre *ngIf="expandedPayloadId() === item.id" class="payload-pre">{{ item.payload | json }}</pre>
+      </div>
+    </div>
+
+    <div class="card-actions" (click)="$event.stopPropagation()">
+      <button
+        mat-icon-button
+        [matTooltip]="item.read ? 'Mark as unread' : 'Mark as read'"
+        (click)="toggleRead(item)"
+        class="icon-action-btn"
+      >
+        <mat-icon>{{ item.read ? 'mark_chat_unread' : 'done' }}</mat-icon>
+      </button>
+
+      <button
+        mat-icon-button
+        matTooltip="Delete notification"
+        (click)="deleteNotification(item, $event)"
+        class="icon-action-btn delete-btn"
+      >
+        <mat-icon>delete_outline</mat-icon>
+      </button>
+    </div>
+  </article>
+
+  <!-- Pagination Controls -->
+  <footer *ngIf="totalPages() > 1" class="pagination-footer">
+    <span class="pagination-info">
+      Showing page <strong>{{ page() + 1 }}</strong> of <strong>{{ totalPages() }}</strong>
+      ({{ totalElements() }} items total)
+    </span>
+    <div class="pagination-btns">
+      <button
+        mat-stroked-button
+        (click)="prevPage()"
+        [disabled]="page() === 0"
+      >
+        Previous
+      </button>
+      <button
+        mat-stroked-button
+        (click)="nextPage()"
+        [disabled]="page() + 1 >= totalPages()"
+      >
+        Next
+      </button>
+    </div>
+  </footer>
+</section>
