@@ -1,0 +1,18 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: sgh
+      POSTGRES_PASSWORD: sgh_dev_password
+      POSTGRES_DB: sgh_notification
+    ports:
+      - "5439:5432"
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    environment:
+      RABBITMQ_DEFAULT_USER: sgh
+      RABBITMQ_DEFAULT_PASS: sgh_dev_password
+    ports:
+      - "5673:5672"
+      - "15673:15672"
