@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SGH · Notifications</title>
+<style>
+  :root {
+    --bg:#f3f6fb; --card:#ffffff; --ink:#14233a; --muted:#66768c; --line:#e1e8f1;
+    --brand:#0b6bcb; --brand-ink:#ffffff; --brand-soft:#e8f1fc;
+    --unread:#f1f7ff; --hover:#f7f9fd; --shadow:0 1px 2px rgba(20,35,58,.06),0 4px 14px rgba(20,35,58,.05);
+    --info:#0b6bcb; --info-bg:#e8f1fc; --warn:#b45309; --warn-bg:#fef3c7; --crit:#b91c1c; --crit-bg:#fee2e2;
+    --ok:#15803d; --ok-bg:#dcfce7; --bar:#0b6bcb;
+  }
+  [data-theme="dark"] {
+    --bg:#0e1624; --card:#152033; --ink:#e6edf7; --muted:#8fa0b8; --line:#243350;
+    --brand:#4a9df0; --brand-ink:#08182b; --brand-soft:#16304f;
+    --unread:#172a45; --hover:#1a2840; --shadow:0 1px 2px rgba(0,0,0,.4);
+    --info:#6db3ff; --info-bg:#16304f; --warn:#fbbf24; --warn-bg:#3b2f0e; --crit:#fca5a5; --crit-bg:#431b1b;
+    --ok:#4ade80; --ok-bg:#12351f; --bar:#4a9df0;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--ink); font-size:14px; }
+  button,input,select,textarea { font:inherit; color:inherit; }
+  .muted { color:var(--muted); }
+
+  .topbar { background:linear-gradient(90deg,#0a3d7a,#0b6bcb); color:#fff; padding:14px 28px; display:flex; align-items:center; gap:16px; position:sticky; top:0; z-index:20; }
+  .brand { display:flex; align-items:center; gap:12px; flex:1; }
+  .logo { width:38px; height:38px; border-radius:10px; background:rgba(255,255,255,.18); display:grid; place-items:center; font-weight:800; letter-spacing:.5px; }
+  .brand h1 { margin:0; font-size:17px; line-height:1.2; }
+  .brand small { opacity:.8; font-size:12px; }
+  .pill { display:flex; align-items:center; gap:8px; background:rgba(255,255,255,.14); padding:6px 12px; border-radius:999px; font-size:12px; }
+  .dot { width:9px; height:9px; border-radius:50%; background:#9ca3af; }
+  .dot.on { background:#4ade80; box-shadow:0 0 0 3px rgba(74,222,128,.3); }
+  .dot.off { background:#f87171; }
+  .icon-btn { background:rgba(255,255,255,.14); border:0; color:#fff; width:38px; height:38px; border-radius:10px; cursor:pointer; font-size:17px; position:relative; }
+  .icon-btn:hover { background:rgba(255,255,255,.26); }
+  #badge { position:absolute; top:-6px; right:-6px; background:#ef4444; color:#fff; border-radius:999px; font-size:11px; font-weight:700; padding:2px 6px; min-width:20px; text-align:center; }
+
+  .container { max-width:1180px; margin:24px auto 48px; padding:0 20px; display:flex; flex-direction:column; gap:18px; }
+  .banner { background:var(--crit-bg); color:var(--crit); border:1px solid var(--crit); border-radius:10px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; gap:12px; }
+
+  .kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); }
+  .kpi { padding:16px 18px; display:flex; gap:14px; align-items:center; }
+  .kpi .ico { width:44px; height:44px; border-radius:12px; display:grid; place-items:center; font-size:20px; background:var(--brand-soft); }
+  .kpi.warn .ico { background:var(--warn-bg); }
+  .kpi.ok .ico { background:var(--ok-bg); }
+  .kpi .num { font-size:26px; font-weight:700; line-height:1.1; }
+  .kpi .lab { color:var(--muted); font-size:12px; }
+
+  .panels { display:grid; grid-template-columns:1.4fr 1fr; gap:14px; }
+  .panel { padding:16px 18px; }
+  .panel h2 { margin:0 0 12px; font-size:14px; }
+  #chart svg { width:100%; height:auto; display:block; }
+  .bar { fill:var(--bar); }
+  .val { fill:var(--ink); font-size:11px; font-weight:600; }
+  .lbl { fill:var(--muted); font-size:11px; }
+  .trow { display:grid; grid-template-columns:150px 1fr 34px; align-items:center; gap:10px; margin-bottom:10px; }
+  .tlabel { font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tbar { height:8px; background:var(--line); border-radius:999px; overflow:hidden; }
+  .tbar span { display:block; height:100%; background:var(--brand); border-radius:999px; }
+  .tcount { text-align:right; font-weight:600; }
+
+  .toolbar { padding:14px 16px; display:flex; flex-wrap:wrap; gap:10px; align-items:center; border-bottom:1px solid var(--line); }
+  .search { flex:1; min-width:200px; position:relative; }
+  .search input { width:100%; padding:9px 12px 9px 34px; border:1px solid var(--line); border-radius:9px; background:var(--bg); }
+  .search::before { content:"🔍"; position:absolute; left:11px; top:8px; font-size:13px; }
+  select, .field input, .field textarea { padding:9px 10px; border:1px solid var(--line); border-radius:9px; background:var(--bg); }
+  input:focus, select:focus, textarea:focus { outline:2px solid var(--brand); outline-offset:-1px; }
+  .btn { border:1px solid var(--line); background:var(--card); padding:9px 14px; border-radius:9px; cursor:pointer; white-space:nowrap; }
+  .btn:hover:not(:disabled) { border-color:var(--brand); color:var(--brand); }
+  .btn:disabled { opacity:.45; cursor:default; }
+  .btn.primary { background:var(--brand); border-color:var(--brand); color:var(--brand-ink); font-weight:600; }
+  .btn.primary:hover:not(:disabled) { filter:brightness(1.08); color:var(--brand-ink); }
+  .btn.danger { color:var(--crit); }
+  .btn.danger:hover:not(:disabled) { border-color:var(--crit); color:var(--crit); }
+  .btn.sm { padding:5px 10px; font-size:12.5px; }
+
+  .tabs { display:flex; gap:4px; padding:10px 16px 0; border-bottom:1px solid var(--line); }
+  .tab { background:none; border:0; padding:10px 14px; cursor:pointer; color:var(--muted); border-bottom:2px solid transparent; font-weight:500; }
+  .tab.active { color:var(--brand); border-bottom-color:var(--brand); }
+  .tab .count { background:var(--brand-soft); color:var(--brand); border-radius:999px; padding:1px 8px; font-size:11px; margin-left:6px; }
+
+  .bulk { display:none; padding:10px 16px; background:var(--brand-soft); align-items:center; gap:10px; flex-wrap:wrap; }
+  .bulk.show { display:flex; }
+  .bulk strong { margin-right:auto; }
+
+  .listhead { display:flex; align-items:center; gap:12px; padding:10px 16px; color:var(--muted); font-size:12px; border-bottom:1px solid var(--line); }
+  .listhead .spacer { flex:1; }
+  ul#list { list-style:none; margin:0; padding:0; }
+  .row { display:flex; align-items:center; gap:14px; padding:14px 16px; border-bottom:1px solid var(--line); cursor:pointer; }
+  .row:hover { background:var(--hover); }
+  .row.unread { background:var(--unread); box-shadow:inset 3px 0 0 var(--brand); }
+  .row.unread .t { font-weight:700; }
+  .row .ico { font-size:22px; width:34px; text-align:center; }
+  .row .main { flex:1; min-width:0; }
+  .t { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .msg { color:var(--muted); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .meta { display:flex; gap:10px; align-items:center; margin-top:6px; color:var(--muted); font-size:12px; }
+  .chip { background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:1px 7px; font-size:11.5px; }
+  .sev { border-radius:999px; padding:2px 9px; font-size:11px; font-weight:600; }
+  .sev.INFO { background:var(--info-bg); color:var(--info); }
+  .sev.WARNING { background:var(--warn-bg); color:var(--warn); }
+  .sev.CRITICAL { background:var(--crit-bg); color:var(--crit); }
+  .actions { display:flex; gap:6px; }
+  .empty { padding:56px 20px; text-align:center; color:var(--muted); display:flex; flex-direction:column; gap:6px; align-items:center; }
+  .empty .big { font-size:38px; }
+  .skeleton { height:62px; margin:10px 16px; border-radius:10px; background:linear-gradient(90deg,var(--line),var(--hover),var(--line)); background-size:200% 100%; animation:sh 1.2s infinite; }
+  @keyframes sh { 0% { background-position:200% 0; } 100% { background-position:-200% 0; } }
+
+  .pager { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; flex-wrap:wrap; color:var(--muted); }
+  .pager .grp { display:flex; align-items:center; gap:8px; }
+
+  .overlay { position:fixed; inset:0; background:rgba(8,16,30,.45); opacity:0; pointer-events:none; transition:.2s; z-index:40; }
+  .overlay.show { opacity:1; pointer-events:auto; }
+  .drawer { position:fixed; top:0; right:0; height:100%; width:min(460px,100%); background:var(--card); border-left:1px solid var(--line); box-shadow:-8px 0 30px rgba(0,0,0,.2); transform:translateX(105%); transition:.25s; z-index:41; display:flex; flex-direction:column; }
+  .drawer.show { transform:none; }
+  .drawer header { padding:18px 20px; border-bottom:1px solid var(--line); display:flex; align-items:flex-start; gap:12px; }
+  .drawer header h3 { margin:0 0 6px; font-size:17px; }
+  .drawer .body { padding:18px 20px; overflow:auto; flex:1; display:flex; flex-direction:column; gap:16px; }
+  .drawer .foot { padding:14px 20px; border-top:1px solid var(--line); display:flex; gap:8px; }
+  .kv { display:grid; grid-template-columns:110px 1fr; gap:8px 12px; }
+  .kv dt { color:var(--muted); } .kv dd { margin:0; word-break:break-all; }
+  pre { background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:12px; overflow:auto; font-size:12px; margin:0; }
+
+  dialog { border:1px solid var(--line); border-radius:14px; background:var(--card); color:var(--ink); padding:0; width:min(460px,92vw); box-shadow:0 20px 60px rgba(0,0,0,.35); }
+  dialog::backdrop { background:rgba(8,16,30,.5); }
+  .dlg { padding:20px; display:flex; flex-direction:column; gap:14px; }
+  .dlg h3 { margin:0; font-size:17px; }
+  .dlg .btns { display:flex; justify-content:flex-end; gap:8px; margin-top:4px; }
+  .field { display:flex; flex-direction:column; gap:5px; }
+  .field label { font-size:12px; color:var(--muted); font-weight:600; }
+  .field textarea { min-height:90px; resize:vertical; }
+  .err { color:var(--crit); font-size:12.5px; min-height:16px; }
+
+  #toasts { position:fixed; right:18px; bottom:18px; display:flex; flex-direction:column; gap:8px; z-index:60; }
+  .toast { background:#14233a; color:#fff; padding:11px 16px; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,.3); animation:in .2s; }
+  .toast.error { background:#b91c1c; }
+  @keyframes in { from { transform:translateY(10px); opacity:0; } to { transform:none; opacity:1; } }
+  footer { text-align:center; color:var(--muted); font-size:12px; }
+
+  @media (max-width:860px) {
+    .kpis { grid-template-columns:repeat(2,1fr); }
+    .panels { grid-template-columns:1fr; }
+    .row { flex-wrap:wrap; } .actions { width:100%; }
+  }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">
+    <div class="logo">SGH</div>
+    <div><h1>Centre de notifications</h1><small>Système de Gestion Hospitalière · notification-service</small></div>
+  </div>
+  <div class="pill"><span id="live" class="dot"></span><span id="liveTxt">Connexion…</span></div>
+  <button id="theme" class="icon-btn" title="Changer de thème" aria-label="Changer de thème">🌓</button>
+  <button class="icon-btn" id="bell" title="Voir les non lues" aria-label="Notifications non lues">🔔<span id="badge" hidden>0</span></button>
+</div>
+
+<main class="container">
+  <div id="banner" class="banner" hidden>
+    <span id="bannerTxt"></span>
+    <button class="btn sm" id="retry">Réessayer</button>
+  </div>
+
+  <section class="kpis">
+    <div class="card kpi"><div class="ico">📬</div><div><div class="num" id="kTotal">–</div><div class="lab">Notifications au total</div></div></div>
+    <div class="card kpi"><div class="ico">🔵</div><div><div class="num" id="kUnread">–</div><div class="lab">Non lues</div></div></div>
+    <div class="card kpi ok"><div class="ico">📅</div><div><div class="num" id="kToday">–</div><div class="lab">Reçues aujourd'hui</div></div></div>
+    <div class="card kpi warn"><div class="ico">⚠️</div><div><div class="num" id="kAlerts">–</div><div class="lab">Avertissements et critiques</div></div></div>
+  </section>
+
+  <section class="panels">
+    <div class="card panel"><h2>Activité des 7 derniers jours</h2><div id="chart"></div></div>
+    <div class="card panel"><h2>Répartition par type</h2><div id="types"></div></div>
+  </section>
+
+  <section class="card">
+    <div class="toolbar">
+      <div class="search"><input id="q" type="search" placeholder="Rechercher dans les titres et messages…" aria-label="Rechercher"></div>
+      <select id="fType" aria-label="Type"><option value="">Tous les types</option></select>
+      <select id="fSev" aria-label="Gravité">
+        <option value="">Toutes les gravités</option>
+        <option value="INFO">Information</option>
+        <option value="WARNING">Avertissement</option>
+        <option value="CRITICAL">Critique</option>
+      </select>
+      <select id="fOrder" aria-label="Tri">
+        <option value="desc">Plus récentes d'abord</option>
+        <option value="asc">Plus anciennes d'abord</option>
+      </select>
+      <button class="btn primary" id="btnNew">+ Nouvelle notification</button>
+    </div>
+
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-status="">Toutes</button>
+      <button class="tab" data-status="false">Non lues<span class="count" id="cUnread">0</span></button>
+      <button class="tab" data-status="true">Lues</button>
+    </div>
+
+    <div class="bulk" id="bulk">
+      <strong id="bulkTxt"></strong>
+      <button class="btn sm" id="bRead">Marquer comme lues</button>
+      <button class="btn sm" id="bUnread">Marquer comme non lues</button>
+      <button class="btn sm danger" id="bDelete">Supprimer</button>
+      <button class="btn sm" id="bClear">Annuler la sélection</button>
+    </div>
+
+    <div class="listhead">
+      <input type="checkbox" id="selAll" aria-label="Tout sélectionner">
+      <span id="countTxt"></span>
+      <span class="spacer"></span>
+      <button class="btn sm" id="readAll">Tout marquer comme lu</button>
+      <button class="btn sm danger" id="delRead">Supprimer les lues</button>
+    </div>
+
+    <ul id="list"></ul>
+
+    <div class="pager">
+      <div class="grp"><span>Lignes par page</span>
+        <select id="size"><option>10</option><option>20</option><option>50</option></select>
+      </div>
+      <div class="grp">
+        <button class="btn sm" id="prev">← Précédent</button>
+        <span id="pageInfo"></span>
+        <button class="btn sm" id="next">Suivant →</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>SGH · notification-service · API REST sur /api/notifications · événements RabbitMQ sgh.events</footer>
+</main>
+
+<div class="overlay" id="overlay"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <header>
+    <div style="flex:1"><h3 id="dTitle"></h3><div id="dBadges"></div></div>
+    <button class="btn sm" id="dClose" aria-label="Fermer">✕</button>
+  </header>
+  <div class="body">
+    <p id="dMsg" style="margin:0;line-height:1.5"></p>
+    <dl class="kv" id="dMeta"></dl>
+    <div><div class="muted" style="margin-bottom:6px;font-weight:600">Contenu de l'événement (JSON)</div><pre id="dPayload"></pre></div>
+  </div>
+  <div class="foot">
+    <button class="btn" id="dToggle"></button>
+    <button class="btn danger" id="dDelete">Supprimer</button>
+  </div>
+</aside>
+
+<dialog id="confirm">
+  <div class="dlg">
+    <h3 id="cTitle"></h3><p id="cText" class="muted" style="margin:0"></p>
+    <div class="btns"><button class="btn" id="cCancel">Annuler</button><button class="btn danger" id="cOk">Supprimer</button></div>
+  </div>
+</dialog>
+
+<dialog id="create">
+  <div class="dlg">
+    <h3>Nouvelle notification</h3>
+    <div class="field"><label for="nType">Type</label>
+      <select id="nType">
+        <option value="system.alert">Alerte système</option>
+        <option value="appointment.created">Rendez-vous créé</option>
+        <option value="appointment.cancelled">Rendez-vous annulé</option>
+      </select></div>
+    <div class="field"><label for="nSev">Gravité</label>
+      <select id="nSev"><option value="INFO">Information</option><option value="WARNING">Avertissement</option><option value="CRITICAL">Critique</option></select></div>
+    <div class="field"><label for="nTitle">Titre</label><input id="nTitle" maxlength="200" placeholder="Ex. : Maintenance planifiée"></div>
+    <div class="field"><label for="nMsg">Message</label><textarea id="nMsg" maxlength="2000" placeholder="Décrivez la notification…"></textarea></div>
+    <div class="err" id="nErr"></div>
+    <div class="btns"><button class="btn" id="nCancel">Annuler</button><button class="btn primary" id="nOk">Créer</button></div>
+  </div>
+</dialog>
+
+<div id="toasts" aria-live="polite"></div>
+
+<script>
+  const API = '/api/notifications';
+  const state = { page:0, size:10, status:'', type:'', severity:'', q:'', order:'desc', items:[], selected:new Set(), totalPages:1, detailId:null };
+  const $ = (id) => document.getElementById(id);
+
+  const TYPES = {
+    'appointment.created': { label:'Rendez-vous créé', icon:'📅' },
+    'appointment.cancelled': { label:'Rendez-vous annulé', icon:'🚫' },
+    'system.alert': { label:'Alerte système', icon:'⚠️' },
+  };
+  const typeMeta = (t) => TYPES[t] || { label:t, icon:'🔔' };
+  const SEV = { INFO:'Information', WARNING:'Avertissement', CRITICAL:'Critique' };
+
+  function h(tag, props = {}, ...kids) {
+    const el = document.createElement(tag);
+    for (const [k, v] of Object.entries(props)) {
+      if (v === false || v == null) continue;
+      if (k === 'class') el.className = v;
+      else if (k === 'checked') el.checked = !!v;
+      else if (k.startsWith('on')) el[k] = v;
+      else el.setAttribute(k, v === true ? '' : v);
+    }
+    for (const kid of kids.flat()) {
+      if (kid == null || kid === false) continue;
+      el.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+    }
+    return el;
+  }
+
+  async function api(path, opts = {}) {
+    const res = await fetch(API + path, opts);
+    if (res.status === 204) return null;
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = new Error(data.message || 'Erreur ' + res.status);
+      err.details = data.details;
+      throw err;
+    }
+    return data;
+  }
+  const send = (method, body) => ({ method, headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(body) });
+
+  function toast(msg, isError) {
+    const t = h('div', { class:'toast' + (isError ? ' error' : '') }, msg);
+    $('toasts').append(t);
+    setTimeout(() => t.remove(), 3200);
+  }
+
+  function relTime(iso) {
+    const s = Math.round((Date.now() - new Date(iso).getTime()) / 1000);
+    if (s < 60) return "à l'instant";
+    const m = Math.floor(s / 60);
+    if (m < 60) return 'il y a ' + m + ' min';
+    const hr = Math.floor(m / 60);
+    if (hr < 24) return 'il y a ' + hr + ' h';
+    const d = Math.floor(hr / 24);
+    if (d < 7) return 'il y a ' + d + ' j';
+    return new Date(iso).toLocaleDateString('fr-FR');
+  }
+  const fullDate = (iso) => new Date(iso).toLocaleString('fr-FR');
+
+  function confirmDialog(title, text, okLabel) {
+    return new Promise((resolve) => {
+      const d = $('confirm');
+      $('cTitle').textContent = title;
+      $('cText').textContent = text;
+      $('cOk').textContent = okLabel || 'Supprimer';
+      $('cOk').onclick = () => { d.close(); resolve(true); };
+      $('cCancel').onclick = () => { d.close(); resolve(false); };
+      d.oncancel = () => resolve(false);
+      d.showModal();
+    });
+  }
+
+  /* ---------- Graphique ---------- */
+  const NS = 'http://www.w3.org/2000/svg';
+  function s(tag, attrs = {}, text) {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function renderChart(days) {
+    const box = $('chart');
+    box.replaceChildren();
+    const W = 440, H = 170, pad = 24, bw = 34;
+    const max = Math.max(1, ...days.map((d) => d.count));
+    const svg = s('svg', { viewBox:'0 0 ' + W + ' ' + H, role:'img', 'aria-label':'Notifications des 7 derniers jours' });
+    const step = (W - pad * 2) / days.length;
+    days.forEach((d, i) => {
+      const bh = Math.round((d.count / max) * (H - pad * 2 - 14));
+      const x = pad + i * step + (step - bw) / 2;
+      const y = H - pad - bh;
+      svg.append(s('rect', { x, y: y, width: bw, height: Math.max(bh, 2), rx: 6, class:'bar' }));
+      svg.append(s('text', { x: x + bw / 2, y: y - 6, 'text-anchor':'middle', class:'val' }, d.count));
+      const label = new Date(d.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday:'short' });
+      svg.append(s('text', { x: x + bw / 2, y: H - 6, 'text-anchor':'middle', class:'lbl' }, label));
+    });
+    box.append(svg);
+  }
+
+  function renderTypes(list) {
+    const box = $('types');
+    box.replaceChildren();
+    if (!list.length) { box.append(h('p', { class:'muted' }, 'Aucune donnée')); return; }
+    const total = list.reduce((a, b) => a + b.count, 0) || 1;
+    for (const t of list) {
+      const m = typeMeta(t.type);
+      box.append(h('div', { class:'trow' },
+        h('div', { class:'tlabel' }, m.icon + ' ' + m.label),
+        h('div', { class:'tbar' }, h('span', { style:'width:' + Math.round((t.count / total) * 100) + '%' })),
+        h('div', { class:'tcount' }, t.count)));
+    }
+  }
+
+  function fillTypes(list) {
+    const sel = $('fType');
+    const current = state.type;
+    sel.replaceChildren(h('option', { value:'' }, 'Tous les types'));
+    for (const t of list) sel.append(h('option', { value:t.type }, typeMeta(t.type).label));
+    sel.value = current;
+  }
+
+  /* ---------- Chargement ---------- */
+  async function loadStats() {
+    const st = await api('/stats');
+    $('kTotal').textContent = st.total;
+    $('kUnread').textContent = st.unread;
+    $('cUnread').textContent = st.unread;
+    $('kToday').textContent = st.last7Days.length ? st.last7Days[st.last7Days.length - 1].count : 0;
+    $('kAlerts').textContent = st.bySeverity.filter((x) => x.severity !== 'INFO').reduce((a, b) => a + b.count, 0);
+    const badge = $('badge');
+    badge.textContent = st.unread;
+    badge.hidden = st.unread === 0;
+    document.title = (st.unread > 0 ? '(' + st.unread + ') ' : '') + 'SGH · Notifications';
+    renderChart(st.last7Days);
+    renderTypes(st.byType);
+    fillTypes(st.byType);
+  }
+
+  async function loadList() {
+    const q = new URLSearchParams({ page:String(state.page), size:String(state.size), order:state.order });
+    if (state.status) q.set('read', state.status);
+    if (state.type) q.set('type', state.type);
+    if (state.severity) q.set('severity', state.severity);
+    if (state.q) q.set('q', state.q);
+    const data = await api('?' + q);
+    if (data.content.length === 0 && state.page > 0) { state.page--; return loadList(); }
+    state.items = data.content;
+    state.totalPages = Math.max(data.totalPages, 1);
+    renderList(data);
+  }
+
+  function setLive(ok, msg) {
+    $('live').className = 'dot ' + (ok ? 'on' : 'off');
+    $('liveTxt').textContent = ok ? 'Service en ligne' : 'Service indisponible';
+    $('banner').hidden = ok;
+    if (!ok) $('bannerTxt').textContent = msg || 'Impossible de joindre le service de notifications.';
+  }
+
+  async function refresh() {
+    try {
+      await Promise.all([loadList(), loadStats()]);
+      setLive(true);
+    } catch (e) {
+      setLive(false, e.message);
+    }
+  }
+
+  /* ---------- Liste ---------- */
+  function row(n) {
+    const m = typeMeta(n.type);
+    const cb = h('input', { type:'checkbox', checked: state.selected.has(n.id), 'aria-label':'Sélectionner',
+      onclick: (e) => e.stopPropagation(),
+      onchange: (e) => { e.target.checked ? state.selected.add(n.id) : state.selected.delete(n.id); updateBulk(); } });
+    return h('li', { class:'row' + (n.read ? '' : ' unread'), onclick: () => openDetail(n.id) },
+      cb,
+      h('div', { class:'ico' }, m.icon),
+      h('div', { class:'main' },
+        h('div', { class:'t' }, n.title, h('span', { class:'sev ' + n.severity }, SEV[n.severity] || n.severity)),
+        h('div', { class:'msg' }, n.message),
+        h('div', { class:'meta' }, h('span', { class:'chip' }, m.label), h('span', { title: fullDate(n.created_at) }, relTime(n.created_at)))),
+      h('div', { class:'actions' },
+        h('button', { class:'btn sm', onclick: (e) => { e.stopPropagation(); toggleRead(n); } }, n.read ? 'Marquer non lu' : 'Marquer lu'),
+        h('button', { class:'btn sm danger', onclick: (e) => { e.stopPropagation(); removeOne(n); } }, 'Supprimer')));
+  }
+
+  function renderList(data) {
+    const ul = $('list');
+    ul.replaceChildren();
+    if (!state.items.length) {
+      ul.append(h('li', { class:'empty' },
+        h('div', { class:'big' }, '📭'), h('strong', {}, 'Aucune notification'),
+        h('span', {}, 'Modifiez vos filtres ou créez une nouvelle notification.')));
+    }
+    for (const n of state.items) ul.append(row(n));
+    $('countTxt').textContent = data.totalElements + ' notification' + (data.totalElements > 1 ? 's' : '');
+    $('pageInfo').textContent = 'Page ' + (state.page + 1) + ' / ' + state.totalPages;
+    $('prev').disabled = state.page === 0;
+    $('next').disabled = state.page + 1 >= state.totalPages;
+    updateBulk();
+  }
+
+  function updateBulk() {
+    const n = state.selected.size;
+    $('bulk').classList.toggle('show', n > 0);
+    $('bulkTxt').textContent = n + ' sélectionnée' + (n > 1 ? 's' : '');
+    $('selAll').checked = state.items.length > 0 && state.items.every((i) => state.selected.has(i.id));
+  }
+
+  /* ---------- Actions ---------- */
+  async function run(fn, okMsg) {
+    try { await fn(); if (okMsg) toast(okMsg); await refresh(); }
+    catch (e) { toast(e.message, true); }
+  }
+  const toggleRead = (n) => run(() => api('/' + n.id + (n.read ? '/unread' : '/read'), { method:'PATCH' }),
+    n.read ? 'Marquée comme non lue' : 'Marquée comme lue');
+
+  async function removeOne(n) {
+    if (!(await confirmDialog('Supprimer cette notification ?', '« ' + n.title + ' » sera supprimée définitivement.'))) return;
+    state.selected.delete(n.id);
+    if (state.detailId === n.id) closeDetail();
+    await run(() => api('/' + n.id, { method:'DELETE' }), 'Notification supprimée');
+  }
+
+  async function bulk(action) {
+    const ids = [...state.selected];
+    if (!ids.length) return;
+    if (action === 'delete' && !(await confirmDialog('Supprimer ' + ids.length + ' notification(s) ?', 'Cette action est définitive.'))) return;
+    const label = { read:'marquées comme lues', unread:'marquées comme non lues', delete:'supprimées' }[action];
+    await run(async () => { await api('/bulk', send('POST', { action, ids })); state.selected.clear(); }, ids.length + ' notification(s) ' + label);
+  }
+
+  /* ---------- Détail ---------- */
+  async function openDetail(id) {
+    try {
+      const n = await api('/' + id);
+      state.detailId = id;
+      $('dTitle').textContent = n.title;
+      $('dBadges').replaceChildren(h('span', { class:'sev ' + n.severity }, SEV[n.severity] || n.severity), ' ',
+        h('span', { class:'chip' }, typeMeta(n.type).label));
+      $('dMsg').textContent = n.message;
+      $('dMeta').replaceChildren(
+        h('dt', {}, 'Identifiant'), h('dd', {}, n.id),
+        h('dt', {}, 'Type'), h('dd', {}, n.type),
+        h('dt', {}, 'Statut'), h('dd', {}, n.read ? 'Lue' : 'Non lue'),
+        h('dt', {}, 'Reçue le'), h('dd', {}, fullDate(n.created_at)));
+      $('dPayload').textContent = n.payload ? JSON.stringify(n.payload, null, 2) : 'Aucun contenu associé';
+      $('dToggle').textContent = n.read ? 'Marquer comme non lue' : 'Marquer comme lue';
+      $('dToggle').onclick = async () => { await toggleRead(n); openDetail(id); };
+      $('dDelete').onclick = () => removeOne(n);
+      $('drawer').classList.add('show'); $('overlay').classList.add('show');
+      $('drawer').setAttribute('aria-hidden', 'false');
+    } catch (e) { toast(e.message, true); }
+  }
+  function closeDetail() {
+    state.detailId = null;
+    $('drawer').classList.remove('show'); $('overlay').classList.remove('show');
+    $('drawer').setAttribute('aria-hidden', 'true');
+  }
+
+  /* ---------- Création ---------- */
+  function openCreate() {
+    $('nTitle').value = ''; $('nMsg').value = ''; $('nErr').textContent = '';
+    $('nType').value = 'system.alert'; $('nSev').value = 'INFO';
+    $('create').showModal();
+    $('nTitle').focus();
+  }
+  async function submitCreate() {
+    $('nErr').textContent = '';
+    try {
+      await api('', send('POST', {
+        type: $('nType').value, severity: $('nSev').value,
+        title: $('nTitle').value.trim(), message: $('nMsg').value.trim(),
+      }));
+      $('create').close();
+      toast('Notification créée');
+      await refresh();
+    } catch (e) {
+      const d = (e.details || []).map((x) => x.field + ' : ' + x.problem).join(' · ');
+      $('nErr').textContent = e.message + (d ? ' — ' + d : '');
+    }
+  }
+
+  /* ---------- Thème ---------- */
+  function applyTheme(t) {
+    document.documentElement.dataset.theme = t;
+    try { localStorage.setItem('sgh-theme', t); } catch (e) {}
+  }
+  (function initTheme() {
+    let t = null;
+    try { t = localStorage.getItem('sgh-theme'); } catch (e) {}
+    applyTheme(t || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+  })();
+
+  /* ---------- Événements ---------- */
+  $('theme').onclick = () => applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+  $('bell').onclick = () => document.querySelector('.tab[data-status="false"]').click();
+  $('retry').onclick = refresh;
+
+  document.querySelectorAll('.tab').forEach((b) => {
+    b.onclick = () => {
+      document.querySelectorAll('.tab').forEach((x) => x.classList.remove('active'));
+      b.classList.add('active');
+      state.status = b.dataset.status; state.page = 0; state.selected.clear();
+      refresh();
+    };
+  });
+
+  let timer;
+  $('q').oninput = (e) => { clearTimeout(timer); timer = setTimeout(() => { state.q = e.target.value.trim(); state.page = 0; refresh(); }, 300); };
+  $('fType').onchange = (e) => { state.type = e.target.value; state.page = 0; refresh(); };
+  $('fSev').onchange = (e) => { state.severity = e.target.value; state.page = 0; refresh(); };
+  $('fOrder').onchange = (e) => { state.order = e.target.value; state.page = 0; refresh(); };
+  $('size').onchange = (e) => { state.size = Number(e.target.value); state.page = 0; refresh(); };
+  $('prev').onclick = () => { if (state.page > 0) { state.page--; refresh(); } };
+  $('next').onclick = () => { if (state.page + 1 < state.totalPages) { state.page++; refresh(); } };
+
+  $('selAll').onchange = (e) => {
+    for (const i of state.items) e.target.checked ? state.selected.add(i.id) : state.selected.delete(i.id);
+    renderList({ totalElements: Number($('countTxt').textContent.split(' ')[0]) || state.items.length });
+  };
+  $('bRead').onclick = () => bulk('read');
+  $('bUnread').onclick = () => bulk('unread');
+  $('bDelete').onclick = () => bulk('delete');
+  $('bClear').onclick = () => { state.selected.clear(); refresh(); };
+
+  $('readAll').onclick = () => run(() => api('/read-all', { method:'PATCH' }), 'Toutes les notifications sont lues');
+  $('delRead').onclick = async () => {
+    if (!(await confirmDialog('Supprimer toutes les notifications lues ?', 'Cette action est définitive.'))) return;
+    run(async () => { await api('/read', { method:'DELETE' }); state.selected.clear(); }, 'Notifications lues supprimées');
+  };
+
+  $('btnNew').onclick = openCreate;
+  $('nCancel').onclick = () => $('create').close();
+  $('nOk').onclick = submitCreate;
+  $('dClose').onclick = closeDetail;
+  $('overlay').onclick = closeDetail;
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && state.detailId) closeDetail(); });
+
+  $('list').replaceChildren(...[1, 2, 3].map(() => h('li', { class:'skeleton' })));
+  refresh();
+  setInterval(() => { if (!document.hidden) refresh(); }, 10000);
+</script>
+</body>
+</html>
