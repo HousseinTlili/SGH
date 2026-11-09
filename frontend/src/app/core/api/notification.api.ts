@@ -6,6 +6,7 @@ import type {
   NotificationFilters,
   NotificationItem,
   NotificationPage,
+  NotificationSeverity,
   NotificationStats,
 } from '../models/notification';
 import { clampPaging, toHttpParams } from '../../shared/util/paging';
@@ -63,5 +64,15 @@ export class NotificationApi {
 
   bulk(action: 'read' | 'unread' | 'delete', ids: string[]): Observable<{ affected: number }> {
     return this.http.post<{ affected: number }>(`${this.base}/bulk`, { action, ids });
+  }
+
+  create(data: {
+    title: string;
+    message: string;
+    type: string;
+    severity?: NotificationSeverity;
+    payload?: Record<string, unknown>;
+  }): Observable<NotificationItem> {
+    return this.http.post<NotificationItem>(this.base, data);
   }
 }

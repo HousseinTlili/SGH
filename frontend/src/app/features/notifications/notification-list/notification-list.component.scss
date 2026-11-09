@@ -15,6 +15,23 @@
     }
   }
 
+  .action-btn-create {
+    border-radius: 9999px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    background: #0284c7;
+    color: #ffffff;
+    mat-icon {
+      font-size: 1.125rem;
+      width: 1.125rem;
+      height: 1.125rem;
+      margin-right: 0.375rem;
+    }
+    &:hover {
+      background: #0369a1;
+    }
+  }
+
   .action-btn-primary {
     border-radius: 9999px;
     font-size: 0.8125rem;
