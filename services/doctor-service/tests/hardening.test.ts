@@ -312,6 +312,9 @@ describe("Migrations", () => {
     await runMigrations();
     await runMigrations();
     const applied = await pool.query("SELECT filename FROM schema_migrations ORDER BY filename");
-    expect(applied.rows.map((r) => r.filename)).toEqual(["001_init.sql"]);
+    expect(applied.rows.map((r) => r.filename)).toEqual([
+      "001_init.sql",
+      "002_specialty_and_attachments.sql"
+    ]);
   });
 });

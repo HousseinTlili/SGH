@@ -16,6 +16,7 @@ import {
   validationFailed
 } from "../http/errors.js";
 import { fetchPatientSummary } from "../services/patientClient.js";
+import { fetchDoctorSpecialty } from "../services/staffClient.js";
 
 export const consultationsRouter = Router();
 
@@ -25,6 +26,7 @@ interface ConsultationRow {
   patient_id: string;
   patient_snapshot: unknown;
   doctor_id: string;
+  doctor_specialty: string | null;
   subjective: string | null;
   objective: string | null;
   assessment: string | null;
@@ -35,6 +37,18 @@ interface ConsultationRow {
   updated_at: Date;
 }
 
+interface AttachmentRow {
+  id: string;
+  consultation_id: string;
+  file_name: string;
+  file_type: string;
+  file_size: number;
+  data: string;
+  caption: string | null;
+  uploaded_by: string;
+  uploaded_at: Date;
+}
+
 function formatConsultation(row: ConsultationRow) {
   return {
     id: row.id,
@@ -42,6 +56,7 @@ function formatConsultation(row: ConsultationRow) {
     patientId: row.patient_id,
     patientSnapshot: row.patient_snapshot || null,
     doctorId: row.doctor_id,
+    doctorSpecialty: row.doctor_specialty || null,
     subjective: row.subjective || null,
     objective: row.objective || null,
     assessment: row.assessment || null,
@@ -53,9 +68,32 @@ function formatConsultation(row: ConsultationRow) {
   };
 }
 
+function formatAttachment(row: AttachmentRow) {
+  return {
+    id: row.id,
+    consultationId: row.consultation_id,
+    fileName: row.file_name,
+    fileType: row.file_type,
+    fileSize: Number(row.file_size),
+    data: row.data,
+    caption: row.caption || null,
+    uploadedBy: row.uploaded_by,
+    uploadedAt: new Date(row.uploaded_at).toISOString()
+  };
+}
+
+const CreateAttachmentSchema = z.object({
+  fileName: z.string().min(1).max(255),
+  fileType: z.string().min(1).max(100),
+  fileSize: z.number().int().nonnegative().max(15 * 1024 * 1024),
+  data: z.string().min(1),
+  caption: z.string().max(1000).nullable().optional()
+});
+
 const ListQuerySchema = z.object({
   patientId: z.string().uuid("patientId must be a valid UUID").optional(),
   doctorId: z.string().uuid("doctorId must be a valid UUID").optional(),
+  specialty: z.string().optional(),
   status: z.enum(["DRAFT", "SIGNED"]).optional()
 });
 
@@ -68,6 +106,7 @@ consultationsRouter.get(
     const filters = parseQueryOrThrow(ListQuerySchema, {
       patientId: req.query.patientId,
       doctorId: req.query.doctorId,
+      specialty: req.query.specialty,
       status: req.query.status
     });
 
@@ -88,6 +127,10 @@ consultationsRouter.get(
     if (filters.doctorId) {
       values.push(filters.doctorId);
       conditions.push(`doctor_id = $${values.length}`);
+    }
+    if (filters.specialty) {
+      values.push(`%${filters.specialty}%`);
+      conditions.push(`doctor_specialty ILIKE $${values.length}`);
     }
     if (filters.status) {
       values.push(filters.status);
@@ -115,6 +158,7 @@ consultationsRouter.get(
 const CreateConsultationSchema = z.object({
   patientId: z.string().uuid("patientId must be a valid UUID"),
   appointmentId: z.string().uuid().nullable().optional(),
+  doctorSpecialty: z.string().max(80).nullable().optional(),
   subjective: z.string().max(4000).nullable().optional(),
   objective: z.string().max(4000).nullable().optional(),
   assessment: z.string().max(4000).nullable().optional(),
@@ -139,12 +183,21 @@ consultationsRouter.post(
     }
     const patientSnapshot = "success" in patientLookup ? patientLookup.snapshot : null;
 
+    let doctorSpecialty = body.doctorSpecialty || null;
+    if (!doctorSpecialty && req.user?.staffId) {
+      doctorSpecialty = await fetchDoctorSpecialty(
+        req.user.staffId,
+        req.token,
+        req.correlationId
+      );
+    }
+
     const id = crypto.randomUUID();
     const result = await pool.query<ConsultationRow>(
       `INSERT INTO consultations (
-         id, appointment_id, patient_id, patient_snapshot, doctor_id,
+         id, appointment_id, patient_id, patient_snapshot, doctor_id, doctor_specialty,
          subjective, objective, assessment, plan, status, created_at, updated_at
-       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'DRAFT', now(), now())
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'DRAFT', now(), now())
        RETURNING *`,
       [
         id,
@@ -152,6 +205,7 @@ consultationsRouter.post(
         body.patientId,
         patientSnapshot ? JSON.stringify(patientSnapshot) : null,
         req.user!.staffId,
+        doctorSpecialty,
         body.subjective || null,
         body.objective || null,
         body.assessment || null,
@@ -271,5 +325,106 @@ consultationsRouter.post(
     if (signed.rows.length === 0) throw conflict("This consultation is already signed");
 
     res.status(200).json(formatConsultation(signed.rows[0]));
+  }
+);
+
+// GET /api/consultations/:id/attachments
+consultationsRouter.get(
+  "/api/consultations/:id/attachments",
+  authenticateToken,
+  requireRoles("DOCTOR", "NURSE", "ADMIN", "PATIENT"),
+  async (req: Request, res: Response) => {
+    const consultationId = uuidParam(req.params.id as string);
+    const consult = await pool.query<ConsultationRow>(
+      "SELECT * FROM consultations WHERE id = $1",
+      [consultationId]
+    );
+    if (consult.rows.length === 0) throw notFound("Consultation not found");
+
+    if (
+      req.user!.roles.includes("PATIENT") &&
+      consult.rows[0].patient_id !== req.user!.patientId
+    ) {
+      throw forbidden("Access denied to another patient's attachments");
+    }
+
+    const result = await pool.query<AttachmentRow>(
+      `SELECT * FROM consultation_attachments WHERE consultation_id = $1 ORDER BY uploaded_at ASC`,
+      [consultationId]
+    );
+    res.status(200).json(result.rows.map(formatAttachment));
+  }
+);
+
+// POST /api/consultations/:id/attachments
+consultationsRouter.post(
+  "/api/consultations/:id/attachments",
+  authenticateToken,
+  requireRoles("DOCTOR", "NURSE"),
+  async (req: Request, res: Response) => {
+    const consultationId = uuidParam(req.params.id as string);
+    const consult = await pool.query<ConsultationRow>(
+      "SELECT * FROM consultations WHERE id = $1",
+      [consultationId]
+    );
+    if (consult.rows.length === 0) throw notFound("Consultation not found");
+
+    const existing = consult.rows[0];
+    if (req.user!.roles.includes("DOCTOR") && existing.doctor_id !== req.user!.staffId) {
+      throw forbidden("You can only upload attachments to your own consultations");
+    }
+
+    const body = parseOrThrow(CreateAttachmentSchema, req.body);
+    const attachmentId = crypto.randomUUID();
+    const uploadedBy = req.user!.staffId || req.user!.username;
+
+    const inserted = await pool.query<AttachmentRow>(
+      `INSERT INTO consultation_attachments (
+         id, consultation_id, file_name, file_type, file_size, data, caption, uploaded_by, uploaded_at
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, now())
+       RETURNING *`,
+      [
+        attachmentId,
+        consultationId,
+        body.fileName,
+        body.fileType,
+        body.fileSize,
+        body.data,
+        body.caption || null,
+        uploadedBy
+      ]
+    );
+
+    res.setHeader("Location", `/api/consultations/${consultationId}/attachments/${attachmentId}`);
+    res.status(201).json(formatAttachment(inserted.rows[0]));
+  }
+);
+
+// DELETE /api/consultations/:id/attachments/:attachmentId
+consultationsRouter.delete(
+  "/api/consultations/:id/attachments/:attachmentId",
+  authenticateToken,
+  requireRoles("DOCTOR", "ADMIN"),
+  async (req: Request, res: Response) => {
+    const consultationId = uuidParam(req.params.id as string);
+    const attachmentId = uuidParam(req.params.attachmentId as string);
+
+    const consult = await pool.query<ConsultationRow>(
+      "SELECT * FROM consultations WHERE id = $1",
+      [consultationId]
+    );
+    if (consult.rows.length === 0) throw notFound("Consultation not found");
+
+    if (consult.rows[0].status === "SIGNED" && !req.user!.roles.includes("ADMIN")) {
+      throw conflict("Cannot delete attachments from a signed consultation");
+    }
+
+    const del = await pool.query(
+      "DELETE FROM consultation_attachments WHERE id = $1 AND consultation_id = $2 RETURNING id",
+      [attachmentId, consultationId]
+    );
+    if (del.rows.length === 0) throw notFound("Attachment not found");
+
+    res.status(204).send();
   }
 );

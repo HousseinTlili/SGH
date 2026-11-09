@@ -400,4 +400,62 @@ describe("SGH Doctor (Consultation) Service Tests", () => {
       expect(restoredRes.status).toBe(200);
     });
   });
+
+  // 13. Specialty & Clinical Attachments
+  describe("Doctor Specialty and Clinical Attachments", () => {
+    it("filters consultations by doctor specialty and includes doctorSpecialty in response", async () => {
+      const res = await request(app)
+        .get("/api/consultations?specialty=Cardiology")
+        .set("Authorization", `Bearer ${doc1Token}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.content.length).toBeGreaterThanOrEqual(1);
+      expect(res.body.content[0].doctorSpecialty).toBe("Cardiology");
+    });
+
+    it("uploads, lists, and deletes a clinical attachment on a draft consultation", async () => {
+      // Create a fresh draft consultation
+      const draftRes = await request(app)
+        .post("/api/consultations")
+        .set("Authorization", `Bearer ${doc1Token}`)
+        .send({
+          patientId: "a1a1a1a1-0000-4000-8000-000000000001",
+          subjective: "Follow up review with imaging"
+        });
+      expect(draftRes.status).toBe(201);
+      const draftId = draftRes.body.id;
+
+      // 1. Upload attachment
+      const uploadRes = await request(app)
+        .post(`/api/consultations/${draftId}/attachments`)
+        .set("Authorization", `Bearer ${doc1Token}`)
+        .send({
+          fileName: "cardiac_ultrasound.png",
+          fileType: "image/png",
+          fileSize: 1024,
+          data: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+          caption: "Transthoracic echocardiogram view"
+        });
+
+      expect(uploadRes.status).toBe(201);
+      expect(uploadRes.body.fileName).toBe("cardiac_ultrasound.png");
+      expect(uploadRes.body.caption).toBe("Transthoracic echocardiogram view");
+      const attachmentId = uploadRes.body.id;
+
+      // 2. List attachments
+      const listRes = await request(app)
+        .get(`/api/consultations/${draftId}/attachments`)
+        .set("Authorization", `Bearer ${doc1Token}`);
+
+      expect(listRes.status).toBe(200);
+      expect(listRes.body.some((att: any) => att.id === attachmentId)).toBe(true);
+
+      // 3. Delete attachment
+      const delRes = await request(app)
+        .delete(`/api/consultations/${draftId}/attachments/${attachmentId}`)
+        .set("Authorization", `Bearer ${doc1Token}`);
+
+      expect(delRes.status).toBe(204);
+    });
+  });
 });
