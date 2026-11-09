@@ -20,6 +20,18 @@
 
   <app-service-status-bar />
 
+  <a
+    mat-icon-button
+    routerLink="/notifications"
+    aria-label="Clinical Notification Center"
+    matTooltip="Clinical Alerts"
+    class="notification-bell-btn"
+  >
+    <mat-icon [matBadge]="unreadCount() > 0 ? unreadCount() : null" matBadgeColor="warn" matBadgeSize="small">
+      notifications
+    </mat-icon>
+  </a>
+
   <button
     mat-icon-button
     type="button"
@@ -47,6 +59,10 @@
     <a mat-menu-item routerLink="/landing">
       <mat-icon>home</mat-icon>
       <span>Hospital Home</span>
+    </a>
+    <a mat-menu-item routerLink="/notifications">
+      <mat-icon>notifications</mat-icon>
+      <span>Notification Center</span>
     </a>
     <a mat-menu-item routerLink="/profile">
       <mat-icon>person</mat-icon>

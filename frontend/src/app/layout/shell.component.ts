@@ -9,6 +9,7 @@ import {
   signal,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
@@ -18,6 +19,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { map } from 'rxjs';
+import { NotificationApi } from '../core/api/notification.api';
 import { AuthService } from '../core/auth/auth.service';
 import { ServiceStatusService } from '../core/status/service-status.service';
 import { ThemeService } from '../core/theme/theme.service';
@@ -39,6 +41,7 @@ const NARROW = '(max-width: 959px)';
     MatButtonModule,
     MatMenuModule,
     MatTooltipModule,
+    MatBadgeModule,
     ServiceStatusBarComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -49,6 +52,8 @@ export class ShellComponent implements OnInit, OnDestroy {
   protected readonly auth = inject(AuthService);
   protected readonly status = inject(ServiceStatusService);
   protected readonly theme = inject(ThemeService);
+  protected readonly notificationsApi = inject(NotificationApi);
+  protected readonly unreadCount = signal(0);
 
   protected readonly narrow = toSignal(
     inject(BreakpointObserver)
@@ -65,6 +70,14 @@ export class ShellComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.status.start();
+    this.refreshUnread();
+  }
+
+  protected refreshUnread(): void {
+    this.notificationsApi.unreadCount().subscribe({
+      next: (res) => this.unreadCount.set(res.unread),
+      error: () => this.unreadCount.set(0),
+    });
   }
 
   ngOnDestroy(): void {
