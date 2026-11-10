@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -18,7 +19,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { debounceTime } from 'rxjs';
 import { ConsultationApi } from '../../../core/api/consultation.api';
-import { PatientApi } from '../../../core/api/patient.api';
 import { ReceptionApi } from '../../../core/api/reception.api';
 import { StaffApi } from '../../../core/api/staff.api';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -46,9 +46,47 @@ export const APPOINTMENT_STATUSES: AppointmentStatus[] = [
   'CANCELLED',
 ];
 
+export type AgendaViewMode = 'day' | 'week' | 'month' | 'table';
+
+export interface DayColumn {
+  date: Date;
+  dateStr: string;
+  dayName: string;
+  dayNumber: number;
+  monthName: string;
+  isToday: boolean;
+  appointments: Appointment[];
+}
+
+export interface MonthCell {
+  date: Date;
+  dateStr: string;
+  dayNumber: number;
+  isCurrentMonth: boolean;
+  isToday: boolean;
+  isSelected: boolean;
+  appointments: Appointment[];
+}
+
+function formatDateStr(d: Date): string {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function isSameDay(d1: Date, d2: Date): boolean {
+  return (
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate()
+  );
+}
+
 @Component({
   selector: 'app-appointment-list',
   imports: [
+    CommonModule,
     ReactiveFormsModule,
     MatButtonModule,
     MatFormFieldModule,
@@ -69,7 +107,6 @@ export class AppointmentListComponent implements OnInit {
   private readonly receptionApi = inject(ReceptionApi);
   private readonly consultationApi = inject(ConsultationApi);
   private readonly staffApi = inject(StaffApi);
-  private readonly patientApi = inject(PatientApi);
   private readonly nameLookup = inject(NameLookupService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
@@ -77,18 +114,18 @@ export class AppointmentListComponent implements OnInit {
   private readonly snackBar = inject(MatSnackBar);
 
   readonly appointments = signal<Appointment[]>([]);
+  readonly allLoadedAppointments = signal<Appointment[]>([]);
   readonly doctors = signal<StaffPublic[]>([]);
   readonly total = signal(0);
   readonly page = signal(0);
   readonly size = signal(20);
   readonly loading = signal(false);
 
-  readonly isDoctor = computed(() => this.auth.hasRole('DOCTOR'));
-  readonly currentDoctorId = computed(() => {
-    // Current user staff id if role is DOCTOR
-    return this.auth.user()?.staffId ?? '';
-  });
+  readonly viewMode = signal<AgendaViewMode>('day');
+  readonly selectedDate = signal<Date>(new Date());
 
+  readonly isDoctor = computed(() => this.auth.hasRole('DOCTOR'));
+  readonly currentDoctorId = computed(() => this.auth.user()?.staffId ?? '');
   readonly canCreate = computed(() => canCreateAppointment((role) => this.auth.hasRole(role)));
 
   readonly filterForm = new FormGroup({
@@ -102,6 +139,166 @@ export class AppointmentListComponent implements OnInit {
   readonly patientNames = signal<Record<string, string>>({});
   readonly doctorNames = signal<Record<string, string>>({});
 
+  // Computed period title
+  readonly periodTitle = computed(() => {
+    const d = this.selectedDate();
+    const mode = this.viewMode();
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    };
+
+    if (mode === 'day') {
+      return d.toLocaleDateString('en-US', options);
+    }
+    if (mode === 'week') {
+      const days = this.weekDays();
+      if (days.length === 7) {
+        const first = days[0].date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+        const last = days[6].date.toLocaleDateString('en-US', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        });
+        return `${first} – ${last}`;
+      }
+      return 'Week View';
+    }
+    if (mode === 'month') {
+      return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    }
+    return 'Appointments Register';
+  });
+
+  // Appointments for the selected day
+  readonly selectedDayAppointments = computed(() => {
+    const sel = this.selectedDate();
+    return this.allLoadedAppointments().filter((a) => {
+      const apptDate = new Date(a.startAt);
+      return isSameDay(apptDate, sel);
+    });
+  });
+
+  // Next checked-in patient for today waiting for consultation
+  readonly checkedInPatient = computed(() => {
+    return (
+      this.selectedDayAppointments().find(
+        (a) => a.status === 'CHECKED_IN'
+      ) ?? null
+    );
+  });
+
+  // Week days (Mon to Sun)
+  readonly weekDays = computed<DayColumn[]>(() => {
+    const sel = this.selectedDate();
+    const dayOfWeek = sel.getDay(); // 0 is Sun, 1 is Mon, etc.
+    const diffToMon = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const monday = new Date(sel);
+    monday.setDate(sel.getDate() + diffToMon);
+
+    const today = new Date();
+    const columns: DayColumn[] = [];
+
+    for (let i = 0; i < 7; i++) {
+      const colDate = new Date(monday);
+      colDate.setDate(monday.getDate() + i);
+
+      const appts = this.allLoadedAppointments().filter((a) => {
+        const apptDate = new Date(a.startAt);
+        return isSameDay(apptDate, colDate);
+      });
+
+      columns.push({
+        date: colDate,
+        dateStr: formatDateStr(colDate),
+        dayName: colDate.toLocaleDateString('en-US', { weekday: 'short' }),
+        dayNumber: colDate.getDate(),
+        monthName: colDate.toLocaleDateString('en-US', { month: 'short' }),
+        isToday: isSameDay(colDate, today),
+        appointments: appts,
+      });
+    }
+
+    return columns;
+  });
+
+  // Month grid
+  readonly monthGrid = computed<MonthCell[]>(() => {
+    const sel = this.selectedDate();
+    const year = sel.getFullYear();
+    const month = sel.getMonth();
+
+    const firstOfMonth = new Date(year, month, 1);
+    const lastOfMonth = new Date(year, month + 1, 0);
+
+    // Monday-based start
+    const firstDayOfWeek = firstOfMonth.getDay(); // 0 is Sun
+    const padDaysBefore = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+
+    const startDate = new Date(firstOfMonth);
+    startDate.setDate(startDate.getDate() - padDaysBefore);
+
+    const today = new Date();
+    const cells: MonthCell[] = [];
+
+    for (let i = 0; i < 42; i++) {
+      const cellDate = new Date(startDate);
+      cellDate.setDate(startDate.getDate() + i);
+
+      if (i >= 35 && cellDate.getMonth() !== month) {
+        break; // Stop at 5 weeks if 6th week is entirely next month
+      }
+
+      const appts = this.allLoadedAppointments().filter((a) => {
+        const apptDate = new Date(a.startAt);
+        return isSameDay(apptDate, cellDate);
+      });
+
+      cells.push({
+        date: cellDate,
+        dateStr: formatDateStr(cellDate),
+        dayNumber: cellDate.getDate(),
+        isCurrentMonth: cellDate.getMonth() === month,
+        isToday: isSameDay(cellDate, today),
+        isSelected: isSameDay(cellDate, sel),
+        appointments: appts,
+      });
+    }
+
+    return cells;
+  });
+
+  // Period stats
+  readonly currentPeriodAppointments = computed(() => {
+    const mode = this.viewMode();
+    if (mode === 'day') return this.selectedDayAppointments();
+    if (mode === 'week') {
+      const days = this.weekDays();
+      return days.flatMap((d) => d.appointments);
+    }
+    if (mode === 'month') {
+      const selMonth = this.selectedDate().getMonth();
+      return this.allLoadedAppointments().filter(
+        (a) => new Date(a.startAt).getMonth() === selMonth
+      );
+    }
+    return this.appointments();
+  });
+
+  readonly checkedInCount = computed(
+    () => this.currentPeriodAppointments().filter((a) => a.status === 'CHECKED_IN').length
+  );
+
+  readonly scheduledCount = computed(
+    () => this.currentPeriodAppointments().filter((a) => a.status === 'SCHEDULED').length
+  );
+
+  readonly completedCount = computed(
+    () => this.currentPeriodAppointments().filter((a) => a.status === 'COMPLETED').length
+  );
+
   ngOnInit(): void {
     this.loadDoctors();
 
@@ -110,10 +307,12 @@ export class AppointmentListComponent implements OnInit {
     }
 
     this.loadAppointments();
+    this.loadAllAppointmentsForCalendar();
 
     this.filterForm.valueChanges.pipe(debounceTime(250)).subscribe(() => {
       this.page.set(0);
       this.loadAppointments();
+      this.loadAllAppointmentsForCalendar();
     });
   }
 
@@ -127,13 +326,12 @@ export class AppointmentListComponent implements OnInit {
     this.loading.set(true);
     const raw = this.filterForm.getRawValue();
 
-    // If logged in as DOCTOR, doctorId is forced to themselves
     const doctorId =
       this.isDoctor() && this.currentDoctorId()
         ? this.currentDoctorId()
         : raw.doctorId || undefined;
 
-    const date = raw.date || undefined;
+    const date = this.viewMode() === 'table' ? (raw.date || undefined) : undefined;
     const status = raw.statuses?.length ? raw.statuses.join(',') : undefined;
 
     this.receptionApi
@@ -155,6 +353,26 @@ export class AppointmentListComponent implements OnInit {
       });
   }
 
+  loadAllAppointmentsForCalendar(): void {
+    const raw = this.filterForm.getRawValue();
+    const doctorId =
+      this.isDoctor() && this.currentDoctorId()
+        ? this.currentDoctorId()
+        : raw.doctorId || undefined;
+
+    this.receptionApi
+      .listAppointments({
+        doctorId,
+        size: 100,
+      })
+      .subscribe({
+        next: (res) => {
+          this.allLoadedAppointments.set(res.content);
+          this.resolveNames(res.content);
+        },
+      });
+  }
+
   resolveNames(appts: Appointment[]): void {
     for (const a of appts) {
       if (!this.patientNames()[a.patientId]) {
@@ -170,7 +388,55 @@ export class AppointmentListComponent implements OnInit {
     }
   }
 
-  // Row permissions helpers
+  // Navigation handlers
+  setViewMode(mode: AgendaViewMode): void {
+    this.viewMode.set(mode);
+    if (mode === 'table') {
+      this.loadAppointments();
+    }
+  }
+
+  goToPrevious(): void {
+    const cur = new Date(this.selectedDate());
+    const mode = this.viewMode();
+    if (mode === 'day') {
+      cur.setDate(cur.getDate() - 1);
+    } else if (mode === 'week') {
+      cur.setDate(cur.getDate() - 7);
+    } else if (mode === 'month') {
+      cur.setMonth(cur.getMonth() - 1);
+    }
+    this.selectedDate.set(cur);
+    this.filterForm.controls.date.setValue(formatDateStr(cur));
+  }
+
+  goToNext(): void {
+    const cur = new Date(this.selectedDate());
+    const mode = this.viewMode();
+    if (mode === 'day') {
+      cur.setDate(cur.getDate() + 1);
+    } else if (mode === 'week') {
+      cur.setDate(cur.getDate() + 7);
+    } else if (mode === 'month') {
+      cur.setMonth(cur.getMonth() + 1);
+    }
+    this.selectedDate.set(cur);
+    this.filterForm.controls.date.setValue(formatDateStr(cur));
+  }
+
+  goToToday(): void {
+    const today = new Date();
+    this.selectedDate.set(today);
+    this.filterForm.controls.date.setValue(formatDateStr(today));
+  }
+
+  onSelectDay(date: Date): void {
+    this.selectedDate.set(date);
+    this.filterForm.controls.date.setValue(formatDateStr(date));
+    this.viewMode.set('day');
+  }
+
+  // Action helpers
   canCheckIn(appt: Appointment): boolean {
     return canCheckInAppointment(appt.status, (r) => this.auth.hasRole(r));
   }
@@ -188,7 +454,11 @@ export class AppointmentListComponent implements OnInit {
   }
 
   canStartConsultation(appt: Appointment): boolean {
-    return canStartConsultationFromAppointment(appt.status, (r) => this.auth.hasRole(r));
+    // Doctors can initiate consultation directly from agenda for active visits
+    return (
+      (this.isDoctor() && appt.status !== 'CANCELLED' && appt.status !== 'COMPLETED') ||
+      canStartConsultationFromAppointment(appt.status, (r) => this.auth.hasRole(r))
+    );
   }
 
   // Actions
@@ -198,6 +468,7 @@ export class AppointmentListComponent implements OnInit {
       next: () => {
         this.snackBar.open('Patient checked in', 'Dismiss', { duration: 3000 });
         this.loadAppointments();
+        this.loadAllAppointmentsForCalendar();
       },
     });
   }
@@ -208,6 +479,7 @@ export class AppointmentListComponent implements OnInit {
       next: () => {
         this.snackBar.open('Appointment completed', 'Dismiss', { duration: 3000 });
         this.loadAppointments();
+        this.loadAllAppointmentsForCalendar();
       },
     });
   }
@@ -217,7 +489,7 @@ export class AppointmentListComponent implements OnInit {
     this.dialog
       .open<CancelAppointmentDialogComponent, { appointmentId: string }, string | null>(
         CancelAppointmentDialogComponent,
-        { data: { appointmentId: appt.id }, width: '420px' },
+        { data: { appointmentId: appt.id }, width: '420px' }
       )
       .afterClosed()
       .subscribe((reason) => {
@@ -226,6 +498,7 @@ export class AppointmentListComponent implements OnInit {
             next: () => {
               this.snackBar.open('Appointment cancelled', 'Dismiss', { duration: 3000 });
               this.loadAppointments();
+              this.loadAllAppointmentsForCalendar();
             },
           });
         }

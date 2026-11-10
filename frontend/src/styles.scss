@@ -96,6 +96,41 @@ a:hover {
 }
 
 // Shared page layout helpers used by the feature screens
+router-outlet + * {
+  display: block;
+  width: 100%;
+  max-width: 1440px;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+}
+
+app-consultation-workspace,
+app-consultation-list,
+app-appointment-list,
+app-appointment-form,
+app-invoice-list,
+app-invoice-detail,
+app-invoice-form,
+app-patient-list,
+app-patient-detail,
+app-patient-form,
+app-vitals-page,
+app-staff-list,
+app-staff-form,
+app-drug-list,
+app-prescription-list,
+app-prescription-detail,
+app-lab-results,
+app-lab-request-detail,
+app-notification-list,
+app-profile,
+app-status {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .sgh-stack {
   display: flex;
   flex-direction: column;

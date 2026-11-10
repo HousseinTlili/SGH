@@ -689,6 +689,11 @@ interface FlattenedLabResult {
     </div>
   `,
   styles: `
+    :host {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+    }
     .workspace-header {
       background: var(--sgh-surface);
       border: 1px solid var(--sgh-border-subtle);
