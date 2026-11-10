@@ -230,6 +230,62 @@ export async function runSeed(): Promise<void> {
       ]
     );
 
+    // 9. Historical Consultations & Longitudinal Vitals for Standard Patients (1 to 8)
+    await client.query(`
+      INSERT INTO consultations (
+        id, patient_id, doctor_id, doctor_specialty, subjective, objective, assessment, plan, status, signed_at, created_at, updated_at
+      ) VALUES 
+      (
+        'c1010101-0000-4000-8000-000000000001', 'a1a1a1a1-0000-4000-8000-000000000004', 'b2b2b2b2-0000-4000-8000-000000000001', 'Cardiology',
+        'Patient reports episodes of rapid heart rate and mild morning headaches over past 3 weeks.',
+        'BP 142/92 mmHg, HR 88 bpm. Heart sounds regular S1/S2 present, no murmurs.',
+        'Stage 1 essential hypertension with sinus tachycardia.',
+        '1. Initiate Ramipril 5mg PO daily\n2. Low-sodium diet\n3. Ordered baseline ECG and lipid profile.',
+        'SIGNED', '2026-10-10T11:45:00Z', '2026-10-10T10:30:00Z', '2026-10-10T11:45:00Z'
+      ),
+      (
+        'c1010101-0000-4000-8000-000000000002', 'a1a1a1a1-0000-4000-8000-000000000004', 'b2b2b2b2-0000-4000-8000-000000000001', 'Cardiology',
+        'Follow-up visit. Headache resolved, palpitation frequency reduced from daily to once weekly.',
+        'BP 130/84 mmHg, HR 78 bpm. Bilateral lung bases clear, peripheral pulses intact.',
+        'Hypertension well controlled on current ACE inhibitor regimen. Palpitations stabilized.',
+        '1. Maintain Ramipril 5mg daily\n2. Order 24h Holter monitor\n3. Repeat blood pressure evaluation in 10 days.',
+        'SIGNED', '2026-10-30T10:15:00Z', '2026-10-30T09:30:00Z', '2026-10-30T10:15:00Z'
+      ),
+      (
+        'c1010101-0000-4000-8000-000000000031', 'a1a1a1a1-0000-4000-8000-000000000003', 'b2b2b2b2-0000-4000-8000-000000000001', 'Cardiology',
+        'Patient reports occasional chest tightness when walking up stairs.',
+        'BP 140/90 mmHg, HR 84 bpm, SpO2 98%. Heart sounds regular, no S3/S4.',
+        'Mild exertion-induced angina pectoris, suspect stable coronary disease.',
+        '1. Rest and nitroglycerin PRN\n2. Schedule stress echocardiogram\n3. Start Atorvastatin 20mg and Aspirin 100mg daily.',
+        'SIGNED', '2026-10-22T11:00:00Z', '2026-10-22T10:15:00Z', '2026-10-22T11:00:00Z'
+      ),
+      (
+        'c1010101-0000-4000-8000-000000000061', 'a1a1a1a1-0000-4000-8000-000000000006', 'b2b2b2b2-0000-4000-8000-000000000001', 'Cardiology',
+        'Routine prenatal cardiac check. Reports mild fatigue in the afternoon.',
+        'BP 115/75 mmHg, HR 80 bpm, heart regular, no signs of gestational hypertension.',
+        'Normal hemodynamic adaptation to pregnancy. No cardiovascular contraindications.',
+        'Maintain prenatal hydration and iron supplements. Review in third trimester.',
+        'SIGNED', '2026-10-15T14:30:00Z', '2026-10-15T14:00:00Z', '2026-10-15T14:30:00Z'
+      ),
+      (
+        'c1010101-0000-4000-8000-000000000071', 'a1a1a1a1-0000-4000-8000-000000000007', 'b2b2b2b2-0000-4000-8000-000000000002', 'General practice',
+        'Pre-employment medical examination. Reports excellent general health.',
+        'BP 122/78 mmHg, HR 68 bpm, BMI 23.4. Vision, hearing, and musculoskeletal exams normal.',
+        'Healthy young adult. Medically fit for employment.',
+        'Issued medical fitness certificate. Routine annual check recommended.',
+        'SIGNED', '2026-10-28T09:00:00Z', '2026-10-28T08:30:00Z', '2026-10-28T09:00:00Z'
+      ),
+      (
+        'c1010101-0000-4000-8000-000000000081', 'a1a1a1a1-0000-4000-8000-000000000008', 'b2b2b2b2-0000-4000-8000-000000000001', 'Cardiology',
+        'Referred for cardiac evaluation due to family history of early coronary artery disease.',
+        'BP 125/80 mmHg, HR 72 bpm. S1/S2 normal, carotid bruits absent, peripheral pulses crisp.',
+        'Elevated cardiovascular risk profile by family history; asymptomatic with normal baseline exam.',
+        '1. Lipid panel and fasting glucose\n2. Exercise treadmill stress test\n3. Dietary optimization.',
+        'SIGNED', '2026-10-20T16:00:00Z', '2026-10-20T15:20:00Z', '2026-10-20T16:00:00Z'
+      )
+      ON CONFLICT (id) DO NOTHING
+    `);
+
     await client.query("COMMIT");
   } catch (error) {
     await client.query("ROLLBACK");
