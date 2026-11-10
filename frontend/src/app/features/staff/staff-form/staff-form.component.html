@@ -8,16 +8,29 @@
     "
   >
     @if (isEdit()) {
-      <button
-        mat-stroked-button
-        color="warn"
-        type="button"
-        (click)="onDeactivate()"
-        [disabled]="!currentStaff()?.active || saving()"
-      >
-        <mat-icon>person_off</mat-icon>
-        {{ currentStaff()?.active ? 'Deactivate' : 'Deactivated' }}
-      </button>
+      @if (currentStaff()?.active) {
+        <button
+          mat-stroked-button
+          color="warn"
+          type="button"
+          (click)="onDeactivate()"
+          [disabled]="saving()"
+        >
+          <mat-icon>person_off</mat-icon>
+          Deactivate
+        </button>
+      } @else {
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          (click)="onActivate()"
+          [disabled]="saving()"
+        >
+          <mat-icon>check_circle</mat-icon>
+          Approve &amp; Activate
+        </button>
+      }
     }
   </app-page-header>
 

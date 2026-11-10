@@ -78,6 +78,13 @@ export class ShellComponent implements OnInit, OnDestroy {
     if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
     return name.slice(0, 2).toUpperCase();
   });
+  protected readonly avatarUrl = computed(() => {
+    const username = this.auth.user()?.username;
+    if (username && typeof localStorage !== 'undefined') {
+      return localStorage.getItem(`sgh.avatar.${username}`);
+    }
+    return null;
+  });
 
   ngOnInit(): void {
     this.status.start();

@@ -144,6 +144,44 @@ public class StaffService {
         return toDto(saved);
     }
 
+    public StaffDto activateStaff(UUID id) {
+        StaffMember member = staffRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Staff member not found"));
+
+        if (member.isActive()) {
+            throw new ConflictException("Staff member is already active");
+        }
+
+        member.setActive(true);
+        member.setUpdatedAt(Instant.now());
+
+        StaffMember saved = staffRepository.save(member);
+        return toDto(saved);
+    }
+
+    public StaffDto registerStaff(StaffInputDto input) {
+        String email = input.email().trim().toLowerCase();
+        if (staffRepository.existsByEmailIgnoreCase(email)) {
+            throw new ConflictException("This e-mail is already used");
+        }
+
+        StaffMember member = new StaffMember();
+        member.setId(UUID.randomUUID());
+        member.setKeycloakUserId(input.keycloakUserId());
+        member.setFirstName(input.firstName().trim());
+        member.setLastName(input.lastName().trim());
+        member.setRole(input.role());
+        member.setSpecialty(input.specialty() != null && !input.specialty().isBlank() ? input.specialty().trim() : null);
+        member.setDepartment(input.department() != null && !input.department().isBlank() ? input.department().trim() : "General");
+        member.setEmail(email);
+        member.setActive(false); // Pending Admin Approval
+        member.setCreatedAt(Instant.now());
+        member.setUpdatedAt(Instant.now());
+
+        StaffMember saved = staffRepository.save(member);
+        return toDto(saved);
+    }
+
     @Transactional(readOnly = true)
     public List<StaffPublicDto> getDirectory(StaffRole role) {
         List<StaffMember> members = (role != null)

@@ -125,6 +125,26 @@
           </div>
         }
 
+        <div class="auth-tabs">
+          <button
+            type="button"
+            class="auth-tab"
+            [class.active]="activeMode() === 'signin'"
+            (click)="setMode('signin')"
+          >
+            Sign In
+          </button>
+          <button
+            type="button"
+            class="auth-tab"
+            [class.active]="activeMode() === 'signup'"
+            (click)="setMode('signup')"
+          >
+            Create Account / Sign Up
+          </button>
+        </div>
+
+        @if (activeMode() === 'signin') {
         <div class="form-header">
           <div class="portal-badge">
             <mat-icon>lock</mat-icon>
@@ -281,6 +301,155 @@
             <mat-icon>lock_open</mat-icon>
             <span>Sign in with Keycloak</span>
           </button>
+        }
+        } @else {
+          <!-- SIGN UP / REGISTRATION VIEW -->
+          <div class="form-header">
+            <div class="portal-badge">
+              <mat-icon>person_add</mat-icon>
+              <span>Account Registration Request</span>
+            </div>
+
+            <h1 class="form-title">Request Hospital Account</h1>
+            <p class="form-subtitle">
+              Register as clinical or medical staff. Your account will be submitted with <strong>Pending Approval</strong> status and must be activated by the Hospital Administrator before login.
+            </p>
+          </div>
+
+          @if (signupSuccess()) {
+            <div class="signup-success-card" role="alert">
+              <div class="success-header">
+                <mat-icon class="success-icon">check_circle</mat-icon>
+                <strong>Registration Submitted Successfully</strong>
+              </div>
+              <p class="success-desc">{{ signupSuccess() }}</p>
+              <div class="success-actions">
+                <button mat-flat-button color="primary" type="button" (click)="setMode('signin')">
+                  Return to Sign In
+                </button>
+              </div>
+            </div>
+          } @else {
+            <form class="signin-form" (submit)="onSignUp($event)">
+              <div class="name-grid">
+                <div class="field-block">
+                  <label for="regFirstName" class="field-label">First Name *</label>
+                  <div class="input-wrap">
+                    <mat-icon class="input-icon" aria-hidden="true">person</mat-icon>
+                    <input
+                      id="regFirstName"
+                      name="regFirstName"
+                      type="text"
+                      class="field-input"
+                      [(ngModel)]="regFirstName"
+                      placeholder="e.g. Jean"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div class="field-block">
+                  <label for="regLastName" class="field-label">Last Name *</label>
+                  <div class="input-wrap">
+                    <mat-icon class="input-icon" aria-hidden="true">person</mat-icon>
+                    <input
+                      id="regLastName"
+                      name="regLastName"
+                      type="text"
+                      class="field-input"
+                      [(ngModel)]="regLastName"
+                      placeholder="e.g. Dupont"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="field-block">
+                <label for="regEmail" class="field-label">Hospital Email *</label>
+                <div class="input-wrap">
+                  <mat-icon class="input-icon" aria-hidden="true">mail</mat-icon>
+                  <input
+                    id="regEmail"
+                    name="regEmail"
+                    type="email"
+                    class="field-input"
+                    [(ngModel)]="regEmail"
+                    placeholder="doctor@sgh.hospital"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div class="name-grid">
+                <div class="field-block">
+                  <label for="regRole" class="field-label">Staff Role *</label>
+                  <div class="input-wrap">
+                    <mat-icon class="input-icon" aria-hidden="true">badge</mat-icon>
+                    <select
+                      id="regRole"
+                      name="regRole"
+                      class="field-input select-input"
+                      [(ngModel)]="regRole"
+                    >
+                      <option value="DOCTOR">Doctor (Physician)</option>
+                      <option value="NURSE">Nurse</option>
+                      <option value="PHARMACIST">Pharmacist</option>
+                      <option value="LAB_TECHNICIAN">Lab Technician</option>
+                      <option value="RECEPTIONIST">Receptionist</option>
+                      <option value="ADMIN">Administrator</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="field-block">
+                  <label for="regDepartment" class="field-label">Department *</label>
+                  <div class="input-wrap">
+                    <mat-icon class="input-icon" aria-hidden="true">domain</mat-icon>
+                    <input
+                      id="regDepartment"
+                      name="regDepartment"
+                      type="text"
+                      class="field-input"
+                      [(ngModel)]="regDepartment"
+                      placeholder="e.g. Cardiology, ER"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              @if (regRole === 'DOCTOR') {
+                <div class="field-block">
+                  <label for="regSpecialty" class="field-label">Specialty (Optional)</label>
+                  <div class="input-wrap">
+                    <mat-icon class="input-icon" aria-hidden="true">medical_services</mat-icon>
+                    <input
+                      id="regSpecialty"
+                      name="regSpecialty"
+                      type="text"
+                      class="field-input"
+                      [(ngModel)]="regSpecialty"
+                      placeholder="e.g. Cardiology, Pediatrics, General Practice"
+                    />
+                  </div>
+                </div>
+              }
+
+              <div class="admin-notice-box">
+                <mat-icon class="notice-icon">admin_panel_settings</mat-icon>
+                <span><strong>Admin Approval Required:</strong> Your account will be created with <code>active = false</code>. The hospital operations administrator must review and activate your account before you can log in.</span>
+              </div>
+
+              <button mat-flat-button class="signin-cta" type="submit" [disabled]="loading()">
+                @if (loading()) {
+                  <span>Submitting Request...</span>
+                } @else {
+                  <span>Submit Account Request</span>
+                }
+              </button>
+            </form>
+          }
         }
 
         <!-- Reassurance Footer -->

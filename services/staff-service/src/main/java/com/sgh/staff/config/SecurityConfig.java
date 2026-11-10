@@ -43,12 +43,16 @@ public class SecurityConfig {
                         .requestMatchers("/docs", "/docs/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/openapi.json").permitAll()
 
 
+                        // Public registration: must come before /api/staff collection
+                        .requestMatchers(HttpMethod.POST, "/api/staff/register").permitAll()
+
                         // Directory: must come before /api/staff/*
                         .requestMatchers(HttpMethod.GET, "/api/staff/directory").hasAnyRole("RECEPTIONIST", "DOCTOR", "NURSE", "LAB_TECHNICIAN", "PHARMACIST", "ADMIN")
 
                         // Specific staff sub-endpoints before /api/staff/*
                         .requestMatchers(HttpMethod.GET, "/api/staff/*/public").hasAnyRole("PATIENT", "RECEPTIONIST", "DOCTOR", "NURSE", "LAB_TECHNICIAN", "PHARMACIST", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/staff/*/deactivate").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/staff/*/activate").hasRole("ADMIN")
 
                         // Single staff member endpoints
                         .requestMatchers(HttpMethod.GET, "/api/staff/*").hasRole("ADMIN")

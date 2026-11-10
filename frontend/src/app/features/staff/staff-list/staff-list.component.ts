@@ -73,7 +73,7 @@ export class StaffListComponent implements OnInit {
     {
       key: 'active',
       header: 'Status',
-      cell: (row) => (row.active ? 'Active' : 'Inactive'),
+      cell: (row) => (row.active ? 'Active' : 'Pending Approval'),
     },
   ];
 
