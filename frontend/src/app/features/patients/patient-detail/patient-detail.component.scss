@@ -1,3 +1,9 @@
+:host {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .highlights-bar {
   display: flex;
   flex-wrap: wrap;
@@ -8,26 +14,26 @@
   background: var(--sgh-surface);
   border: 1px solid var(--sgh-border-subtle);
   border-radius: var(--sgh-radius);
-  box-shadow: var(--sgh-shadow-sm);
+  box-shadow: var(--sgh-shadow-xs);
 }
 
 .chip-item {
   display: flex;
   align-items: center;
   gap: var(--sgh-space-2);
-}
 
-.chip-item .label {
-  font-weight: 600;
-  color: var(--sgh-text-muted);
-  font-size: var(--sgh-text-sm);
+  .label {
+    font-weight: 600;
+    color: var(--sgh-text-muted);
+    font-size: var(--sgh-text-sm);
+  }
 }
 
 .allergy-warning {
   display: flex;
   align-items: center;
   gap: var(--sgh-space-2);
-  padding: 6px 12px;
+  padding: 6px 14px;
   background: var(--sgh-tone-danger-bg);
   color: var(--sgh-tone-danger-fg);
   border: 1px solid var(--sgh-tone-danger-solid);
@@ -49,6 +55,458 @@
   padding: var(--sgh-space-5) 0;
 }
 
+// =============================================================================
+// Clinical KPI Grid
+// =============================================================================
+.clinical-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: var(--sgh-space-6);
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.kpi-card {
+  display: flex;
+  flex-direction: column;
+  padding: 18px 20px;
+  background: var(--sgh-surface);
+  border: 1px solid var(--sgh-border-subtle);
+  border-radius: var(--sgh-radius);
+  box-shadow: var(--sgh-shadow-xs);
+  transition: all 0.15s ease;
+
+  &:hover {
+    border-color: var(--sgh-border);
+    box-shadow: var(--sgh-shadow-sm);
+  }
+
+  .kpi-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+
+    .kpi-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--sgh-text-muted);
+    }
+
+    .kpi-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+
+      &.bp-icon {
+        color: var(--sgh-brand);
+      }
+      &.hr-icon {
+        color: #ef4444;
+      }
+      &.spo2-icon {
+        color: #0d9488;
+      }
+      &.weight-icon {
+        color: #8b5cf6;
+      }
+    }
+  }
+
+  .kpi-value-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 12px;
+
+    .kpi-value {
+      font-size: 1.75rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--sgh-text);
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+
+    .kpi-unit {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--sgh-text-muted);
+    }
+
+    .kpi-sub-value {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--sgh-text-muted);
+    }
+  }
+
+  .kpi-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.75rem;
+
+    .kpi-date {
+      color: var(--sgh-text-muted);
+      font-size: 0.72rem;
+    }
+  }
+}
+
+// =============================================================================
+// Charts Section
+// =============================================================================
+.charts-section {
+  margin-bottom: var(--sgh-space-6);
+
+  .section-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--sgh-space-4);
+
+    h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--sgh-text);
+      margin: 0 0 2px 0;
+    }
+
+    p {
+      font-size: 0.82rem;
+      color: var(--sgh-text-muted);
+      margin: 0;
+    }
+  }
+
+  .charts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+
+    @media (max-width: 960px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .chart-card {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    background: var(--sgh-surface);
+    border: 1px solid var(--sgh-border-subtle);
+    border-radius: var(--sgh-radius);
+    box-shadow: var(--sgh-shadow-xs);
+
+    .chart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+
+      .chart-title-group {
+        h4 {
+          margin: 0 0 2px 0;
+          font-size: 0.95rem;
+          font-weight: 700;
+          color: var(--sgh-text);
+        }
+        .chart-subtitle {
+          font-size: 0.75rem;
+          color: var(--sgh-text-muted);
+        }
+      }
+
+      .chart-legend {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .legend-item {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: var(--sgh-text-muted);
+
+          .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+          }
+
+          &.sys-legend .legend-dot {
+            background: #2563eb;
+          }
+          &.dia-legend .legend-dot {
+            background: #0d9488;
+          }
+          &.hr-legend .legend-dot {
+            background: #ef4444;
+          }
+        }
+      }
+    }
+
+    .svg-chart-container {
+      width: 100%;
+      position: relative;
+
+      .clinical-svg {
+        width: 100%;
+        height: 160px;
+        overflow: visible;
+      }
+
+      .chart-x-axis {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 30px 0 30px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--sgh-text-muted);
+      }
+    }
+
+    .chart-empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 160px;
+      color: var(--sgh-text-muted);
+      gap: 8px;
+      text-align: center;
+
+      .mat-icon {
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
+        opacity: 0.4;
+      }
+
+      p {
+        margin: 0;
+        font-size: 0.8rem;
+      }
+    }
+  }
+}
+
+// =============================================================================
+// Consultations History List
+// =============================================================================
+.consultations-history-section {
+  .section-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--sgh-space-4);
+
+    h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--sgh-text);
+      margin: 0 0 2px 0;
+    }
+
+    p {
+      font-size: 0.82rem;
+      color: var(--sgh-text-muted);
+      margin: 0;
+    }
+  }
+
+  .consultations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .consult-record-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+    background: var(--sgh-surface);
+    border: 1px solid var(--sgh-border-subtle);
+    border-left: 5px solid var(--sgh-brand);
+    border-radius: var(--sgh-radius);
+    box-shadow: var(--sgh-shadow-xs);
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+      border-color: var(--sgh-border);
+      box-shadow: var(--sgh-shadow-sm);
+      transform: translateY(-1px);
+    }
+
+    .consult-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--sgh-space-4);
+
+      .consult-meta-col {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        .consult-date-row {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          color: var(--sgh-text);
+          font-size: 0.95rem;
+
+          .date-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+            color: var(--sgh-brand);
+          }
+        }
+
+        .consult-doctor-row {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          color: var(--sgh-text-muted);
+          font-size: 0.82rem;
+
+          .doc-icon {
+            font-size: 14px;
+            width: 14px;
+            height: 14px;
+          }
+
+          .specialty-tag {
+            background: rgba(37, 99, 235, 0.08);
+            color: var(--sgh-brand);
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: var(--sgh-radius-pill);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+          }
+        }
+      }
+
+      .consult-badge-col {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+
+        .signed-stamp {
+          font-size: 0.72rem;
+          color: #059669;
+          font-weight: 600;
+        }
+      }
+    }
+
+    .consult-assessment-box {
+      padding: 12px 16px;
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.04) 0%, rgba(37, 99, 235, 0.01) 100%);
+      border: 1px solid rgba(37, 99, 235, 0.15);
+      border-radius: var(--sgh-radius-sm);
+
+      .box-tag {
+        display: block;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        color: var(--sgh-brand);
+        margin-bottom: 4px;
+      }
+
+      .assessment-text {
+        margin: 0;
+        font-size: 0.88rem;
+        color: var(--sgh-text);
+        line-height: 1.45;
+      }
+    }
+
+    .consult-plan-box {
+      padding: 12px 16px;
+      background: var(--sgh-surface-1);
+      border: 1px solid var(--sgh-border-subtle);
+      border-radius: var(--sgh-radius-sm);
+
+      .box-tag {
+        display: block;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        color: var(--sgh-text-muted);
+        margin-bottom: 4px;
+      }
+
+      .plan-text {
+        margin: 0;
+        font-size: 0.85rem;
+        color: var(--sgh-text);
+        white-space: pre-line;
+        line-height: 1.45;
+      }
+    }
+
+    .consult-card-footer {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 4px;
+
+      button {
+        font-weight: 600;
+        font-size: 0.82rem;
+      }
+    }
+  }
+
+  .empty-consult-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 48px 24px;
+    gap: 12px;
+
+    .empty-icon {
+      font-size: 40px;
+      width: 40px;
+      height: 40px;
+      color: var(--sgh-text-muted);
+      opacity: 0.4;
+    }
+
+    h4 {
+      margin: 0;
+      font-size: 1.05rem;
+      color: var(--sgh-text);
+    }
+  }
+}
+
+// =============================================================================
+// Overview, Medical File, Appointments Tab Styles
+// =============================================================================
 .info-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -60,15 +518,15 @@
   border: 1px solid var(--sgh-border-subtle);
   border-radius: var(--sgh-radius);
   padding: var(--sgh-space-5);
-  box-shadow: var(--sgh-shadow-sm);
-}
+  box-shadow: var(--sgh-shadow-xs);
 
-.info-card h3 {
-  margin: 0 0 var(--sgh-space-4) 0;
-  font-size: var(--sgh-text-lg);
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--sgh-text);
+  h3 {
+    margin: 0 0 var(--sgh-space-4) 0;
+    font-size: var(--sgh-text-lg);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--sgh-text);
+  }
 }
 
 dl {
@@ -77,100 +535,81 @@ dl {
   row-gap: var(--sgh-space-3);
   column-gap: var(--sgh-space-3);
   margin: 0;
-}
 
-dt {
-  color: var(--sgh-text-muted);
-  font-weight: 500;
-  font-size: var(--sgh-text-sm);
-}
+  dt {
+    color: var(--sgh-text-muted);
+    font-weight: 500;
+    font-size: var(--sgh-text-sm);
+  }
 
-dd {
-  margin: 0;
-  color: var(--sgh-text);
-  font-weight: 500;
-  font-size: var(--sgh-text-sm);
+  dd {
+    margin: 0;
+    color: var(--sgh-text);
+    font-weight: 500;
+    font-size: var(--sgh-text-sm);
+  }
 }
 
 .note-card {
   margin-bottom: var(--sgh-space-5);
   border: 1px solid var(--sgh-border-subtle);
   border-radius: var(--sgh-radius);
-  box-shadow: var(--sgh-shadow-sm);
+  box-shadow: var(--sgh-shadow-xs);
 }
 
 .w-full {
   width: 100%;
 }
 
-.note-actions {
+.form-actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: var(--sgh-space-2);
+  margin-top: 8px;
 }
 
-.timeline-icon {
+.timeline {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
-  border-radius: var(--sgh-radius-sm);
-  background: var(--sgh-tone-info-bg);
-  color: var(--sgh-tone-info-fg);
-  flex-shrink: 0;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  padding-left: 20px;
+  border-left: 2px solid var(--sgh-border-subtle);
+  margin-left: 8px;
 }
 
-.timeline-icon[data-type='CONSULTATION'] {
-  background: var(--sgh-brand-container);
-  color: var(--sgh-on-brand-container);
-}
+.timeline-item {
+  position: relative;
 
-.timeline-icon[data-type='LAB'] {
-  background: var(--sgh-tone-accent-bg);
-  color: var(--sgh-tone-accent-fg);
-}
+  .timeline-marker {
+    position: absolute;
+    left: -27px;
+    top: 4px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--sgh-brand);
+    border: 2px solid var(--sgh-surface);
+  }
 
-.timeline-icon[data-type='PRESCRIPTION'] {
-  background: var(--sgh-tone-warning-bg);
-  color: var(--sgh-tone-warning-fg);
-}
+  .timeline-content {
+    background: var(--sgh-surface);
+    border: 1px solid var(--sgh-border-subtle);
+    border-radius: var(--sgh-radius-sm);
+    padding: 14px 18px;
 
-.timeline-body {
-  flex: 1;
-}
+    .timeline-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
 
-.timeline-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--sgh-space-2);
-  margin-bottom: var(--sgh-space-2);
-}
-
-.type-badge {
-  font-weight: 700;
-  font-size: var(--sgh-text-sm);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--sgh-text);
-}
-
-.source-service {
-  font-size: var(--sgh-text-sm);
-  color: var(--sgh-text-muted);
-}
-
-.date {
-  font-size: var(--sgh-text-sm);
-  color: var(--sgh-text-muted);
-  margin-left: auto;
-}
-
-.summary {
-  margin: 0;
-  color: var(--sgh-text);
-  line-height: var(--sgh-line-height);
+    .entry-summary {
+      margin: 0;
+      font-size: 0.88rem;
+      color: var(--sgh-text);
+    }
+  }
 }
 
 .card-list {
@@ -179,47 +618,39 @@ dd {
   gap: var(--sgh-space-3);
 }
 
-.appt-card,
-.consult-card {
-  cursor: pointer;
+.appt-card {
   background: var(--sgh-surface);
   border: 1px solid var(--sgh-border-subtle);
   border-radius: var(--sgh-radius);
-  box-shadow: var(--sgh-shadow-sm);
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
+  box-shadow: var(--sgh-shadow-xs);
 
-  &:hover {
-    box-shadow: var(--sgh-shadow-md);
+  .appt-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sgh-space-4);
+    padding: 8px 12px;
   }
-}
 
-.appt-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sgh-space-4);
-}
+  .time-block {
+    display: flex;
+    flex-direction: column;
+    min-width: 180px;
 
-.time-block {
-  display: flex;
-  flex-direction: column;
-  min-width: 180px;
+    strong {
+      color: var(--sgh-text);
+    }
 
-  strong {
+    span {
+      font-size: var(--sgh-text-sm);
+      color: var(--sgh-text-muted);
+    }
+  }
+
+  .reason-block {
+    flex: 1;
     color: var(--sgh-text);
   }
-
-  span {
-    font-size: var(--sgh-text-sm);
-    color: var(--sgh-text-muted);
-  }
-}
-
-.reason-block {
-  flex: 1;
-  color: var(--sgh-text);
 }
 
 .empty-text {

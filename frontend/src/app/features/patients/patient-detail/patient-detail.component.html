@@ -17,7 +17,7 @@
       @if (canEdit()) {
         <button mat-stroked-button type="button" (click)="onEdit()">
           <mat-icon>edit</mat-icon>
-          Edit
+          Edit profile
         </button>
       }
       @if (canCreateAppointment()) {
@@ -45,7 +45,7 @@
       @if (p.bloodType) {
         <div class="chip-item">
           <span class="label">Blood Type:</span>
-          <span class="sgh-badge sgh-badge--info">{{ p.bloodType }}</span>
+          <span class="sgh-badge" data-tone="info">{{ p.bloodType }}</span>
         </div>
       }
       @if (p.allergies) {
@@ -56,9 +56,354 @@
       }
     </div>
 
-    <!-- Tabs -->
+    <!-- Tabs Navigation -->
     <mat-tab-group animationDuration="0ms" class="detail-tabs">
-      <!-- 1. Overview Tab -->
+      <!-- 1. Consultations & Clinical Vitals Tab (Primary Clinical View) -->
+      @if (canViewConsultations()) {
+        <mat-tab label="Consultations & Vitals">
+          <div class="tab-content">
+            <!-- Clinical KPI Stats Row -->
+            <div class="clinical-kpi-grid">
+              <!-- KPI 1: Blood Pressure -->
+              <div class="kpi-card">
+                <div class="kpi-header">
+                  <span class="kpi-title">Blood Pressure</span>
+                  <mat-icon class="kpi-icon bp-icon">monitor_heart</mat-icon>
+                </div>
+                <div class="kpi-value-row">
+                  @if (latestVitals(); as v) {
+                    @if (v.systolic !== undefined && v.diastolic !== undefined) {
+                      <span class="kpi-value">{{ v.systolic }}/{{ v.diastolic }}</span>
+                      <span class="kpi-unit">mmHg</span>
+                    } @else {
+                      <span class="kpi-value sgh-muted">—</span>
+                    }
+                  } @else {
+                    <span class="kpi-value sgh-muted">—</span>
+                  }
+                </div>
+                <div class="kpi-footer">
+                  <span
+                    class="sgh-badge"
+                    [attr.data-tone]="bpEvaluation().tone"
+                  >
+                    {{ bpEvaluation().category }}
+                  </span>
+                  @if (latestVitals(); as v) {
+                    <span class="kpi-date">{{ v.recordedAt | localDatetime }}</span>
+                  }
+                </div>
+              </div>
+
+              <!-- KPI 2: Resting Heart Rate -->
+              <div class="kpi-card">
+                <div class="kpi-header">
+                  <span class="kpi-title">Heart Rate</span>
+                  <mat-icon class="kpi-icon hr-icon">favorite</mat-icon>
+                </div>
+                <div class="kpi-value-row">
+                  @if (latestVitals()?.heartRate; as hr) {
+                    <span class="kpi-value">{{ hr }}</span>
+                    <span class="kpi-unit">bpm</span>
+                  } @else {
+                    <span class="kpi-value sgh-muted">—</span>
+                  }
+                </div>
+                <div class="kpi-footer">
+                  <span
+                    class="sgh-badge"
+                    [attr.data-tone]="hrEvaluation().tone"
+                  >
+                    {{ hrEvaluation().category }}
+                  </span>
+                  @if (latestVitals(); as v) {
+                    <span class="kpi-date">{{ v.recordedAt | localDatetime }}</span>
+                  }
+                </div>
+              </div>
+
+              <!-- KPI 3: Oxygen Saturation -->
+              <div class="kpi-card">
+                <div class="kpi-header">
+                  <span class="kpi-title">SpO2 Oxygen</span>
+                  <mat-icon class="kpi-icon spo2-icon">air</mat-icon>
+                </div>
+                <div class="kpi-value-row">
+                  @if (latestVitals()?.spo2; as sp) {
+                    <span class="kpi-value">{{ sp }}</span>
+                    <span class="kpi-unit">%</span>
+                  } @else {
+                    <span class="kpi-value sgh-muted">—</span>
+                  }
+                </div>
+                <div class="kpi-footer">
+                  <span class="sgh-badge" data-tone="success">Normal</span>
+                  @if (latestVitals(); as v) {
+                    <span class="kpi-date">{{ v.recordedAt | localDatetime }}</span>
+                  }
+                </div>
+              </div>
+
+              <!-- KPI 4: Weight & Temp -->
+              <div class="kpi-card">
+                <div class="kpi-header">
+                  <span class="kpi-title">Weight & Temp</span>
+                  <mat-icon class="kpi-icon weight-icon">scale</mat-icon>
+                </div>
+                <div class="kpi-value-row">
+                  @if (latestVitals()?.weight; as w) {
+                    <span class="kpi-value">{{ w }}</span>
+                    <span class="kpi-unit">kg</span>
+                  } @else {
+                    <span class="kpi-value sgh-muted">—</span>
+                  }
+                  @if (latestVitals()?.temperature; as t) {
+                    <span class="kpi-sub-value">({{ t }}°C)</span>
+                  }
+                </div>
+                <div class="kpi-footer">
+                  <span class="sgh-badge" data-tone="info">Stable</span>
+                  @if (latestVitals(); as v) {
+                    <span class="kpi-date">{{ v.recordedAt | localDatetime }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Physiological Trajectory Charts -->
+            <div class="charts-section">
+              <div class="section-title-row">
+                <div class="title-group">
+                  <h3>Vital Signs & Physiological Trends</h3>
+                  <p class="sgh-muted">Longitudinal vital telemetry recorded across consultations</p>
+                </div>
+              </div>
+
+              <div class="charts-grid">
+                <!-- Blood Pressure Chart -->
+                <div class="chart-card sgh-card">
+                  <div class="chart-header">
+                    <div class="chart-title-group">
+                      <h4>Blood Pressure Trajectory</h4>
+                      <span class="chart-subtitle">Systolic & Diastolic (mmHg)</span>
+                    </div>
+                    <div class="chart-legend">
+                      <span class="legend-item sys-legend">
+                        <span class="legend-dot"></span> Systolic
+                      </span>
+                      <span class="legend-item dia-legend">
+                        <span class="legend-dot"></span> Diastolic
+                      </span>
+                    </div>
+                  </div>
+
+                  @if (bpChart(); as chart) {
+                    <div class="svg-chart-container">
+                      <svg viewBox="0 0 480 160" class="clinical-svg" preserveAspectRatio="none">
+                        <!-- Background Grid lines -->
+                        <line x1="40" y1="30" x2="440" y2="30" stroke="var(--sgh-border-subtle)" stroke-dasharray="3 3" />
+                        <line x1="40" y1="75" x2="440" y2="75" stroke="var(--sgh-border-subtle)" stroke-dasharray="3 3" />
+                        <line x1="40" y1="120" x2="440" y2="120" stroke="var(--sgh-border-subtle)" stroke-dasharray="3 3" />
+
+                        <!-- Reference Line (Optimal 120 mmHg) -->
+                        <line x1="40" y1="70" x2="440" y2="70" stroke="rgba(16, 185, 129, 0.4)" stroke-width="1.5" stroke-dasharray="4 2" />
+
+                        <!-- Systolic Curve -->
+                        <path [attr.d]="chart.sysPath" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" />
+
+                        <!-- Diastolic Curve -->
+                        <path [attr.d]="chart.diaPath" fill="none" stroke="#0d9488" stroke-width="3" stroke-linecap="round" />
+
+                        <!-- Data Points -->
+                        @for (pt of chart.sysPoints; track pt.dateStr) {
+                          <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="5" fill="#2563eb" stroke="#ffffff" stroke-width="2">
+                            <title>{{ pt.dateStr }}: {{ pt.label }}</title>
+                          </circle>
+                          <text [attr.x]="pt.x" [attr.y]="pt.y - 10" text-anchor="middle" font-size="10" font-weight="700" fill="#2563eb">
+                            {{ pt.val }}
+                          </text>
+                        }
+
+                        @for (pt of chart.diaPoints; track pt.dateStr) {
+                          <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="5" fill="#0d9488" stroke="#ffffff" stroke-width="2">
+                            <title>{{ pt.dateStr }}: {{ pt.label }}</title>
+                          </circle>
+                          <text [attr.x]="pt.x" [attr.y]="pt.y + 16" text-anchor="middle" font-size="10" font-weight="700" fill="#0d9488">
+                            {{ pt.val }}
+                          </text>
+                        }
+                      </svg>
+
+                      <!-- X-Axis Labels -->
+                      <div class="chart-x-axis">
+                        @for (d of chart.dates; track $index) {
+                          <span>{{ d }}</span>
+                        }
+                      </div>
+                    </div>
+                  } @else {
+                    <div class="chart-empty-state">
+                      <mat-icon>show_chart</mat-icon>
+                      <p>At least two recordings are required to plot trend line.</p>
+                    </div>
+                  }
+                </div>
+
+                <!-- Heart Rate Chart -->
+                <div class="chart-card sgh-card">
+                  <div class="chart-header">
+                    <div class="chart-title-group">
+                      <h4>Resting Heart Rate</h4>
+                      <span class="chart-subtitle">Pulse Frequency (BPM)</span>
+                    </div>
+                    <div class="chart-legend">
+                      <span class="legend-item hr-legend">
+                        <span class="legend-dot"></span> Heart Rate
+                      </span>
+                    </div>
+                  </div>
+
+                  @if (hrChart(); as chart) {
+                    <div class="svg-chart-container">
+                      <svg viewBox="0 0 480 160" class="clinical-svg" preserveAspectRatio="none">
+                        <!-- Grid lines -->
+                        <line x1="40" y1="30" x2="440" y2="30" stroke="var(--sgh-border-subtle)" stroke-dasharray="3 3" />
+                        <line x1="40" y1="75" x2="440" y2="75" stroke="var(--sgh-border-subtle)" stroke-dasharray="3 3" />
+                        <line x1="40" y1="120" x2="440" y2="120" stroke="var(--sgh-border-subtle)" stroke-dasharray="3 3" />
+
+                        <!-- Normal reference band line (75 bpm) -->
+                        <line x1="40" y1="90" x2="440" y2="90" stroke="rgba(239, 68, 68, 0.25)" stroke-width="1.5" stroke-dasharray="4 2" />
+
+                        <!-- Heart Rate Curve -->
+                        <path [attr.d]="chart.path" fill="none" stroke="#ef4444" stroke-width="3" stroke-linecap="round" />
+
+                        <!-- Data Points -->
+                        @for (pt of chart.points; track pt.dateStr) {
+                          <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="5" fill="#ef4444" stroke="#ffffff" stroke-width="2">
+                            <title>{{ pt.dateStr }}: {{ pt.label }}</title>
+                          </circle>
+                          <text [attr.x]="pt.x" [attr.y]="pt.y - 10" text-anchor="middle" font-size="10" font-weight="700" fill="#ef4444">
+                            {{ pt.val }}
+                          </text>
+                        }
+                      </svg>
+
+                      <!-- X-Axis Labels -->
+                      <div class="chart-x-axis">
+                        @for (d of chart.dates; track $index) {
+                          <span>{{ d }}</span>
+                        }
+                      </div>
+                    </div>
+                  } @else {
+                    <div class="chart-empty-state">
+                      <mat-icon>show_chart</mat-icon>
+                      <p>At least two recordings are required to plot trend line.</p>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Consultations Encounters Section -->
+            <div class="consultations-history-section">
+              <div class="section-title-row">
+                <div class="title-group">
+                  <h3>Medical Consultations ({{ consultations().length }})</h3>
+                  <p class="sgh-muted">Clinical encounters, SOAP diagnoses, and medical decisions</p>
+                </div>
+                @if (canStartConsultation()) {
+                  <button mat-flat-button color="primary" type="button" (click)="onNewConsultation()">
+                    <mat-icon>add</mat-icon>
+                    New consultation
+                  </button>
+                }
+              </div>
+
+              @if (!statusService.isUp('consultation') || consultError()) {
+                <app-service-unavailable service="consultation" (retry)="loadConsultations()" />
+              } @else if (consultLoading()) {
+                <div class="spinner-container">
+                  <mat-spinner diameter="32" />
+                </div>
+              } @else if (consultations().length === 0) {
+                <div class="sgh-card empty-consult-card">
+                  <mat-icon class="empty-icon">medical_services</mat-icon>
+                  <h4>No consultations recorded for this patient</h4>
+                  <p class="sgh-muted">Begin by initiating the patient's first clinical examination encounter.</p>
+                  @if (canStartConsultation()) {
+                    <button mat-flat-button color="primary" (click)="onNewConsultation()" type="button">
+                      <mat-icon>add</mat-icon>
+                      Start First Consultation
+                    </button>
+                  }
+                </div>
+              } @else {
+                <div class="consultations-list">
+                  @for (consult of consultations(); track consult.id) {
+                    <div class="sgh-card consult-record-card" (click)="onOpenConsultation(consult.id)">
+                      <!-- Top bar -->
+                      <div class="consult-card-header">
+                        <div class="consult-meta-col">
+                          <div class="consult-date-row">
+                            <mat-icon class="date-icon">calendar_today</mat-icon>
+                            <strong>{{ consult.createdAt | localDatetime }}</strong>
+                          </div>
+                          <div class="consult-doctor-row">
+                            <mat-icon class="doc-icon">stethoscope</mat-icon>
+                            <span>{{ (doctorName(consult.doctorId) | async) || 'Physician' }}</span>
+                            @if (consult.doctorSpecialty) {
+                              <span class="specialty-tag">{{ consult.doctorSpecialty }}</span>
+                            }
+                          </div>
+                        </div>
+
+                        <div class="consult-badge-col">
+                          <app-status-badge [status]="consult.status" />
+                          @if (consult.status === 'SIGNED' && consult.signedAt) {
+                            <span class="signed-stamp">Signed {{ consult.signedAt | localDatetime }}</span>
+                          }
+                        </div>
+                      </div>
+
+                      <!-- Assessment & Diagnosis Box -->
+                      <div class="consult-assessment-box">
+                        <span class="box-tag">ASSESSMENT & DIAGNOSIS</span>
+                        <p class="assessment-text">
+                          {{ consult.assessment || consult.subjective || 'Clinical encounter recorded. Click to view notes.' }}
+                        </p>
+                      </div>
+
+                      <!-- Plan snippet if present -->
+                      @if (consult.plan) {
+                        <div class="consult-plan-box">
+                          <span class="box-tag">TREATMENT PLAN</span>
+                          <p class="plan-text">{{ consult.plan }}</p>
+                        </div>
+                      }
+
+                      <!-- Card Actions Footer -->
+                      <div class="consult-card-footer" (click)="$event.stopPropagation()">
+                        <button
+                          mat-stroked-button
+                          color="primary"
+                          type="button"
+                          (click)="onOpenConsultation(consult.id)"
+                        >
+                          <mat-icon>open_in_new</mat-icon>
+                          Open Workspace
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </mat-tab>
+      }
+
+      <!-- 2. Overview Tab -->
       <mat-tab label="Overview">
         <div class="tab-content">
           <div class="info-grid">
@@ -91,39 +436,35 @@
         </div>
       </mat-tab>
 
-      <!-- 2. Medical File Tab -->
+      <!-- 3. Medical File Tab -->
       @if (canViewMedFile()) {
         <mat-tab label="Medical file">
           <div class="tab-content">
             @if (canAddNote()) {
               <mat-card class="note-card">
                 <mat-card-header>
-                  <mat-card-title>Add clinical note</mat-card-title>
+                  <mat-card-title>Add medical note</mat-card-title>
                 </mat-card-header>
                 <mat-card-content>
                   <form [formGroup]="noteForm" (ngSubmit)="onAddNote()">
                     <mat-form-field appearance="outline" class="w-full">
-                      <mat-label>Summary *</mat-label>
+                      <mat-label>Summary</mat-label>
                       <textarea
                         matInput
-                        rows="3"
                         formControlName="summary"
-                        maxlength="1000"
-                        placeholder="Clinical observations, consultation notes, or instructions..."
-                        required
+                        rows="3"
+                        placeholder="Clinical observations, status updates..."
                       ></textarea>
-                      <mat-hint align="end">
-                        {{ noteForm.controls.summary.value.length }}/1000
-                      </mat-hint>
+                      <mat-error>Summary is required (max 1000 characters)</mat-error>
                     </mat-form-field>
-                    <div class="note-actions">
+                    <div class="form-actions">
                       <button
                         mat-flat-button
                         color="primary"
                         type="submit"
                         [disabled]="noteForm.invalid || addingNote()"
                       >
-                        {{ addingNote() ? 'Adding...' : 'Add note' }}
+                        Add note
                       </button>
                     </div>
                   </form>
@@ -131,55 +472,35 @@
               </mat-card>
             }
 
-            <div class="medical-file-list">
-              @if (medFileLoading()) {
-                <div class="spinner-container">
-                  <mat-spinner diameter="32" />
-                </div>
-              } @else if (medicalFiles().length === 0) {
-                <p class="sgh-muted empty-text">No medical file entries recorded yet.</p>
-              } @else {
-                <div class="timeline">
-                  @for (entry of medicalFiles(); track entry.id) {
-                    <div class="timeline-item">
-                      <div class="timeline-icon" [attr.data-type]="entry.type">
-                        <mat-icon>
-                          @switch (entry.type) {
-                            @case ('CONSULTATION') {
-                              medical_services
-                            }
-                            @case ('LAB') {
-                              science
-                            }
-                            @case ('PRESCRIPTION') {
-                              medication
-                            }
-                            @default {
-                              description
-                            }
-                          }
-                        </mat-icon>
+            @if (medFileLoading()) {
+              <div class="spinner-container">
+                <mat-spinner diameter="32" />
+              </div>
+            } @else if (medicalFiles().length === 0) {
+              <p class="sgh-muted empty-text">No medical notes recorded yet.</p>
+            } @else {
+              <div class="timeline">
+                @for (entry of medicalFiles(); track entry.id) {
+                  <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                      <div class="timeline-header">
+                        <span class="entry-type sgh-badge sgh-badge--info">{{ entry.type }}</span>
+                        <span class="sgh-muted entry-date">{{
+                          entry.createdAt | localDatetime
+                        }}</span>
                       </div>
-                      <div class="timeline-body">
-                        <div class="timeline-header">
-                          <span class="type-badge">{{ entry.type }}</span>
-                          <span class="source-service sgh-muted"
-                            >via {{ entry.sourceService }}</span
-                          >
-                          <span class="date sgh-muted">{{ entry.createdAt | localDatetime }}</span>
-                        </div>
-                        <p class="summary">{{ entry.summary }}</p>
-                      </div>
+                      <p class="entry-summary">{{ entry.summary }}</p>
                     </div>
-                  }
-                </div>
-              }
-            </div>
+                  </div>
+                }
+              </div>
+            }
           </div>
         </mat-tab>
       }
 
-      <!-- 3. Appointments Tab -->
+      <!-- 4. Appointments Tab -->
       @if (canViewAppointments()) {
         <mat-tab label="Appointments">
           <div class="tab-content">
@@ -194,7 +515,7 @@
             } @else {
               <div class="card-list">
                 @for (appt of appointments(); track appt.id) {
-                  <mat-card class="appt-card" [routerLink]="['/appointments', appt.id]">
+                  <mat-card class="appt-card">
                     <mat-card-content>
                       <div class="appt-row">
                         <div class="time-block">
@@ -206,45 +527,6 @@
                         </div>
                         <div class="badge-block">
                           <app-status-badge [status]="appt.status" />
-                        </div>
-                      </div>
-                    </mat-card-content>
-                  </mat-card>
-                }
-              </div>
-            }
-          </div>
-        </mat-tab>
-      }
-
-      <!-- 4. Consultations Tab -->
-      @if (canViewConsultations()) {
-        <mat-tab label="Consultations">
-          <div class="tab-content">
-            @if (!statusService.isUp('consultation') || consultError()) {
-              <app-service-unavailable service="consultation" (retry)="loadConsultations()" />
-            } @else if (consultLoading()) {
-              <div class="spinner-container">
-                <mat-spinner diameter="32" />
-              </div>
-            } @else if (consultations().length === 0) {
-              <p class="sgh-muted empty-text">No consultations recorded for this patient.</p>
-            } @else {
-              <div class="card-list">
-                @for (consult of consultations(); track consult.id) {
-                  <mat-card class="consult-card" [routerLink]="['/consultations', consult.id]">
-                    <mat-card-content>
-                      <div class="appt-row">
-                        <div class="time-block">
-                          <strong>{{ consult.createdAt | localDatetime }}</strong>
-                        </div>
-                        <div class="reason-block">
-                          <span>{{
-                            consult.assessment || consult.subjective || 'Consultation in progress'
-                          }}</span>
-                        </div>
-                        <div class="badge-block">
-                          <app-status-badge [status]="consult.status" />
                         </div>
                       </div>
                     </mat-card-content>
