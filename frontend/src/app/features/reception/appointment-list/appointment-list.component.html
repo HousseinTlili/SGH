@@ -1,167 +1,549 @@
 <div *appServiceGate="'reception'">
-  <app-page-header title="Appointments" subtitle="Manage hospital consultations and schedule">
-    @if (canCreate()) {
-      <button mat-flat-button color="primary" type="button" (click)="onCreate()">
-        <mat-icon>add</mat-icon>
-        New appointment
-      </button>
-    }
+  <app-page-header
+    [title]="isDoctor() ? 'My Clinical Agenda' : 'Hospital Appointments & Agenda'"
+    [subtitle]="isDoctor() ? 'Daily patient consultation schedule and clinic queue' : 'Manage patient bookings, clinic schedules, and reception check-ins'"
+  >
+    <div class="header-actions">
+      <!-- View Switcher -->
+      <div class="view-switcher" role="tablist" aria-label="Agenda view mode">
+        <button
+          type="button"
+          class="view-btn"
+          [class.active]="viewMode() === 'day'"
+          (click)="setViewMode('day')"
+        >
+          <mat-icon>view_day</mat-icon>
+          <span>Today / Day</span>
+        </button>
+        <button
+          type="button"
+          class="view-btn"
+          [class.active]="viewMode() === 'week'"
+          (click)="setViewMode('week')"
+        >
+          <mat-icon>view_week</mat-icon>
+          <span>Week</span>
+        </button>
+        <button
+          type="button"
+          class="view-btn"
+          [class.active]="viewMode() === 'month'"
+          (click)="setViewMode('month')"
+        >
+          <mat-icon>calendar_month</mat-icon>
+          <span>Month</span>
+        </button>
+        <button
+          type="button"
+          class="view-btn"
+          [class.active]="viewMode() === 'table'"
+          (click)="setViewMode('table')"
+        >
+          <mat-icon>table_chart</mat-icon>
+          <span>Table</span>
+        </button>
+      </div>
+
+      @if (canCreate()) {
+        <button mat-flat-button color="primary" type="button" (click)="onCreate()">
+          <mat-icon>add</mat-icon>
+          New appointment
+        </button>
+      }
+    </div>
   </app-page-header>
 
-  <!-- Filter Bar -->
-  <form [formGroup]="filterForm" class="filter-bar">
-    <!-- Date picker/input -->
-    <mat-form-field appearance="outline" class="filter-field">
-      <mat-label>Date</mat-label>
-      <input matInput type="date" formControlName="date" />
-    </mat-form-field>
+  <!-- Navigator & Stats Bar -->
+  <div class="agenda-control-bar">
+    <div class="nav-controls">
+      <div class="nav-buttons">
+        <button mat-icon-button (click)="goToPrevious()" matTooltip="Previous period" type="button">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <button mat-stroked-button (click)="goToToday()" class="today-btn" type="button">
+          Today
+        </button>
+        <button mat-icon-button (click)="goToNext()" matTooltip="Next period" type="button">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+      <h2 class="period-title">{{ periodTitle() }}</h2>
+    </div>
 
-    <!-- Doctor select (disabled if logged in doctor) -->
-    <mat-form-field appearance="outline" class="filter-field">
-      <mat-label>Doctor</mat-label>
-      <mat-select formControlName="doctorId" [disabled]="isDoctor()">
-        <mat-option value="">All doctors</mat-option>
-        @for (doc of doctors(); track doc.id) {
-          <mat-option [value]="doc.id">
-            Dr. {{ doc.fullName }}{{ doc.specialty ? ' (' + doc.specialty + ')' : '' }}
-          </mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
+    <div class="agenda-meta-filters">
+      <!-- Doctor select (if not doctor) -->
+      @if (!isDoctor()) {
+        <form [formGroup]="filterForm" class="quick-doc-select">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label>Physician</mat-label>
+            <mat-select formControlName="doctorId">
+              <mat-option value="">All physicians</mat-option>
+              @for (doc of doctors(); track doc.id) {
+                <mat-option [value]="doc.id">
+                  Dr. {{ doc.fullName }}{{ doc.specialty ? ' (' + doc.specialty + ')' : '' }}
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </form>
+      }
 
-    <!-- Status multi select -->
-    <mat-form-field appearance="outline" class="filter-field">
-      <mat-label>Status</mat-label>
-      <mat-select formControlName="statuses" multiple>
-        <mat-option value="SCHEDULED">Scheduled</mat-option>
-        <mat-option value="CHECKED_IN">Checked In</mat-option>
-        <mat-option value="COMPLETED">Completed</mat-option>
-        <mat-option value="CANCELLED">Cancelled</mat-option>
-      </mat-select>
-    </mat-form-field>
-  </form>
+      <div class="stats-pills">
+        <span class="stat-pill stat-total">
+          <strong>{{ currentPeriodAppointments().length }}</strong> Total
+        </span>
+        <span class="stat-pill stat-checked-in">
+          <strong>{{ checkedInCount() }}</strong> Checked in
+        </span>
+        <span class="stat-pill stat-scheduled">
+          <strong>{{ scheduledCount() }}</strong> Scheduled
+        </span>
+      </div>
+    </div>
+  </div>
 
-  <!-- Appointments Table -->
-  <div class="table-container">
-    <table class="sgh-table" aria-label="Appointments table">
-      <thead>
-        <tr>
-          <th>Time</th>
-          <th>Patient</th>
-          <th>Doctor</th>
-          <th>Reason</th>
-          <th>Status</th>
-          <th class="actions-col">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        @if (loading()) {
-          <tr>
-            <td colspan="6" class="text-center sgh-muted">Loading appointments...</td>
-          </tr>
-        } @else if (appointments().length === 0) {
-          <tr>
-            <td colspan="6" class="text-center sgh-muted">
-              No appointments found for the selected criteria.
-            </td>
-          </tr>
-        } @else {
-          @for (appt of appointments(); track appt.id) {
-            <tr class="clickable-row" (click)="onRowClick(appt)">
-              <!-- Time -->
-              <td>
-                <div class="time-cell">
-                  <span>{{ appt.startAt | localDatetime }}</span>
-                  <span class="sgh-muted time-end">to {{ appt.endAt | localDatetime }}</span>
+  <!-- ==================== DAY / TODAY VIEW ==================== -->
+  @if (viewMode() === 'day') {
+    <div class="day-view-container">
+      <!-- Checked in patient alert / Call to Consultation -->
+      @if (checkedInPatient()) {
+        <div class="active-patient-callout" role="alert">
+          <div class="callout-icon-col">
+            <mat-icon>notifications_active</mat-icon>
+          </div>
+          <div class="callout-content">
+            <div class="callout-badge">PATIENT READY FOR CONSULTATION</div>
+            <h3 class="callout-patient">
+              {{ patientNames()[checkedInPatient()!.patientId] || 'Patient' }}
+            </h3>
+            <p class="callout-meta">
+              Scheduled: {{ checkedInPatient()!.startAt | localDatetime }} • Reason: {{ checkedInPatient()!.reason }}
+            </p>
+          </div>
+          <div class="callout-actions">
+            @if (canStartConsultation(checkedInPatient()!)) {
+              <button
+                mat-flat-button
+                color="accent"
+                class="callout-start-btn"
+                type="button"
+                (click)="onStartConsultation(checkedInPatient()!, $event)"
+              >
+                <mat-icon>medical_services</mat-icon>
+                Start Consultation
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Day Timeline / Cards -->
+      @if (selectedDayAppointments().length === 0) {
+        <div class="sgh-card empty-agenda">
+          <mat-icon class="empty-icon">event_busy</mat-icon>
+          <h3>No appointments scheduled for this day</h3>
+          <p class="sgh-muted">
+            There are no patient visits booked for {{ periodTitle() }}.
+          </p>
+          <div class="empty-actions">
+            <button mat-stroked-button (click)="goToToday()" type="button">Go to Today</button>
+            @if (canCreate()) {
+              <button mat-flat-button color="primary" (click)="onCreate()" type="button">
+                Book appointment
+              </button>
+            }
+          </div>
+        </div>
+      } @else {
+        <div class="day-cards-list">
+          @for (appt of selectedDayAppointments(); track appt.id) {
+            <div
+              class="appointment-card"
+              [class.card-checked-in]="appt.status === 'CHECKED_IN'"
+              [class.card-scheduled]="appt.status === 'SCHEDULED'"
+              [class.card-completed]="appt.status === 'COMPLETED'"
+              [class.card-cancelled]="appt.status === 'CANCELLED'"
+              (click)="onRowClick(appt)"
+            >
+              <!-- Time column -->
+              <div class="card-time-col">
+                <span class="start-time">{{ appt.startAt | localDatetime }}</span>
+                <span class="end-time">until {{ appt.endAt | localDatetime }}</span>
+              </div>
+
+              <!-- Main patient details -->
+              <div class="card-patient-col">
+                <div class="avatar-circle">
+                  <mat-icon>person</mat-icon>
                 </div>
-              </td>
-
-              <!-- Patient with verification indicator -->
-              <td>
-                <div class="patient-cell">
-                  <span>{{ patientNames()[appt.patientId] || 'Loading...' }}</span>
-                  @if (!appt.patientVerified) {
-                    <mat-icon
-                      class="unverified-icon"
-                      matTooltip="Patient not verified yet"
-                      aria-label="Patient not verified yet"
-                    >
-                      warning
-                    </mat-icon>
+                <div class="patient-info">
+                  <div class="name-row">
+                    <span class="patient-name">{{ patientNames()[appt.patientId] || 'Patient' }}</span>
+                    @if (!appt.patientVerified) {
+                      <mat-icon
+                        class="unverified-icon"
+                        matTooltip="Patient identity not verified yet"
+                        aria-label="Patient identity not verified yet"
+                      >
+                        warning
+                      </mat-icon>
+                    }
+                  </div>
+                  <div class="reason-row">
+                    <mat-icon class="reason-icon">assignment</mat-icon>
+                    <span class="reason-text">{{ appt.reason }}</span>
+                  </div>
+                  @if (!isDoctor()) {
+                    <div class="doc-row">
+                      <mat-icon class="doc-icon">stethoscope</mat-icon>
+                      <span class="doc-text">{{ doctorNames()[appt.doctorId] || 'Physician' }}</span>
+                    </div>
                   }
                 </div>
-              </td>
-
-              <!-- Doctor -->
-              <td>
-                {{ doctorNames()[appt.doctorId] || 'Loading...' }}
-              </td>
-
-              <!-- Reason -->
-              <td>
-                {{ appt.reason }}
-              </td>
+              </div>
 
               <!-- Status badge -->
-              <td>
+              <div class="card-status-col">
                 <app-status-badge [status]="appt.status" />
-              </td>
+              </div>
 
-              <!-- Actions -->
-              <td class="actions-col" (click)="$event.stopPropagation()">
-                <div class="row-actions">
-                  @if (canCheckIn(appt)) {
-                    <button mat-stroked-button type="button" (click)="onCheckIn(appt, $event)">
-                      Check in
-                    </button>
-                  }
-                  @if (canComplete(appt)) {
+              <!-- Actions column -->
+              <div class="card-actions-col" (click)="$event.stopPropagation()">
+                @if (canStartConsultation(appt)) {
+                  <button
+                    mat-flat-button
+                    color="accent"
+                    class="action-btn"
+                    type="button"
+                    (click)="onStartConsultation(appt, $event)"
+                    matTooltip="Launch medical workspace with patient SOAP notes"
+                  >
+                    <mat-icon>medical_services</mat-icon>
+                    Start Consultation
+                  </button>
+                }
+                @if (canCheckIn(appt)) {
+                  <button
+                    mat-stroked-button
+                    class="action-btn"
+                    type="button"
+                    (click)="onCheckIn(appt, $event)"
+                  >
+                    Check in
+                  </button>
+                }
+                @if (canComplete(appt)) {
+                  <button
+                    mat-flat-button
+                    color="primary"
+                    class="action-btn"
+                    type="button"
+                    (click)="onComplete(appt, $event)"
+                  >
+                    Complete
+                  </button>
+                }
+                @if (canEdit(appt)) {
+                  <button
+                    mat-icon-button
+                    type="button"
+                    matTooltip="Edit appointment details"
+                    (click)="onEditAppointment(appt, $event)"
+                  >
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                }
+                @if (canCancel(appt)) {
+                  <button
+                    mat-icon-button
+                    color="warn"
+                    type="button"
+                    matTooltip="Cancel appointment"
+                    (click)="onCancelAppointment(appt, $event)"
+                  >
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ==================== WEEK VIEW ==================== -->
+  @if (viewMode() === 'week') {
+    <div class="week-view-grid">
+      @for (col of weekDays(); track col.dateStr) {
+        <div class="week-column" [class.is-today-col]="col.isToday">
+          <div class="col-header" (click)="onSelectDay(col.date)">
+            <span class="col-day-name">{{ col.dayName }}</span>
+            <div class="col-day-number" [class.active-today]="col.isToday">
+              {{ col.dayNumber }}
+            </div>
+            <span class="col-count-badge" [class.has-appts]="col.appointments.length > 0">
+              {{ col.appointments.length }} visit{{ col.appointments.length === 1 ? '' : 's' }}
+            </span>
+          </div>
+
+          <div class="col-body">
+            @if (col.appointments.length === 0) {
+              <div class="col-empty">
+                <span>No visits</span>
+              </div>
+            } @else {
+              @for (a of col.appointments; track a.id) {
+                <div
+                  class="week-mini-card"
+                  [class.status-checked-in]="a.status === 'CHECKED_IN'"
+                  [class.status-scheduled]="a.status === 'SCHEDULED'"
+                  [class.status-completed]="a.status === 'COMPLETED'"
+                  (click)="onRowClick(a)"
+                >
+                  <div class="mini-card-header">
+                    <span class="mini-time">{{ a.startAt | localDatetime }}</span>
+                    <app-status-badge [status]="a.status" />
+                  </div>
+                  <strong class="mini-patient">{{ patientNames()[a.patientId] || 'Patient' }}</strong>
+                  <p class="mini-reason">{{ a.reason }}</p>
+
+                  @if (canStartConsultation(a)) {
                     <button
-                      mat-flat-button
-                      color="primary"
+                      mat-button
+                      class="mini-action-btn"
                       type="button"
-                      (click)="onComplete(appt, $event)"
+                      (click)="onStartConsultation(a, $event)"
                     >
-                      Complete
-                    </button>
-                  }
-                  @if (canStartConsultation(appt)) {
-                    <button
-                      mat-flat-button
-                      color="accent"
-                      type="button"
-                      (click)="onStartConsultation(appt, $event)"
-                    >
-                      Start consultation
-                    </button>
-                  }
-                  @if (canEdit(appt)) {
-                    <button
-                      mat-icon-button
-                      type="button"
-                      aria-label="Edit appointment"
-                      (click)="onEditAppointment(appt, $event)"
-                    >
-                      <mat-icon>edit</mat-icon>
-                    </button>
-                  }
-                  @if (canCancel(appt)) {
-                    <button
-                      mat-icon-button
-                      color="warn"
-                      type="button"
-                      aria-label="Cancel appointment"
-                      (click)="onCancelAppointment(appt, $event)"
-                    >
-                      <mat-icon>cancel</mat-icon>
+                      <mat-icon>medical_services</mat-icon>
+                      Consult
                     </button>
                   }
                 </div>
+              }
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ==================== MONTH VIEW ==================== -->
+  @if (viewMode() === 'month') {
+    <div class="month-view-container">
+      <div class="month-weekday-headers">
+        <div>Mon</div>
+        <div>Tue</div>
+        <div>Wed</div>
+        <div>Thu</div>
+        <div>Fri</div>
+        <div>Sat</div>
+        <div>Sun</div>
+      </div>
+
+      <div class="month-matrix">
+        @for (cell of monthGrid(); track cell.dateStr) {
+          <div
+            class="month-cell"
+            [class.outside-month]="!cell.isCurrentMonth"
+            [class.is-today]="cell.isToday"
+            [class.is-selected]="cell.isSelected"
+            (click)="onSelectDay(cell.date)"
+          >
+            <div class="cell-header">
+              <span class="day-number" [class.badge-today]="cell.isToday">
+                {{ cell.dayNumber }}
+              </span>
+              @if (cell.appointments.length > 0) {
+                <span class="cell-count-tag">{{ cell.appointments.length }}</span>
+              }
+            </div>
+
+            <div class="cell-appts-list">
+              @for (appt of cell.appointments.slice(0, 3); track appt.id) {
+                <div
+                  class="month-appt-chip"
+                  [class.chip-checked-in]="appt.status === 'CHECKED_IN'"
+                  [class.chip-scheduled]="appt.status === 'SCHEDULED'"
+                  [class.chip-completed]="appt.status === 'COMPLETED'"
+                  [matTooltip]="patientNames()[appt.patientId] + ' — ' + appt.reason"
+                  (click)="$event.stopPropagation(); onRowClick(appt)"
+                >
+                  <span class="chip-status-dot"></span>
+                  <span class="chip-text">
+                    {{ patientNames()[appt.patientId] || 'Visit' }}
+                  </span>
+                </div>
+              }
+              @if (cell.appointments.length > 3) {
+                <div class="month-more-chip">
+                  +{{ cell.appointments.length - 3 }} more
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ==================== TABLE / LIST VIEW ==================== -->
+  @if (viewMode() === 'table') {
+    <!-- Filter Bar -->
+    <form [formGroup]="filterForm" class="filter-bar">
+      <!-- Date picker/input -->
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Date</mat-label>
+        <input matInput type="date" formControlName="date" />
+      </mat-form-field>
+
+      <!-- Doctor select (disabled if logged in doctor) -->
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Doctor</mat-label>
+        <mat-select formControlName="doctorId" [disabled]="isDoctor()">
+          <mat-option value="">All doctors</mat-option>
+          @for (doc of doctors(); track doc.id) {
+            <mat-option [value]="doc.id">
+              Dr. {{ doc.fullName }}{{ doc.specialty ? ' (' + doc.specialty + ')' : '' }}
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Status multi select -->
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Status</mat-label>
+        <mat-select formControlName="statuses" multiple>
+          <mat-option value="SCHEDULED">Scheduled</mat-option>
+          <mat-option value="CHECKED_IN">Checked In</mat-option>
+          <mat-option value="COMPLETED">Completed</mat-option>
+          <mat-option value="CANCELLED">Cancelled</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </form>
+
+    <!-- Appointments Table -->
+    <div class="table-container">
+      <table class="sgh-table" aria-label="Appointments table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Patient</th>
+            <th>Doctor</th>
+            <th>Reason</th>
+            <th>Status</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (loading()) {
+            <tr>
+              <td colspan="6" class="text-center sgh-muted">Loading appointments...</td>
+            </tr>
+          } @else if (appointments().length === 0) {
+            <tr>
+              <td colspan="6" class="text-center sgh-muted">
+                No appointments found for the selected criteria.
               </td>
             </tr>
+          } @else {
+            @for (appt of appointments(); track appt.id) {
+              <tr class="clickable-row" (click)="onRowClick(appt)">
+                <!-- Time -->
+                <td>
+                  <div class="time-cell">
+                    <span>{{ appt.startAt | localDatetime }}</span>
+                    <span class="sgh-muted time-end">to {{ appt.endAt | localDatetime }}</span>
+                  </div>
+                </td>
+
+                <!-- Patient with verification indicator -->
+                <td>
+                  <div class="patient-cell">
+                    <span>{{ patientNames()[appt.patientId] || 'Loading...' }}</span>
+                    @if (!appt.patientVerified) {
+                      <mat-icon
+                        class="unverified-icon"
+                        matTooltip="Patient not verified yet"
+                        aria-label="Patient not verified yet"
+                      >
+                        warning
+                      </mat-icon>
+                    }
+                  </div>
+                </td>
+
+                <!-- Doctor -->
+                <td>
+                  {{ doctorNames()[appt.doctorId] || 'Loading...' }}
+                </td>
+
+                <!-- Reason -->
+                <td>
+                  {{ appt.reason }}
+                </td>
+
+                <!-- Status badge -->
+                <td>
+                  <app-status-badge [status]="appt.status" />
+                </td>
+
+                <!-- Actions -->
+                <td class="actions-col" (click)="$event.stopPropagation()">
+                  <div class="row-actions">
+                    @if (canCheckIn(appt)) {
+                      <button mat-stroked-button type="button" (click)="onCheckIn(appt, $event)">
+                        Check in
+                      </button>
+                    }
+                    @if (canComplete(appt)) {
+                      <button
+                        mat-flat-button
+                        color="primary"
+                        type="button"
+                        (click)="onComplete(appt, $event)"
+                      >
+                        Complete
+                      </button>
+                    }
+                    @if (canStartConsultation(appt)) {
+                      <button
+                        mat-flat-button
+                        color="accent"
+                        type="button"
+                        (click)="onStartConsultation(appt, $event)"
+                      >
+                        Start consultation
+                      </button>
+                    }
+                    @if (canEdit(appt)) {
+                      <button
+                        mat-icon-button
+                        type="button"
+                        aria-label="Edit appointment"
+                        (click)="onEditAppointment(appt, $event)"
+                      >
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                    }
+                    @if (canCancel(appt)) {
+                      <button
+                        mat-icon-button
+                        color="warn"
+                        type="button"
+                        aria-label="Cancel appointment"
+                        (click)="onCancelAppointment(appt, $event)"
+                      >
+                        <mat-icon>cancel</mat-icon>
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
           }
-        }
-      </tbody>
-    </table>
-  </div>
+        </tbody>
+      </table>
+    </div>
+  }
 </div>
