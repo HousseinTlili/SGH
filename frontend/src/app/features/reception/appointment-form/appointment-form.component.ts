@@ -109,6 +109,16 @@ export class AppointmentFormComponent implements OnInit {
 
   ngOnInit(): void {
     if (!this.auth.hasRole('RECEPTIONIST')) {
+      const id = this.route.snapshot.paramMap.get('id');
+      if (id && this.auth.hasRole('DOCTOR')) {
+        this.receptionApi.getAppointment(id).subscribe({
+          next: (appt) => {
+            this.router.navigate(['/patients', appt.patientId]);
+          },
+          error: () => this.router.navigate(['/forbidden']),
+        });
+        return;
+      }
       this.router.navigate(['/forbidden']);
       return;
     }

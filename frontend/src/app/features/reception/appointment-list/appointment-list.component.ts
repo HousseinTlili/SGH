@@ -521,7 +521,20 @@ export class AppointmentListComponent implements OnInit {
   }
 
   onRowClick(appt: Appointment): void {
+    if (this.isDoctor()) {
+      if (this.canStartConsultation(appt)) {
+        this.onStartConsultation(appt, new MouseEvent('click'));
+      } else {
+        this.router.navigate(['/patients', appt.patientId]);
+      }
+      return;
+    }
     this.router.navigate(['/appointments', appt.id]);
+  }
+
+  onPatientClick(appt: Appointment, event: Event): void {
+    event.stopPropagation();
+    this.router.navigate(['/patients', appt.patientId]);
   }
 
   onCreate(): void {

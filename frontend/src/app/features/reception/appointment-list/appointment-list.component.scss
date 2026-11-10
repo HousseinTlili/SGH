@@ -324,6 +324,16 @@
           font-weight: 700;
           font-size: 1rem;
           color: var(--sgh-text);
+
+          &.clickable {
+            cursor: pointer;
+            transition: color 0.15s ease;
+
+            &:hover {
+              color: var(--sgh-brand);
+              text-decoration: underline;
+            }
+          }
         }
 
         .unverified-icon {

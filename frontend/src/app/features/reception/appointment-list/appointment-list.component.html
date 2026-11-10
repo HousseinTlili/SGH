@@ -178,7 +178,13 @@
                 </div>
                 <div class="patient-info">
                   <div class="name-row">
-                    <span class="patient-name">{{ patientNames()[appt.patientId] || 'Patient' }}</span>
+                    <span
+                      class="patient-name clickable"
+                      (click)="onPatientClick(appt, $event)"
+                      matTooltip="View patient medical file"
+                    >
+                      {{ patientNames()[appt.patientId] || 'Patient' }}
+                    </span>
                     @if (!appt.patientVerified) {
                       <mat-icon
                         class="unverified-icon"
@@ -305,7 +311,13 @@
                     <span class="mini-time">{{ a.startAt | localDatetime }}</span>
                     <app-status-badge [status]="a.status" />
                   </div>
-                  <strong class="mini-patient">{{ patientNames()[a.patientId] || 'Patient' }}</strong>
+                  <strong
+                    class="mini-patient clickable"
+                    (click)="onPatientClick(a, $event)"
+                    matTooltip="View patient medical file"
+                  >
+                    {{ patientNames()[a.patientId] || 'Patient' }}
+                  </strong>
                   <p class="mini-reason">{{ a.reason }}</p>
 
                   @if (canStartConsultation(a)) {
@@ -459,7 +471,11 @@
 
                 <!-- Patient with verification indicator -->
                 <td>
-                  <div class="patient-cell">
+                  <div
+                    class="patient-cell clickable"
+                    (click)="onPatientClick(appt, $event)"
+                    matTooltip="View patient medical file"
+                  >
                     <span>{{ patientNames()[appt.patientId] || 'Loading...' }}</span>
                     @if (!appt.patientVerified) {
                       <mat-icon
