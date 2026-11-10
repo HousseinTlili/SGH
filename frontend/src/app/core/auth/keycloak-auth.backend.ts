@@ -137,7 +137,11 @@ export class KeycloakAuthBackend implements AuthBackend {
       sessionStorage.removeItem('sgh_access_token');
       sessionStorage.removeItem('sgh_refresh_token');
     }
-    void this.keycloak.logout({ redirectUri: `${window.location.origin}/login` });
+    if (this.keycloak.authenticated) {
+      void this.keycloak.logout({ redirectUri: `${window.location.origin}/login` });
+    } else if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+      window.location.href = '/login';
+    }
   }
 
   /**

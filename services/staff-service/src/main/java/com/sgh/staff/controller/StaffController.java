@@ -44,12 +44,32 @@ public class StaffController {
     }
 
     /**
+     * Public user registration (pending admin approval)
+     */
+    @PostMapping("/register")
+    public ResponseEntity<StaffDto> registerStaff(@Valid @RequestBody StaffInputDto input) {
+        StaffDto created = staffService.registerStaff(input);
+        URI location = URI.create("/api/staff/" + created.id());
+        return ResponseEntity.created(location).body(created);
+    }
+
+    /**
      * Deactivate a staff member (ADMIN only)
      */
     @PostMapping("/{id}/deactivate")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<StaffDto> deactivateStaff(@PathVariable UUID id) {
         StaffDto updated = staffService.deactivateStaff(id);
+        return ResponseEntity.ok(updated);
+    }
+
+    /**
+     * Activate / Approve a staff member (ADMIN only)
+     */
+    @PostMapping("/{id}/activate")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<StaffDto> activateStaff(@PathVariable UUID id) {
+        StaffDto updated = staffService.activateStaff(id);
         return ResponseEntity.ok(updated);
     }
 

@@ -16,10 +16,9 @@ export const DRUG_FORMS = [
   'CAPSULE',
   'SYRUP',
   'INJECTION',
-  'OINTMENT',
+  'CREAM',
   'DROPS',
   'INHALER',
-  'SUSPENSION',
 ];
 
 @Component({
@@ -132,22 +131,23 @@ export const DRUG_FORMS = [
   `,
 })
 export class DrugDialogComponent {
-  protected readonly data = inject<DrugDialogData>(MAT_DIALOG_DATA);
+  protected readonly data: DrugDialogData =
+    inject<DrugDialogData>(MAT_DIALOG_DATA, { optional: true }) ?? {};
   protected readonly dialogRef =
     inject<MatDialogRef<DrugDialogComponent, DrugInput>>(MatDialogRef);
 
   protected readonly drugForms = DRUG_FORMS;
 
   protected readonly form = new FormGroup({
-    name: new FormControl<string>(this.data.drug?.name ?? '', [Validators.required]),
-    form: new FormControl<string>(this.data.drug?.form ?? 'TABLET', [Validators.required]),
-    strength: new FormControl<string>(this.data.drug?.strength ?? '', [Validators.required]),
-    unit: new FormControl<string>(this.data.drug?.unit ?? 'tablet', [Validators.required]),
-    stock: new FormControl<number>(this.data.drug?.stock ?? 100, [
+    name: new FormControl<string>(this.data?.drug?.name ?? '', [Validators.required]),
+    form: new FormControl<string>(this.data?.drug?.form ?? 'TABLET', [Validators.required]),
+    strength: new FormControl<string>(this.data?.drug?.strength ?? '', [Validators.required]),
+    unit: new FormControl<string>(this.data?.drug?.unit ?? 'tablet', [Validators.required]),
+    stock: new FormControl<number>(this.data?.drug?.stock ?? 100, [
       Validators.required,
       Validators.min(0),
     ]),
-    reorderThreshold: new FormControl<number>(this.data.drug?.reorderThreshold ?? 50, [
+    reorderThreshold: new FormControl<number>(this.data?.drug?.reorderThreshold ?? 50, [
       Validators.required,
       Validators.min(0),
     ]),

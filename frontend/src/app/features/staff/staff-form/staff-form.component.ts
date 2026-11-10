@@ -206,6 +206,34 @@ export class StaffFormComponent implements OnInit {
       });
   }
 
+  onActivate(): void {
+    const staff = this.currentStaff();
+    if (!staff || staff.active) return;
+
+    this.confirm
+      .confirm({
+        title: 'Approve & Activate Account',
+        message: `Are you sure you want to approve and activate ${staff.firstName} ${staff.lastName}? They will be granted full access to their role in the platform.`,
+        confirmLabel: 'Approve & Activate',
+        danger: false,
+      })
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.staffApi.activate(staff.id).subscribe({
+            next: (updated) => {
+              this.currentStaff.set(updated);
+              this.snackBar.open('Staff account approved and activated!', 'Dismiss', {
+                duration: 3000,
+              });
+            },
+            error: () => {
+              this.snackBar.open('Failed to activate account', 'Dismiss', { duration: 4000 });
+            },
+          });
+        }
+      });
+  }
+
   onCancel(): void {
     this.router.navigate(['/staff']);
   }

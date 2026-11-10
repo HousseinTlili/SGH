@@ -1,46 +1,248 @@
-<app-page-header title="Profile" />
+<app-page-header
+  title="My Profile"
+  subtitle="Manage your clinical credentials, personal details, photo, and security preferences"
+/>
 
 @if (state() === 'loading') {
   <app-loading-state label="Loading your profile..." />
 } @else {
-  <div class="sgh-card details">
-    <dl>
-      <dt>Username</dt>
-      <dd>{{ me()?.username ?? auth.user()?.username }}</dd>
-
-      <dt>Roles</dt>
-      <dd class="roles">
-        @for (role of me()?.roles ?? auth.roles(); track role) {
-          <span class="sgh-badge" data-tone="neutral">{{ role }}</span>
+  <div class="profile-layout">
+    <!-- Top Identity Card with Avatar & Primary Summary -->
+    <div class="sgh-card identity-card">
+      <div class="avatar-col">
+        <div class="avatar-frame">
+          @if (avatarUrl()) {
+            <img [src]="avatarUrl()" alt="Profile photo" class="avatar-img" />
+          } @else {
+            <div class="avatar-initials">{{ userInitials() }}</div>
+          }
+          <label class="avatar-upload-btn" title="Upload new photo">
+            <mat-icon>photo_camera</mat-icon>
+            <input
+              type="file"
+              accept="image/png, image/jpeg, image/webp"
+              (change)="onFileSelected($event)"
+              hidden
+            />
+          </label>
+        </div>
+        @if (avatarUrl()) {
+          <button mat-button class="remove-photo-btn" type="button" (click)="removeAvatar()">
+            <mat-icon>delete</mat-icon> Remove
+          </button>
         }
-      </dd>
+      </div>
 
-      @if (state() === 'ready') {
-        @if (me()?.staff; as staff) {
-          <dt>Name</dt>
-          <dd>{{ staff.fullName }}</dd>
-          <dt>Role</dt>
-          <dd>{{ staff.role }}</dd>
-          <dt>Specialty</dt>
-          <dd>{{ staff.specialty || 'None' }}</dd>
-          <dt>Department</dt>
-          <dd>{{ staff.department }}</dd>
-        } @else {
-          <dt>Patient id</dt>
-          <dd class="mono">{{ me()?.patientId }}</dd>
-        }
-      }
-    </dl>
+      <div class="identity-info">
+        <div class="identity-title-row">
+          <h2 class="user-display-name">
+            {{ me()?.staff?.fullName ?? auth.user()?.fullName ?? 'Healthcare Professional' }}
+          </h2>
+          <span class="sgh-badge" data-tone="accent">{{ auth.roles()[0] }}</span>
+        </div>
+        <p class="user-title-sub">
+          {{ me()?.staff?.department ?? 'St. Gabriel Hospital' }}
+          @if (me()?.staff?.specialty) {
+            • {{ me()?.staff?.specialty }}
+          }
+        </p>
+
+        <!-- Preserved exact dl list for contract & tests -->
+        <div class="details">
+          <dl>
+            <dt>Username</dt>
+            <dd>{{ me()?.username ?? auth.user()?.username }}</dd>
+
+            <dt>Roles</dt>
+            <dd class="roles">
+              @for (role of me()?.roles ?? auth.roles(); track role) {
+                <span class="sgh-badge" data-tone="neutral">{{ role }}</span>
+              }
+            </dd>
+
+            @if (state() === 'ready') {
+              @if (me()?.staff; as staff) {
+                <dt>Name</dt>
+                <dd>{{ staff.fullName }}</dd>
+                <dt>Role</dt>
+                <dd>{{ staff.role }}</dd>
+                <dt>Specialty</dt>
+                <dd>{{ staff.specialty || 'None' }}</dd>
+                <dt>Department</dt>
+                <dd>{{ staff.department }}</dd>
+              } @else {
+                <dt>Patient id</dt>
+                <dd class="mono">{{ me()?.patientId }}</dd>
+              }
+            }
+          </dl>
+        </div>
+      </div>
+    </div>
 
     @if (state() === 'unavailable') {
       <div class="notice" role="status">
         <mat-icon aria-hidden="true">cloud_off</mat-icon>
         <span>
-          Your profile is unavailable right now. Your username and roles above come from your
-          sign-in.
+          Your profile is unavailable right now. Your username and roles above come from your sign-in.
         </span>
         <button mat-stroked-button type="button" (click)="load()">Retry</button>
       </div>
     }
+
+    <!-- Tabs: Edit Details, Password & Security, Notification Preferences -->
+    <div class="sgh-card profile-settings-card">
+      <mat-tab-group animationDuration="150ms">
+        <!-- TAB 1: Edit Details -->
+        <mat-tab label="Personal Details">
+          <form class="tab-form" (ngSubmit)="saveDetails()">
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="flex-1">
+                <mat-label>Full Name</mat-label>
+                <input matInput [(ngModel)]="fullNameInput" name="fullName" placeholder="Full Name" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="flex-1">
+                <mat-label>Contact Phone</mat-label>
+                <input matInput [(ngModel)]="phoneInput" name="phone" placeholder="+216 71 800 000" />
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="flex-1">
+                <mat-label>Hospital Email</mat-label>
+                <input matInput type="email" [(ngModel)]="emailInput" name="email" placeholder="email@sgh.hospital" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="flex-1">
+                <mat-label>Department</mat-label>
+                <input matInput [(ngModel)]="departmentInput" name="department" placeholder="Department" />
+              </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Medical Bio &amp; Qualifications</mat-label>
+              <textarea
+                matInput
+                rows="3"
+                [(ngModel)]="bioInput"
+                name="bio"
+                placeholder="Brief clinical biography, board certifications, etc."
+              ></textarea>
+            </mat-form-field>
+
+            <div class="form-actions">
+              <button mat-flat-button color="primary" type="submit">
+                <mat-icon>save</mat-icon> Save Details
+              </button>
+            </div>
+          </form>
+        </mat-tab>
+
+        <!-- TAB 2: Change Password & Security -->
+        <mat-tab label="Security &amp; Password">
+          <form class="tab-form" (ngSubmit)="changePassword()">
+            <div class="security-intro">
+              <mat-icon class="sec-icon">lock</mat-icon>
+              <span>Ensure your account is protected with a strong clinical password (minimum 8 characters, numbers, and symbols).</span>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Current Password</mat-label>
+                <input
+                  matInput
+                  [type]="showPassword() ? 'text' : 'password'"
+                  [(ngModel)]="currentPasswordInput"
+                  name="currentPassword"
+                  placeholder="Enter current password"
+                />
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="flex-1">
+                <mat-label>New Password</mat-label>
+                <input
+                  matInput
+                  [type]="showPassword() ? 'text' : 'password'"
+                  [(ngModel)]="newPasswordInput"
+                  name="newPassword"
+                  placeholder="Minimum 8 characters"
+                />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="flex-1">
+                <mat-label>Confirm New Password</mat-label>
+                <input
+                  matInput
+                  [type]="showPassword() ? 'text' : 'password'"
+                  [(ngModel)]="confirmPasswordInput"
+                  name="confirmPassword"
+                  placeholder="Repeat new password"
+                />
+              </mat-form-field>
+            </div>
+
+            <div class="show-pw-toggle">
+              <button
+                type="button"
+                mat-button
+                (click)="showPassword.update(v => !v)"
+              >
+                <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                {{ showPassword() ? 'Hide Passwords' : 'Show Passwords' }}
+              </button>
+            </div>
+
+            <div class="form-actions">
+              <button mat-flat-button color="primary" type="submit">
+                <mat-icon>key</mat-icon> Update Password
+              </button>
+            </div>
+          </form>
+        </mat-tab>
+
+        <!-- TAB 3: Preferences -->
+        <mat-tab label="Preferences">
+          <div class="tab-form preferences-list">
+            <div class="pref-item">
+              <div>
+                <strong>Critical Clinical Alerts</strong>
+                <p>Receive instant notifications for abnormal vitals and urgent lab orders.</p>
+              </div>
+              <mat-slide-toggle [checked]="emailAlerts()" (change)="emailAlerts.set($event.checked)" />
+            </div>
+
+            <div class="pref-item">
+              <div>
+                <strong>SMS Emergency Dispatch</strong>
+                <p>Allow system dispatch SMS alerts for high-severity on-call notifications.</p>
+              </div>
+              <mat-slide-toggle [checked]="smsAlerts()" (change)="smsAlerts.set($event.checked)" />
+            </div>
+
+            <div class="pref-item">
+              <div>
+                <strong>Audio Telemetry Beeps</strong>
+                <p>Play audible tones during live encounter vitals monitoring alerts.</p>
+              </div>
+              <mat-slide-toggle [checked]="soundAlerts()" (change)="soundAlerts.set($event.checked)" />
+            </div>
+
+            <div class="pref-item">
+              <div>
+                <strong>Theme Mode</strong>
+                <p>Switch between light clinical dashboard and eye-protective dark mode.</p>
+              </div>
+              <button mat-stroked-button type="button" (click)="theme.toggle()">
+                <mat-icon>{{ theme.mode() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
+                {{ theme.mode() === 'dark' ? 'Switch to Light' : 'Switch to Dark' }}
+              </button>
+            </div>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </div>
   </div>
 }

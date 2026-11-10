@@ -1,10 +1,12 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import type { Role } from '../models/common';
 import { AUTH_BACKEND, type AuthUser } from './auth-backend';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly backend = inject(AUTH_BACKEND);
+  private readonly router = inject(Router);
   private readonly current = signal<AuthUser | null>(null);
 
   readonly user = this.current.asReadonly();
@@ -49,6 +51,11 @@ export class AuthService {
 
   logout(): void {
     this.current.set(null);
-    this.backend.logout();
+    try {
+      this.backend.logout();
+    } catch {
+      // Backend logout might fail if offline
+    }
+    void this.router.navigate(['/login']).catch(() => undefined);
   }
 }

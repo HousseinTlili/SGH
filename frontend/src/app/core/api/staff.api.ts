@@ -61,4 +61,12 @@ export class StaffApi {
   deactivate(id: string): Observable<Staff> {
     return this.http.post<Staff>(`${this.base}/staff/${id}/deactivate`, {});
   }
+
+  activate(id: string): Observable<Staff> {
+    return this.http.post<Staff>(`${this.base}/staff/${id}/activate`, {});
+  }
+
+  register(staff: StaffInput): Observable<Staff> {
+    return this.http.post<Staff>(`${this.base}/staff/register`, staff);
+  }
 }

@@ -3,10 +3,13 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Router, RouterLink } from '@angular/router';
+import { StaffApi } from '../core/api/staff.api';
 import { AuthService } from '../core/auth/auth.service';
 import { MOCK_AUTH_ENABLED, MockAuthBackend } from '../core/auth/mock-auth.backend';
 import { MOCK_USERS } from '../core/auth/mock-users';
 import { landingPathFor } from '../core/auth/roles';
+import type { Role } from '../core/models/common';
+import type { StaffInput } from '../core/models/staff';
 import { ThemeService } from '../core/theme/theme.service';
 
 interface PersonaCardMeta {
@@ -69,10 +72,14 @@ export class LoginComponent {
   protected readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly mock = inject(MockAuthBackend);
+  private readonly staffApi = inject(StaffApi);
   protected readonly theme = inject(ThemeService);
 
   protected readonly mockAuth = inject(MOCK_AUTH_ENABLED);
   protected readonly users = MOCK_USERS;
+
+  // Active view: 'signin' | 'signup'
+  protected activeMode = signal<'signin' | 'signup'>('signin');
 
   protected usernameInput = 'doctor1';
   protected passwordInput = 'Sgh@dev2026';
@@ -80,6 +87,58 @@ export class LoginComponent {
   protected roleMenuOpen = signal(false);
   protected loading = signal(false);
   protected errorMessage = signal<string | null>(null);
+
+  // Sign up fields
+  protected regFirstName = '';
+  protected regLastName = '';
+  protected regRole = 'DOCTOR';
+  protected regEmail = '';
+  protected regDepartment = 'Cardiology';
+  protected regSpecialty = '';
+  protected regPassword = '';
+  protected signupSuccess = signal<string | null>(null);
+
+  setMode(mode: 'signin' | 'signup'): void {
+    this.activeMode.set(mode);
+    this.errorMessage.set(null);
+    this.signupSuccess.set(null);
+  }
+
+  async onSignUp(event: Event): Promise<void> {
+    event.preventDefault();
+    if (!this.regFirstName.trim() || !this.regLastName.trim() || !this.regEmail.trim()) {
+      this.errorMessage.set('Please provide your first name, last name, and email address.');
+      return;
+    }
+
+    this.loading.set(true);
+    this.errorMessage.set(null);
+
+    const input: StaffInput = {
+      firstName: this.regFirstName.trim(),
+      lastName: this.regLastName.trim(),
+      role: this.regRole as Exclude<Role, 'PATIENT'>,
+      email: this.regEmail.trim().toLowerCase(),
+      department: this.regDepartment.trim() || 'General Medicine',
+      specialty: this.regSpecialty.trim() || null,
+      keycloakUserId: null,
+    };
+
+    this.staffApi.register(input).subscribe({
+      next: (created) => {
+        this.loading.set(false);
+        this.signupSuccess.set(
+          `Account for ${created.firstName} ${created.lastName} has been submitted with status 'Pending Approval'. The hospital administrator will review and activate your account.`,
+        );
+      },
+      error: (err: unknown) => {
+        this.loading.set(false);
+        this.errorMessage.set(
+          'Registration failed. This email may already be registered or the staff service is unavailable.',
+        );
+      },
+    });
+  }
 
   @HostListener('document:keydown.escape')
   onEscape(): void {

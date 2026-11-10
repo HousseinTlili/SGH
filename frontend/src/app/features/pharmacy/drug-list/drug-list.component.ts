@@ -216,9 +216,13 @@ export class DrugListComponent {
   }
 
   protected addDrug(): void {
-    const ref = this.dialog.open<DrugDialogComponent, undefined, DrugInput>(DrugDialogComponent, {
-      width: '460px',
-    });
+    const ref = this.dialog.open<DrugDialogComponent, { drug?: Drug }, DrugInput>(
+      DrugDialogComponent,
+      {
+        data: {},
+        width: '460px',
+      },
+    );
     ref.afterClosed().subscribe((input) => {
       if (!input) return;
       this.api.createDrug(input).subscribe({
