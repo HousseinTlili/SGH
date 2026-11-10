@@ -254,9 +254,10 @@
 }
 
 .content {
-  max-width: var(--sgh-content-max);
-  margin: 0 auto;
-  padding: var(--sgh-space-6) var(--sgh-space-5);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: var(--sgh-space-6) var(--sgh-space-6);
 
   &:focus {
     outline: none;
