@@ -2,29 +2,58 @@
   background: var(--sgh-surface);
   border: 1px solid var(--sgh-border-subtle);
   border-radius: var(--sgh-radius);
-  box-shadow: var(--sgh-shadow);
+  box-shadow: var(--sgh-shadow-xs);
   overflow: hidden;
+  transition: box-shadow 0.15s ease;
 }
 
 .scroll {
-  max-height: 70vh;
+  max-height: 72vh;
   overflow: auto;
 }
 
 table {
   width: 100%;
+  border-collapse: collapse;
 }
 
 th.mat-mdc-header-cell {
   background: var(--sgh-surface-1);
   color: var(--sgh-text-muted);
-  font-weight: 600;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--sgh-border);
+  white-space: nowrap;
+}
+
+td.mat-mdc-cell {
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--sgh-border-subtle);
+  color: var(--sgh-text);
+  font-size: 0.88rem;
+  font-variant-numeric: tabular-nums;
+  vertical-align: middle;
 }
 
 tr.mat-mdc-row {
   cursor: pointer;
+  transition: background-color 0.12s ease;
 
   &:hover {
     background: var(--sgh-surface-1);
   }
+
+  &:focus-visible {
+    outline: 2px solid var(--sgh-brand);
+    outline-offset: -2px;
+  }
+}
+
+mat-paginator {
+  background: var(--sgh-surface);
+  border-top: 1px solid var(--sgh-border-subtle);
+  font-size: 0.8rem;
 }

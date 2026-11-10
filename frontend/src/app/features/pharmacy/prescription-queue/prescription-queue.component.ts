@@ -113,12 +113,17 @@ export const QUEUE_REFRESH_MS = 10_000;
     .filters {
       display: flex;
       flex-wrap: wrap;
-      gap: var(--sgh-space-4);
-      align-items: flex-start;
+      gap: var(--sgh-space-3);
+      align-items: center;
       margin-bottom: var(--sgh-space-4);
+      padding: 14px 18px;
+      background: var(--sgh-surface);
+      border: 1px solid var(--sgh-border-subtle);
+      border-radius: var(--sgh-radius);
+      box-shadow: var(--sgh-shadow-xs);
     }
     .status-field {
-      min-width: 280px;
+      min-width: 260px;
     }
   `,
 })

@@ -130,10 +130,15 @@ export const LAB_PRIORITY_OPTIONS: { label: string; value: string }[] = [
   styles: `
     .filters {
       display: flex;
-      gap: 1rem;
+      gap: var(--sgh-space-3);
       align-items: center;
-      margin-bottom: 1.5rem;
+      margin-bottom: var(--sgh-space-4);
       flex-wrap: wrap;
+      padding: 14px 18px;
+      background: var(--sgh-surface);
+      border: 1px solid var(--sgh-border-subtle);
+      border-radius: var(--sgh-radius);
+      box-shadow: var(--sgh-shadow-xs);
     }
     .filter-field {
       min-width: 180px;

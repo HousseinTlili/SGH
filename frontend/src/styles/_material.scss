@@ -11,6 +11,7 @@ html {
       ),
       typography: (
         plain-family: (
+          'Inter',
           system-ui,
           -apple-system,
           'Segoe UI',
@@ -18,14 +19,111 @@ html {
           sans-serif,
         ),
         brand-family: (
+          'Plus Jakarta Sans',
+          'Inter',
           system-ui,
           -apple-system,
-          'Segoe UI',
-          Roboto,
           sans-serif,
         ),
       ),
-      density: 0,
+      density: -1,
     )
   );
+}
+
+// -----------------------------------------------------------------------------
+// Human-crafted clinical polish for Material components:
+// Tightens padding, eliminates floating mobile bubble bloat, and adds tactile feel.
+// -----------------------------------------------------------------------------
+
+// Form Fields & Inputs
+.mat-mdc-form-field {
+  --mdc-outlined-text-field-container-shape: 8px;
+  --mdc-outlined-text-field-outline-color: var(--sgh-border);
+  --mdc-outlined-text-field-hover-outline-color: var(--sgh-brand);
+  --mdc-outlined-text-field-focus-outline-color: var(--sgh-brand);
+  font-size: 0.9rem;
+}
+
+.mat-mdc-text-field-wrapper {
+  background-color: var(--sgh-surface);
+}
+
+// Buttons
+.mat-mdc-button-base {
+  border-radius: 8px !important;
+  font-family: var(--sgh-font) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.mat-mdc-flat-button.mat-primary {
+  background-color: var(--sgh-brand) !important;
+  color: var(--sgh-on-brand) !important;
+  box-shadow: 0 1px 2px 0 rgba(37, 99, 235, 0.25) !important;
+
+  &:hover:not(:disabled) {
+    background-color: var(--sgh-brand-hover) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px 0 rgba(37, 99, 235, 0.3) !important;
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px 0 rgba(37, 99, 235, 0.2) !important;
+  }
+}
+
+.mat-mdc-stroked-button {
+  border-color: var(--sgh-border) !important;
+  color: var(--sgh-text) !important;
+
+  &:hover:not(:disabled) {
+    background-color: var(--sgh-surface-1) !important;
+    border-color: var(--sgh-brand) !important;
+  }
+}
+
+// Dialogs & Menus
+.mat-mdc-dialog-container .mdc-dialog__surface {
+  border-radius: 14px !important;
+  border: 1px solid var(--sgh-border-subtle) !important;
+  box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.16) !important;
+  background-color: var(--sgh-surface) !important;
+}
+
+.mat-mdc-menu-panel {
+  border-radius: 12px !important;
+  border: 1px solid var(--sgh-border-subtle) !important;
+  box-shadow: 0 12px 30px -6px rgba(15, 23, 42, 0.12), 0 4px 10px -2px rgba(15, 23, 42, 0.06) !important;
+  background-color: var(--sgh-surface) !important;
+}
+
+.mat-mdc-menu-item {
+  font-size: 0.88rem !important;
+  font-weight: 500 !important;
+  min-height: 40px !important;
+}
+
+// Tabs
+.mat-mdc-tab-header {
+  border-bottom: 1px solid var(--sgh-border-subtle);
+  background-color: transparent;
+}
+
+.mat-mdc-tab .mdc-tab__text-label {
+  font-family: var(--sgh-font) !important;
+  font-weight: 600 !important;
+  font-size: 0.88rem !important;
+  letter-spacing: -0.01em !important;
+}
+
+// Tooltips
+.mat-mdc-tooltip .mdc-tooltip__surface {
+  border-radius: 6px !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  padding: 4px 8px !important;
+  background-color: #0f172a !important;
 }

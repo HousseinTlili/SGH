@@ -18,20 +18,35 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
     .page-header {
       display: flex;
       flex-wrap: wrap;
-      align-items: flex-start;
+      align-items: center;
       justify-content: space-between;
       gap: var(--sgh-space-4);
       margin-bottom: var(--sgh-space-5);
+      padding-bottom: var(--sgh-space-3);
+      border-bottom: 1px solid var(--sgh-border-subtle);
     }
     .titles {
       display: flex;
       flex-direction: column;
-      gap: var(--sgh-space-1);
+      gap: 3px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      color: var(--sgh-text);
+      font-family: var(--sgh-font-display, var(--sgh-font));
+    }
+    .sgh-muted {
+      font-size: 0.85rem;
+      color: var(--sgh-text-muted);
     }
     .actions {
       display: flex;
       flex-wrap: wrap;
-      gap: var(--sgh-space-2);
+      align-items: center;
+      gap: var(--sgh-space-3);
     }
   `,
 })
