@@ -67,6 +67,17 @@ export class ShellComponent implements OnInit, OnDestroy {
     const user = this.auth.user();
     return user?.fullName ?? user?.username ?? '';
   });
+  protected readonly primaryRole = computed(() => {
+    const roles = this.auth.roles();
+    return roles[0] || 'STAFF';
+  });
+  protected readonly userInitials = computed(() => {
+    const name = this.displayName();
+    if (!name) return 'SGH';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    return name.slice(0, 2).toUpperCase();
+  });
 
   ngOnInit(): void {
     this.status.start();
