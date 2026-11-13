@@ -1,0 +1,24 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "sgh-gateway"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["gateway:8080"]
+
+  - job_name: "sgh-patient-service"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["patient-service:8081"]
+
+  - job_name: "sgh-staff-service"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["staff-service:8086"]
+
+  - job_name: "sgh-eureka-server"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["eureka-server:8761"]

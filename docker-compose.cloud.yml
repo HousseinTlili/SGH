@@ -1,0 +1,276 @@
+name: sgh-killercoda
+
+# Cloud Deployment Specification for KillerCoda / AWS Demo
+# Run on KillerCoda with: docker compose -f docker-compose.cloud.yml up -d
+
+networks:
+  sgh-net:
+    driver: bridge
+
+volumes:
+  sgh-pgdata:
+
+services:
+  postgres:
+    image: postgres:16.15
+    container_name: sgh-postgres
+    restart: unless-stopped
+    networks:
+      - sgh-net
+    environment:
+      POSTGRES_USER: sgh
+      POSTGRES_PASSWORD: sgh_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - sgh-pgdata:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sgh"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:4.3.6-management
+    container_name: sgh-rabbitmq
+    restart: unless-stopped
+    networks:
+      - sgh-net
+    environment:
+      RABBITMQ_DEFAULT_USER: sgh
+      RABBITMQ_DEFAULT_PASS: sgh_dev_password
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - ./infra/rabbitmq/rabbitmq.conf:/etc/rabbitmq/conf.d/20-sgh.conf:ro
+      - ./infra/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.8.1
+    container_name: sgh-keycloak
+    restart: unless-stopped
+    command: start-dev --import-realm
+    networks:
+      - sgh-net
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    ports:
+      - "8180:8080"
+    volumes:
+      - ./infra/keycloak:/opt/keycloak/data/import:ro
+
+  eureka-server:
+    image: houssemt/sgh-eureka-server:1.0
+    container_name: sgh-eureka
+    restart: unless-stopped
+    networks:
+      - sgh-net
+    ports:
+      - "8761:8761"
+    environment:
+      EUREKA_HOSTNAME: eureka-server
+
+  config-server:
+    image: houssemt/sgh-config-server:1.0
+    container_name: sgh-config
+    restart: unless-stopped
+    networks:
+      - sgh-net
+    ports:
+      - "8888:8888"
+    environment:
+      EUREKA_URI: http://eureka-server:8761/eureka/
+    depends_on:
+      - eureka-server
+
+  patient-service:
+    image: houssemt/sgh-patient-service:1.0
+    container_name: sgh-patient-service
+    restart: unless-stopped
+    networks:
+      - sgh-net
+    ports:
+      - "8081:8081"
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/sgh_patient
+      DATABASE_USERNAME: sgh
+      DATABASE_PASSWORD: sgh_dev_password
+      EUREKA_URI: http://eureka-server:8761/eureka/
+      CONFIG_SERVER_URL: http://config-server:8888
+      KEYCLOAK_ISSUER: http://localhost:8180/realms/sgh
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sgh/protocol/openid-connect/certs
+      STAFF_SERVICE_URL: http://staff-service:8086
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+
+  reception-service:
+    image: houssemt/sgh-reception-service:1.0
+    container_name: sgh-reception-service
+    restart: unless-stopped
+    networks:
+      - sgh-net
+    ports:
+      - "8082:8082"
+    environment:
+      PORT: 8082
+      DATABASE_URL: postgres://sgh:sgh_dev_password@postgres:5432/sgh_reception
+      RABBITMQ_URL: amqp://sgh:sgh_dev_password@rabbitmq:5672
+      KEYCLOAK_ISSUER: http://localhost:8180/realms/sgh
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sgh/protocol/openid-connect/certs
+      PATIENT_SERVICE_URL: http://patient-service:8081
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  doctor-service:
+    image: houssemt/sgh-doctor-service:1.0
+    container_name: sgh-doctor-service
+    restart: unless-stopped
+    networks:
+      - sgh-net
+    ports:
+      - "8083:8083"
+    environment:
+      PORT: 8083
+      DATABASE_URL: postgres://sgh:sgh_dev_password@postgres:5432/sgh_consultation
+      RABBITMQ_URL: amqp://sgh:sgh_dev_password@rabbitmq:5672
+      KEYCLOAK_ISSUER: http://localhost:8180/realms/sgh
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sgh/protocol/openid-connect/certs
+      PATIENT_SERVICE_URL: http://patient-service:8081
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  lab-service:
+    image: houssemt/sgh-lab-service:1.0
+    container_name: sgh-lab-service
+    restart: unless-stopped
+    networks:
+      - sgh-net
+    ports:
+      - "8084:8084"
+    environment:
+      PORT: 8084
+      DATABASE_URL: postgresql://sgh:sgh_dev_password@postgres:5432/sgh_lab
+      RABBITMQ_URL: amqp://sgh:sgh_dev_password@rabbitmq:5672
+      KEYCLOAK_ISSUER: http://localhost:8180/realms/sgh
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sgh/protocol/openid-connect/certs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  pharmacy-service:
+    image: houssemt/sgh-pharmacy-service:1.0
+    container_name: sgh-pharmacy-service
+    restart: unless-stopped
+    networks:
+      - sgh-net
+    ports:
+      - "8085:8085"
+    environment:
+      PORT: 8085
+      DATABASE_URL: postgres://sgh:sgh_dev_password@postgres:5432/sgh_pharmacy
+      RABBITMQ_URL: amqp://sgh:sgh_dev_password@rabbitmq:5672
+      KEYCLOAK_ISSUER: http://localhost:8180/realms/sgh
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sgh/protocol/openid-connect/certs
+      CONSULTATION_SERVICE_URL: http://doctor-service:8083
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  staff-service:
+    image: houssemt/sgh-staff-service:1.0
+    container_name: sgh-staff-service
+    restart: unless-stopped
+    networks:
+      - sgh-net
+    ports:
+      - "8086:8086"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/sgh_staff
+      SPRING_DATASOURCE_USERNAME: sgh
+      SPRING_DATASOURCE_PASSWORD: sgh_dev_password
+      EUREKA_URI: http://eureka-server:8761/eureka/
+      CONFIG_SERVER_URL: http://config-server:8888
+      KEYCLOAK_ISSUER_URI: http://localhost:8180/realms/sgh
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/sgh/protocol/openid-connect/certs
+      PATIENT_SERVICE_URL: http://patient-service:8081
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+
+  notification-service:
+    image: houssemt/sgh-notification-service:1.0
+    container_name: sgh-notification-service
+    restart: unless-stopped
+    networks:
+      - sgh-net
+    ports:
+      - "8087:8087"
+    environment:
+      PORT: 8087
+      DATABASE_URL: postgres://sgh:sgh_dev_password@postgres:5432/sgh_notification
+      RABBITMQ_URL: amqp://sgh:sgh_dev_password@rabbitmq:5672
+      KEYCLOAK_ISSUER: http://localhost:8180/realms/sgh
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/sgh/protocol/openid-connect/certs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  gateway:
+    image: houssemt/sgh-gateway:1.0
+    container_name: sgh-gateway
+    restart: unless-stopped
+    networks:
+      - sgh-net
+    ports:
+      - "8080:8080"
+    environment:
+      KEYCLOAK_ISSUER_URL: http://localhost:8180/realms/sgh
+      KEYCLOAK_JWKS_URL: http://keycloak:8080/realms/sgh/protocol/openid-connect/certs
+      EUREKA_URI: http://eureka-server:8761/eureka/
+      PATIENT_SERVICE_URL: http://patient-service:8081
+      RECEPTION_SERVICE_URL: http://reception-service:8082
+      CONSULTATION_SERVICE_URL: http://doctor-service:8083
+      LAB_SERVICE_URL: http://lab-service:8084
+      PHARMACY_SERVICE_URL: http://pharmacy-service:8085
+      STAFF_SERVICE_URL: http://staff-service:8086
+      NOTIFICATION_SERVICE_URL: http://notification-service:8087
+    depends_on:
+      - eureka-server
+      - patient-service
+      - staff-service
+
+  frontend:
+    image: houssemt/sgh-frontend:1.0
+    container_name: sgh-frontend
+    restart: unless-stopped
+    networks:
+      - sgh-net
+    ports:
+      - "4200:4200"
+    depends_on:
+      - gateway

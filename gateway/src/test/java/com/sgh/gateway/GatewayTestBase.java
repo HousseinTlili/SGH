@@ -24,6 +24,8 @@ abstract class GatewayTestBase {
         registry.add("PHARMACY_SERVICE_URL", () -> TestStack.stub("pharmacy").url());
         registry.add("STAFF_SERVICE_URL", () -> TestStack.stub("staff").url());
         registry.add("KEYCLOAK_JWKS_URL", TestStack::jwksUri);
+        registry.add("eureka.client.enabled", () -> "false");
+        registry.add("eureka.client.register-with-eureka", () -> "false");
     }
 
     @BeforeEach

@@ -1,0 +1,29 @@
+name: sgh-monitoring
+
+# Monitoring Stack for SGH (Prometheus + Grafana)
+# Launch with: docker compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: sgh-prometheus
+    restart: unless-stopped
+    networks:
+      - sgh-net
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+  grafana:
+    image: grafana/grafana:10.4.1
+    container_name: sgh-grafana
+    restart: unless-stopped
+    networks:
+      - sgh-net
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus

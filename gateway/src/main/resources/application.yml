@@ -21,6 +21,36 @@ logging:
   level:
     root: INFO
 
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+
+# Centralized Swagger UI aggregating all microservices
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    urls:
+      - name: "1. Patient Service"
+        url: /api/patients/v3/api-docs
+      - name: "2. Reception Service"
+        url: /api/appointments/openapi.json
+      - name: "3. Doctor Service"
+        url: /api/consultations/openapi.json
+      - name: "4. Lab Service"
+        url: /api/lab-orders/openapi.json
+      - name: "5. Pharmacy Service"
+        url: /api/drugs/openapi.json
+      - name: "6. Staff Service"
+        url: /api/staff/v3/api-docs
+      - name: "7. Notification Service"
+        url: /api/notifications/openapi.json
+
+
 # The route table and the coarse role rules are data (Gateway Config). Adding a service or changing a
 # rule is one entry here. `roles` empty = any authenticated user. The services stay authoritative.
 sgh:
