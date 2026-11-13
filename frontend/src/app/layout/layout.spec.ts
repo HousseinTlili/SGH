@@ -199,7 +199,7 @@ describe('LoginComponent', () => {
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
     fixture.componentInstance.signIn('nurse1');
     expect(TestBed.inject(AuthService).user()?.username).toBe('nurse1');
-    expect(navigate).toHaveBeenCalledWith('/');
+    expect(navigate).toHaveBeenCalledWith('/vitals');
   });
 });
 
