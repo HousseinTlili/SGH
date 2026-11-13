@@ -12,6 +12,10 @@ public class Patient {
     @Id
     private UUID id;
 
+    /** Opaque reference for QR / deep-link; never encodes clinical allergy content. */
+    @Column(name = "passport_token", nullable = false, unique = true)
+    private UUID passportToken;
+
     @Column(name = "first_name", nullable = false, length = 100)
     private String firstName;
 
@@ -63,6 +67,7 @@ public class Patient {
 
     public Patient(UUID id, String firstName, String lastName, LocalDate birthDate, Gender gender) {
         this.id = id;
+        this.passportToken = UUID.randomUUID();
         this.firstName = firstName;
         this.lastName = lastName;
         this.birthDate = birthDate;
@@ -77,6 +82,14 @@ public class Patient {
 
     public void setId(UUID id) {
         this.id = id;
+    }
+
+    public UUID getPassportToken() {
+        return passportToken;
+    }
+
+    public void setPassportToken(UUID passportToken) {
+        this.passportToken = passportToken;
     }
 
     public String getFirstName() {

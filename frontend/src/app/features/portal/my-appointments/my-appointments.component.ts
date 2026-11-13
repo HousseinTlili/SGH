@@ -66,7 +66,10 @@ export interface PatientAppointmentRow extends Appointment {
     </ng-template>
 
     <div *appServiceGate="'reception'">
-      <app-page-header title="My Appointments" subtitle="View and manage your upcoming and past medical visits">
+      <app-page-header
+        title="My Appointments"
+        subtitle="View and manage your upcoming and past medical visits"
+      >
         <button mat-stroked-button type="button" (click)="load()">
           <mat-icon>refresh</mat-icon>
           Refresh
@@ -98,9 +101,12 @@ export class MyAppointmentsComponent {
   private readonly status = inject(ServiceStatusService);
   private readonly confirm = inject(ConfirmService);
 
-  private readonly statusCell = viewChild<TemplateRef<{ $implicit: PatientAppointmentRow }>>('statusCell');
-  private readonly dateCell = viewChild<TemplateRef<{ $implicit: PatientAppointmentRow }>>('dateCell');
-  private readonly actionsCell = viewChild<TemplateRef<{ $implicit: PatientAppointmentRow }>>('actionsCell');
+  private readonly statusCell =
+    viewChild<TemplateRef<{ $implicit: PatientAppointmentRow }>>('statusCell');
+  private readonly dateCell =
+    viewChild<TemplateRef<{ $implicit: PatientAppointmentRow }>>('dateCell');
+  private readonly actionsCell =
+    viewChild<TemplateRef<{ $implicit: PatientAppointmentRow }>>('actionsCell');
 
   protected readonly appointments = signal<Appointment[]>([]);
   protected readonly doctorNames = signal<Record<string, string>>({});

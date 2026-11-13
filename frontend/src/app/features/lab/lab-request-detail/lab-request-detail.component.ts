@@ -162,8 +162,7 @@ export class LabRequestDetailComponent {
       const testDef = cat.get(t.code);
       const unit = existing?.unit ?? testDef?.unit ?? '';
       const refRange =
-        existing?.referenceRange ??
-        (testDef ? `${testDef.refLow}-${testDef.refHigh}` : '');
+        existing?.referenceRange ?? (testDef ? `${testDef.refLow}-${testDef.refHigh}` : '');
       const value = existing ? existing.value : null;
       const flag = existing ? existing.flag : null;
 

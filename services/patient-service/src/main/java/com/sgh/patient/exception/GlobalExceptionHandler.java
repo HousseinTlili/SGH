@@ -62,8 +62,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
-    @ExceptionHandler(PatientAlreadyExistsException.class)
-    public ResponseEntity<ApiError> handleConflict(PatientAlreadyExistsException ex, HttpServletRequest request) {
+    @ExceptionHandler({PatientAlreadyExistsException.class, ConflictException.class})
+    public ResponseEntity<ApiError> handleConflict(RuntimeException ex, HttpServletRequest request) {
         ApiError error = new ApiError(
                 HttpStatus.CONFLICT.value(),
                 "Conflict",
@@ -96,6 +96,19 @@ public class GlobalExceptionHandler {
                 getCorrelationId(request)
         );
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
+    }
+
+    @ExceptionHandler(UnprocessableException.class)
+    public ResponseEntity<ApiError> handleUnprocessable(UnprocessableException ex, HttpServletRequest request) {
+        ApiError error = new ApiError(
+                HttpStatus.UNPROCESSABLE_ENTITY.value(),
+                "Unprocessable Entity",
+                ex.getMessage(),
+                request.getRequestURI(),
+                getCorrelationId(request),
+                ex.getDetails()
+        );
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

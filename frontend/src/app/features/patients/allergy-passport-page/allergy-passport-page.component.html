@@ -1,0 +1,33 @@
+<div *appServiceGate="'patient'">
+  <app-page-header
+    title="Allergy passport"
+    subtitle="Opened from an opaque QR token — clinical data is loaded only after authentication"
+  >
+    <a mat-stroked-button routerLink="/patients">
+      <mat-icon>arrow_back</mat-icon>
+      Patients
+    </a>
+    @if (passport()) {
+      <button mat-flat-button color="primary" type="button" (click)="openPatientFile()">
+        <mat-icon>folder_shared</mat-icon>
+        Open patient file
+      </button>
+    }
+  </app-page-header>
+
+  @if (loading()) {
+    <div class="spinner-container">
+      <mat-spinner diameter="40" />
+    </div>
+  } @else if (error()) {
+    <p class="banner warning" role="alert">{{ error() }}</p>
+  } @else if (passport(); as data) {
+    <app-allergy-passport
+      [passport]="data"
+      [canRecord]="canRecord"
+      [canVerify]="canVerify"
+      [canViewHistory]="canViewHistory"
+      [canEdit]="canEditFn"
+    />
+  }
+</div>

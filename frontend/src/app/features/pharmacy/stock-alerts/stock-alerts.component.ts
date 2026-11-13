@@ -25,7 +25,10 @@ import {
 import { ErrorStateComponent } from '../../../shared/components/error-state/error-state.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { ServiceGateDirective } from '../../../shared/components/service-gate/service-gate.directive';
-import { StockDialogComponent, type StockDialogResult } from '../stock-dialog/stock-dialog.component';
+import {
+  StockDialogComponent,
+  type StockDialogResult,
+} from '../stock-dialog/stock-dialog.component';
 
 export interface StockAlertRow extends Drug {
   deficit: number;
@@ -117,8 +120,10 @@ export class StockAlertsComponent {
   private readonly dialog = inject(MatDialog);
 
   private readonly stockCell = viewChild<TemplateRef<{ $implicit: StockAlertRow }>>('stockCell');
-  private readonly deficitCell = viewChild<TemplateRef<{ $implicit: StockAlertRow }>>('deficitCell');
-  private readonly actionsCell = viewChild<TemplateRef<{ $implicit: StockAlertRow }>>('actionsCell');
+  private readonly deficitCell =
+    viewChild<TemplateRef<{ $implicit: StockAlertRow }>>('deficitCell');
+  private readonly actionsCell =
+    viewChild<TemplateRef<{ $implicit: StockAlertRow }>>('actionsCell');
 
   protected readonly alerts = signal<Drug[]>([]);
   protected readonly loading = signal(false);

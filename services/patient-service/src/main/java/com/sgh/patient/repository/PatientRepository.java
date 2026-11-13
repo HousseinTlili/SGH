@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,7 +18,11 @@ public interface PatientRepository extends JpaRepository<Patient, UUID> {
 
     Optional<Patient> findByIdAndDeletedFalse(UUID id);
 
+    Optional<Patient> findByPassportTokenAndDeletedFalse(UUID passportToken);
+
     Page<Patient> findByDeletedFalse(Pageable pageable);
+
+    List<Patient> findByDeletedFalse();
 
     @Query("SELECT p FROM Patient p WHERE p.deleted = false AND " +
            "(LOWER(p.firstName) LIKE LOWER(CONCAT('%', :term, '%')) OR " +

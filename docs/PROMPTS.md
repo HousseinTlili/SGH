@@ -53,3 +53,19 @@ Decision:
 - Implemented real-time reference range flag computation in Lab technician view using biological thresholds
 - Provided atomic inventory validation and confirmation dialog before dispensing in Pharmacy
 - Preserved strict role-based route guards and zoneless Angular 22 signals architecture
+
+## Entry 4
+Context:      Patient statistics dashboard on feature/patient-statistics, 2026-11-10
+Prompt:       Validate phase 4: GET /api/patients/statistics, roles RECEPTIONIST/DOCTOR/NURSE/ADMIN, OpenAPI Patient only, incomplete files = missing phone/email/address, insurance only if declared insured, keep similar-detection work, branch from current uncommitted work, no commit
+Output used:  OpenAPI path + Patient copies, PatientStatisticsService, Angular SVG dashboard, completeness rule without an insured flag
+Verification: Maven patient-service tests and Angular patient specs (see session)
+Corrections:  none at write time
+Decision:     declared insured = at least one of insuranceProvider / insuranceNumber filled; both empty is uninsured and not incomplete
+
+## Entry 5
+Context:      Opaque QR for Smart Allergy Passport, 2026-11-13
+Prompt:       ajouter le qr
+Output used:  patients.passport_token (V4), GET /api/patients/passport/{token}, Angular SVG QR + /patients/passport/:token
+Verification: Maven Patient allergy tests + Angular patient/qr specs
+Corrections:  none at write time
+Decision:     QR encodes only opaque deep-link/token; clinical data loaded after authentication

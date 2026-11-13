@@ -1,0 +1,36 @@
+mat-dialog-content {
+  min-width: min(680px, 80vw);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sgh-space-3);
+  margin-top: var(--sgh-space-4);
+}
+
+.full {
+  grid-column: 1 / -1;
+}
+
+.error {
+  margin-top: var(--sgh-space-3);
+  padding: var(--sgh-space-3);
+  border-radius: var(--sgh-radius-sm);
+  background: var(--sgh-tone-danger-bg);
+  color: var(--sgh-tone-danger-fg);
+}
+
+@media (max-width: 680px) {
+  mat-dialog-content {
+    min-width: 0;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .full {
+    grid-column: auto;
+  }
+}

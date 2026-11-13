@@ -9,6 +9,8 @@ import com.sgh.patient.model.Patient;
 import com.sgh.patient.model.dto.*;
 import com.sgh.patient.repository.MedicalFileEntryRepository;
 import com.sgh.patient.repository.PatientRepository;
+import com.sgh.patient.util.Levenshtein;
+import com.sgh.patient.util.NameNormalizer;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,10 +34,16 @@ public class PatientService {
 
     private final PatientRepository patientRepository;
     private final MedicalFileEntryRepository medicalFileEntryRepository;
+    private final PatientAllergyService patientAllergyService;
 
-    public PatientService(PatientRepository patientRepository, MedicalFileEntryRepository medicalFileEntryRepository) {
+    public PatientService(
+            PatientRepository patientRepository,
+            MedicalFileEntryRepository medicalFileEntryRepository,
+            PatientAllergyService patientAllergyService
+    ) {
         this.patientRepository = patientRepository;
         this.medicalFileEntryRepository = medicalFileEntryRepository;
+        this.patientAllergyService = patientAllergyService;
     }
 
     private boolean isPatientRole(Authentication auth) {
@@ -109,7 +120,92 @@ public class PatientService {
         return new PagedResponse<>(dtos, resultPage.getNumber(), resultPage.getSize(), resultPage.getTotalElements(), resultPage.getTotalPages());
     }
 
-    public PatientResponseDto createPatient(PatientInputDto input) {
+    /**
+     * Hint for the receptionist UI. Never rejects a registration; POST still owns PAT-2 (409).
+     * Returned fields are limited to identity needed to open the existing file.
+     */
+    @Transactional(readOnly = true)
+    public List<SimilarPatientDto> findSimilar(String firstName, String lastName, LocalDate birthDate, UUID excludeId) {
+        String queryFirst = NameNormalizer.normalize(firstName);
+        String queryLast = NameNormalizer.normalize(lastName);
+        if (queryFirst.isEmpty() || queryLast.isEmpty()) {
+            return List.of();
+        }
+
+        List<SimilarPatientDto> matches = new ArrayList<>();
+        for (Patient patient : patientRepository.findByDeletedFalse()) {
+            if (excludeId != null && excludeId.equals(patient.getId())) {
+                continue;
+            }
+            SimilarPatientDto hit = classify(patient, firstName, lastName, queryFirst, queryLast, birthDate);
+            if (hit != null) {
+                matches.add(hit);
+            }
+        }
+        matches.sort(Comparator.comparingInt(SimilarPatientDto::getScore).reversed());
+        int limit = Math.min(5, matches.size());
+        return new ArrayList<>(matches.subList(0, limit));
+    }
+
+    /**
+     * EXACT = PAT-2 (same names ignoring case/trim + same birth date) so the UI can warn about a 409.
+     * SIMILAR = accents, spelling or homonym; the receptionist may still create the patient.
+     */
+    private SimilarPatientDto classify(
+            Patient patient,
+            String rawFirst,
+            String rawLast,
+            String queryFirst,
+            String queryLast,
+            LocalDate queryBirthDate
+    ) {
+        String patientFirst = NameNormalizer.normalize(patient.getFirstName());
+        String patientLast = NameNormalizer.normalize(patient.getLastName());
+        int distFirst = Levenshtein.distance(queryFirst, patientFirst);
+        int distLast = Levenshtein.distance(queryLast, patientLast);
+        boolean sameBirthDate = queryBirthDate != null && queryBirthDate.equals(patient.getBirthDate());
+        boolean pat2Exact = sameBirthDate
+                && rawFirst.trim().equalsIgnoreCase(patient.getFirstName().trim())
+                && rawLast.trim().equalsIgnoreCase(patient.getLastName().trim());
+
+        if (pat2Exact) {
+            return toSimilar(patient, SimilarPatientDto.MATCH_EXACT, 100);
+        }
+
+        boolean namesNormalizedEqual = queryFirst.equals(patientFirst) && queryLast.equals(patientLast);
+        boolean closeFirst = distFirst <= 2;
+        boolean closeLast = distLast <= 2;
+
+        if (sameBirthDate && closeFirst && closeLast) {
+            int score = 90 - 10 * (distFirst + distLast);
+            return toSimilar(patient, SimilarPatientDto.MATCH_SIMILAR, Math.max(score, 60));
+        }
+        if (namesNormalizedEqual) {
+            // Homonym: same names, different (or missing) birth date — review, do not block.
+            return toSimilar(patient, SimilarPatientDto.MATCH_SIMILAR, 80);
+        }
+        if (closeLast && distFirst <= 2 && distLast == 0) {
+            return toSimilar(patient, SimilarPatientDto.MATCH_SIMILAR, 70);
+        }
+        return null;
+    }
+
+    private SimilarPatientDto toSimilar(Patient patient, String match, int score) {
+        return new SimilarPatientDto(
+                patient.getId(),
+                patient.getFirstName(),
+                patient.getLastName(),
+                patient.getBirthDate(),
+                match,
+                score
+        );
+    }
+
+    public PatientResponseDto createPatient(
+            PatientInputDto input,
+            Authentication authentication,
+            String correlationId
+    ) {
         boolean duplicate = patientRepository.existsDuplicate(
                 input.getFirstName().trim(),
                 input.getLastName().trim(),
@@ -141,6 +237,7 @@ public class PatientService {
         patient.setUpdatedAt(Instant.now());
 
         Patient saved = patientRepository.save(patient);
+        patientAllergyService.importLegacyAllergy(saved, input.getAllergies(), authentication, correlationId);
         return toPatientResponseDto(saved);
     }
 
@@ -154,7 +251,12 @@ public class PatientService {
         return toPatientResponseDto(patient);
     }
 
-    public PatientResponseDto updatePatient(UUID id, PatientInputDto input) {
+    public PatientResponseDto updatePatient(
+            UUID id,
+            PatientInputDto input,
+            Authentication authentication,
+            String correlationId
+    ) {
         Patient patient = patientRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found"));
 
@@ -177,12 +279,12 @@ public class PatientService {
         patient.setEmail(input.getEmail());
         patient.setAddress(input.getAddress());
         patient.setBloodType(input.getBloodType());
-        patient.setAllergies(input.getAllergies());
         patient.setInsuranceProvider(input.getInsuranceProvider());
         patient.setInsuranceNumber(input.getInsuranceNumber());
         patient.setUpdatedAt(Instant.now());
 
         Patient saved = patientRepository.save(patient);
+        patientAllergyService.importLegacyAllergy(saved, input.getAllergies(), authentication, correlationId);
         return toPatientResponseDto(saved);
     }
 

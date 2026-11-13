@@ -18,6 +18,42 @@
         <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
           <app-form-errors [control]="form" />
 
+          @if (similarCheckFailed() && similarMatches().length === 0) {
+            <div class="similar-alert similar-alert-warn" role="status">
+              <mat-icon>cloud_off</mat-icon>
+              <p>Could not check for similar patients. You can still save this registration.</p>
+            </div>
+          }
+
+          @if (similarMatches().length > 0) {
+            <div class="similar-alert" role="alert">
+              <mat-icon>person_search</mat-icon>
+              <div>
+                <p class="similar-title">
+                  Possible existing patient{{ similarMatches().length > 1 ? 's' : '' }}
+                </p>
+                <p class="similar-lead">
+                  Review the file before continuing. Similar names do not block registration; an
+                  exact same name and birth date will still be rejected.
+                </p>
+                <ul class="similar-list">
+                  @for (hit of similarMatches(); track hit.id) {
+                    <li>
+                      <span>
+                        <strong>{{ hit.firstName }} {{ hit.lastName }}</strong>
+                        ({{ hit.birthDate }})
+                        <span class="similar-tag">{{
+                          hit.match === 'EXACT' ? 'exact match' : 'similar'
+                        }}</span>
+                      </span>
+                      <a routerLink="/patients/{{ hit.id }}">Open file</a>
+                    </li>
+                  }
+                </ul>
+              </div>
+            </div>
+          }
+
           <div class="form-grid">
             <!-- First name -->
             <mat-form-field appearance="outline">
