@@ -1,0 +1,130 @@
+<section class="passport" aria-labelledby="allergy-passport-title">
+  <header class="passport-header">
+    <div>
+      <p class="eyebrow">Smart Allergy Passport</p>
+      <h2 id="allergy-passport-title">{{ passport().fullName }}</h2>
+      <p class="sgh-muted">
+        Born {{ passport().birthDate }} · Blood type {{ passport().bloodType || 'not recorded' }}
+      </p>
+    </div>
+    <div class="header-actions">
+      @if (canRecord()) {
+        <button mat-flat-button color="primary" type="button" (click)="add.emit()">
+          <mat-icon>add</mat-icon>
+          Record allergy
+        </button>
+      }
+    </div>
+  </header>
+
+  <p class="clinical-note">
+    This passport reports recorded information. It does not establish a diagnosis or recommend
+    treatment.
+  </p>
+
+  <aside class="qr-panel" aria-label="Opaque passport QR code">
+    <div class="qr-visual">
+      @if (qrHtml(); as svg) {
+        <div class="qr-svg" [innerHTML]="svg"></div>
+      } @else if (qrError()) {
+        <p class="sgh-muted">{{ qrError() }}</p>
+      } @else {
+        <p class="sgh-muted">Preparing QR…</p>
+      }
+    </div>
+    <div class="qr-copy">
+      <h3>Secure QR</h3>
+      <p>
+        The code contains only an opaque passport token (deep-link). It does not embed allergens,
+        reactions, severity or any clinical text.
+      </p>
+      <p class="token-line">
+        <span class="label">Token</span>
+        <code>{{ passport().passportToken || '—' }}</code>
+      </p>
+      @if (qrPayload()) {
+        <p class="sgh-muted deep-link">{{ qrPayload() }}</p>
+      }
+    </div>
+  </aside>
+
+  @if (passport().allergies.length === 0) {
+    <div class="empty-state">
+      <mat-icon aria-hidden="true">info</mat-icon>
+      <span>Allergy information has not been recorded. This does not mean “no known allergies”.</span>
+    </div>
+  } @else {
+    <div class="allergy-list">
+      @for (allergy of passport().allergies; track allergy.id) {
+        <article class="allergy-card" [class.important]="isImportant(allergy)">
+          <div class="allergy-title">
+            <div>
+              <h3>{{ allergy.allergen }}</h3>
+              <span class="category">{{ allergy.category || 'Legacy free text' }}</span>
+            </div>
+            @if (isImportant(allergy)) {
+              <span class="important-label">
+                <mat-icon aria-hidden="true">warning</mat-icon>
+                Important
+              </span>
+            }
+          </div>
+
+          <dl>
+            <div>
+              <dt>Verification</dt>
+              <dd><span class="badge">{{ allergy.verificationStatus }}</span></dd>
+            </div>
+            <div>
+              <dt>Clinical status</dt>
+              <dd>{{ allergy.clinicalStatus }}</dd>
+            </div>
+            <div>
+              <dt>Reaction</dt>
+              <dd>{{ allergy.observedReaction || 'Not recorded' }}</dd>
+            </div>
+            <div>
+              <dt>Reaction severity</dt>
+              <dd>{{ allergy.reactionSeverity || 'Not assessed' }}</dd>
+            </div>
+            <div>
+              <dt>Criticality</dt>
+              <dd>{{ allergy.criticality }}</dd>
+            </div>
+            <div>
+              <dt>Reaction date</dt>
+              <dd>{{ allergy.reactionDate || 'Not recorded' }}</dd>
+            </div>
+          </dl>
+
+          <div class="actions">
+            @if (canEdit()(allergy)) {
+              <button mat-button type="button" (click)="edit.emit(allergy)">
+                <mat-icon>edit</mat-icon>
+                Edit
+              </button>
+            }
+            @if (canVerify() && allergy.verificationStatus !== 'CONFIRMED') {
+              <button mat-button type="button" (click)="verify.emit({ allergy, status: 'CONFIRMED' })">
+                <mat-icon>verified</mat-icon>
+                Confirm
+              </button>
+            }
+            @if (canVerify() && allergy.verificationStatus !== 'REFUTED') {
+              <button mat-button type="button" (click)="verify.emit({ allergy, status: 'REFUTED' })">
+                <mat-icon>block</mat-icon>
+                Refute
+              </button>
+            }
+            @if (canViewHistory()) {
+              <button mat-button type="button" (click)="history.emit(allergy)">
+                <mat-icon>history</mat-icon>
+                History
+              </button>
+            }
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>

@@ -1,0 +1,15 @@
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  padding: var(--sgh-space-7);
+}
+
+.banner {
+  padding: var(--sgh-space-3) var(--sgh-space-4);
+  border-radius: var(--sgh-radius-sm);
+}
+
+.warning {
+  background: var(--sgh-tone-warning-bg);
+  color: var(--sgh-tone-warning-fg);
+}

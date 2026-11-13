@@ -16,7 +16,7 @@ import {
 } from '../../../shared/components/data-table/data-table.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { ServiceGateDirective } from '../../../shared/components/service-gate/service-gate.directive';
-import { canCreatePatient } from '../patient-rules';
+import { canCreatePatient, canViewPatientStatistics } from '../patient-rules';
 
 @Component({
   selector: 'app-patient-list',
@@ -47,6 +47,7 @@ export class PatientListComponent implements OnInit {
   readonly loading = signal(false);
 
   protected readonly canCreate = canCreatePatient((role) => this.auth.hasRole(role));
+  protected readonly canViewStatistics = canViewPatientStatistics((role) => this.auth.hasRole(role));
 
   protected readonly columns: DataTableColumn<Patient>[] = [
     { key: 'lastName', header: 'Last name' },
@@ -94,5 +95,9 @@ export class PatientListComponent implements OnInit {
 
   onCreate(): void {
     this.router.navigate(['/patients/new']);
+  }
+
+  onStatistics(): void {
+    this.router.navigate(['/patients/statistics']);
   }
 }

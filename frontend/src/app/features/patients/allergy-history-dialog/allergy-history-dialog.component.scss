@@ -1,0 +1,38 @@
+mat-dialog-content {
+  min-width: min(620px, 80vw);
+}
+
+.timeline {
+  display: grid;
+  gap: var(--sgh-space-3);
+  margin: 0;
+  padding-left: var(--sgh-space-5);
+}
+
+.timeline li {
+  padding: var(--sgh-space-3);
+  border: 1px solid var(--sgh-border-subtle);
+  border-radius: var(--sgh-radius-sm);
+}
+
+.event-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--sgh-space-2);
+}
+
+.error {
+  color: var(--sgh-tone-danger-fg);
+}
+
+pre {
+  max-height: 240px;
+  overflow: auto;
+  padding: var(--sgh-space-2);
+  background: var(--sgh-surface-1);
+  border-radius: var(--sgh-radius-sm);
+  font-family: var(--sgh-font-mono);
+  font-size: var(--sgh-text-sm);
+  white-space: pre-wrap;
+}

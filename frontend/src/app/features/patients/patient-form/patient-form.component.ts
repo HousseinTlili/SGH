@@ -1,5 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  OnInit,
+  inject,
+  signal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -10,11 +18,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { catchError, debounceTime, distinctUntilChanged, map, of, switchMap } from 'rxjs';
 import { PatientApi } from '../../../core/api/patient.api';
 import { AuthService } from '../../../core/auth/auth.service';
 import { toApiError } from '../../../core/http/api-error';
-import type { PatientInput } from '../../../core/models/patient';
+import type { PatientInput, SimilarPatient } from '../../../core/models/patient';
 import { FormErrorsComponent } from '../../../shared/components/form-errors/form-errors.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { ServiceGateDirective } from '../../../shared/components/service-gate/service-gate.directive';
@@ -36,6 +45,7 @@ export const GENDERS = [
   selector: 'app-patient-form',
   imports: [
     ReactiveFormsModule,
+    RouterLink,
     MatButtonModule,
     MatCardModule,
     MatDatepickerModule,
@@ -58,11 +68,15 @@ export class PatientFormComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly isEdit = signal(false);
   readonly patientId = signal<string | null>(null);
   readonly saving = signal(false);
   readonly loading = signal(false);
+  readonly similarMatches = signal<SimilarPatient[]>([]);
+  readonly similarCheckFailed = signal(false);
+  readonly similarLoading = signal(false);
 
   protected readonly bloodTypes = BLOOD_TYPES;
   protected readonly genders = GENDERS;
@@ -127,6 +141,58 @@ export class PatientFormComponent implements OnInit {
     this.form.valueChanges.subscribe(() => {
       clearServerErrors(this.form);
     });
+
+    this.form.valueChanges
+      .pipe(
+        map(() => {
+          const raw = this.form.getRawValue();
+          return {
+            firstName: raw.firstName.trim(),
+            lastName: raw.lastName.trim(),
+            birthDate:
+              typeof raw.birthDate === 'string' ? raw.birthDate.trim() : String(raw.birthDate ?? ''),
+          };
+        }),
+        debounceTime(400),
+        distinctUntilChanged(
+          (a, b) =>
+            a.firstName === b.firstName && a.lastName === b.lastName && a.birthDate === b.birthDate,
+        ),
+        switchMap((query) => this.lookupSimilar(query.firstName, query.lastName, query.birthDate)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((matches) => {
+        this.similarLoading.set(false);
+        if (matches === null) {
+          return;
+        }
+        this.similarCheckFailed.set(false);
+        this.similarMatches.set(matches);
+      });
+  }
+
+  /** Public so unit tests can skip debounceTime (the app is zoneless). */
+  lookupSimilar(firstName: string, lastName: string, birthDate: string) {
+    const isoDate = /^\d{4}-\d{2}-\d{2}$/.test(birthDate) ? birthDate : undefined;
+    if (firstName.length < 2 || lastName.length < 2) {
+      this.similarMatches.set([]);
+      this.similarCheckFailed.set(false);
+      this.similarLoading.set(false);
+      return of(null);
+    }
+    this.similarLoading.set(true);
+    return this.api
+      .similar(firstName, lastName, isoDate, this.patientId() ?? undefined)
+      .pipe(
+        catchError((err: unknown) => {
+          const status = err instanceof HttpErrorResponse ? err.status : 0;
+          // Network / gateway down: optional hint. 4xx must not look like a duplicate.
+          this.similarCheckFailed.set(status === 0 || status === 502 || status === 503);
+          this.similarMatches.set([]);
+          this.similarLoading.set(false);
+          return of(null);
+        }),
+      );
   }
 
   loadPatient(id: string): void {
