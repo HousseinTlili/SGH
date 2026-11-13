@@ -69,3 +69,11 @@ Output used:  patients.passport_token (V4), GET /api/patients/passport/{token}, 
 Verification: Maven Patient allergy tests + Angular patient/qr specs
 Corrections:  none at write time
 Decision:     QR encodes only opaque deep-link/token; clinical data loaded after authentication
+
+## Entry 6
+Context:      OpenFeign integration (course requirement), 2026-11-13
+Prompt:       its a course req, so add it even just in the sake of adding it, even if it doesnt really do a thing, and tell me how to test and what to expect
+Output used:  contracts/openapi/patient.yaml (+ 2 copies): GET /api/patients/staff/{staffId}, schema StaffLookup; patient-service StaffClient (@FeignClient, static URL), FeignForwardingConfig (token + X-Correlation-Id), StaffLookupService (404 kept, any other failure -> fallback), StaffLookupFeignTest (JDK HttpServer stub)
+Verification: mvnw test 55/55 (6 new); live: found 200 direct and via gateway, 404, 403 pharmacist, 401, staff-service stopped -> 200 fallback
+Corrections:  none at write time
+Decision:     Feign only where Spring MVC runs (patient-service); try/catch fallback instead of Resilience4j circuit breaker to keep one dependency and an explicit 2 s timeout
