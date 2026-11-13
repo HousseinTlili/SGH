@@ -61,6 +61,29 @@
       <!-- 1. Overview Tab -->
       <mat-tab label="Overview">
         <div class="tab-content">
+          <div class="allergy-passport-section">
+            @if (allergyLoading()) {
+              <p class="sgh-muted">Loading allergy passport…</p>
+            } @else if (allergyError()) {
+              <div class="allergy-load-error" role="alert">
+                <span>The allergy passport could not be loaded.</span>
+                <button mat-button type="button" (click)="loadAllergyPassport()">Retry</button>
+              </div>
+            } @else if (allergyPassport(); as passport) {
+              <app-allergy-passport
+                [passport]="passport"
+                [canRecord]="canRecordAllergy()"
+                [canVerify]="canVerifyAllergy()"
+                [canViewHistory]="canViewAllergyHistory()"
+                [canEdit]="canEditAllergy"
+                (add)="onAddAllergy()"
+                (edit)="onEditAllergy($event)"
+                (verify)="onVerifyAllergy($event)"
+                (history)="onAllergyHistory($event)"
+              />
+            }
+          </div>
+
           <div class="info-grid">
             <div class="info-card">
               <h3>Contact Details</h3>

@@ -1,0 +1,71 @@
+<h2 mat-dialog-title>{{ data.allergy ? 'Edit allergy' : 'Record allergy' }}</h2>
+<mat-dialog-content>
+  <p class="sgh-muted">
+    Record observed or patient-reported facts only. This form does not establish a diagnosis.
+  </p>
+  @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+  <form [formGroup]="form" class="form-grid">
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Allergen *</mat-label>
+      <input matInput formControlName="allergen" maxlength="255" />
+      <mat-hint>Substance as reported or clinically identified</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Category *</mat-label>
+      <mat-select formControlName="category">
+        <mat-option value="MEDICATION">Medication</mat-option>
+        <mat-option value="FOOD">Food</mat-option>
+        <mat-option value="ENVIRONMENT">Environment</mat-option>
+        <mat-option value="BIOLOGIC">Biologic</mat-option>
+        <mat-option value="OTHER">Other</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Clinical status *</mat-label>
+      <mat-select formControlName="clinicalStatus">
+        <mat-option value="ACTIVE">Active</mat-option>
+        <mat-option value="INACTIVE">Inactive</mat-option>
+        <mat-option value="RESOLVED">Resolved</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Observed reaction</mat-label>
+      <textarea matInput formControlName="observedReaction" rows="3" maxlength="500"></textarea>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Reaction date</mat-label>
+      <input matInput type="date" formControlName="reactionDate" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Reaction severity</mat-label>
+      <mat-select formControlName="reactionSeverity">
+        <mat-option value="">Not assessed</mat-option>
+        <mat-option value="MILD">Mild</mat-option>
+        <mat-option value="MODERATE">Moderate</mat-option>
+        <mat-option value="SEVERE">Severe</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Clinical criticality *</mat-label>
+      <mat-select formControlName="criticality">
+        <mat-option value="UNABLE_TO_ASSESS">Unable to assess</mat-option>
+        <mat-option value="LOW">Low risk</mat-option>
+        <mat-option value="HIGH">High risk</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close [disabled]="saving()">Cancel</button>
+  <button mat-flat-button color="primary" type="button" [disabled]="form.invalid || saving()" (click)="submit()">
+    {{ saving() ? 'Saving…' : 'Save' }}
+  </button>
+</mat-dialog-actions>

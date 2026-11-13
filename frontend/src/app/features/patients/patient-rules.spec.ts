@@ -7,9 +7,14 @@ import {
   canAddMedicalNote,
   canCreatePatient,
   canDeletePatient,
+  canEditAllergy,
   canEditPatient,
+  canRecordAllergy,
   canStartConsultationForPatient,
+  canVerifyAllergy,
+  canViewAllergyHistory,
   canViewMedicalFile,
+  canViewPatientStatistics,
   notBefore1900Validator,
   notFutureDateValidator,
 } from './patient-rules';
@@ -64,5 +69,22 @@ describe('patient-rules', () => {
 
     expect(canStartConsultationForPatient(mockAuth(['DOCTOR']))).toBe(true);
     expect(canStartConsultationForPatient(mockAuth(['ADMIN']))).toBe(false);
+
+    expect(canViewPatientStatistics(mockAuth(['RECEPTIONIST']))).toBe(true);
+    expect(canViewPatientStatistics(mockAuth(['DOCTOR']))).toBe(true);
+    expect(canViewPatientStatistics(mockAuth(['NURSE']))).toBe(true);
+    expect(canViewPatientStatistics(mockAuth(['ADMIN']))).toBe(true);
+    expect(canViewPatientStatistics(mockAuth(['PATIENT']))).toBe(false);
+
+    expect(canRecordAllergy(mockAuth(['RECEPTIONIST']))).toBe(true);
+    expect(canRecordAllergy(mockAuth(['DOCTOR']))).toBe(true);
+    expect(canRecordAllergy(mockAuth(['NURSE']))).toBe(false);
+    expect(canEditAllergy(mockAuth(['RECEPTIONIST']), 'DECLARED')).toBe(true);
+    expect(canEditAllergy(mockAuth(['RECEPTIONIST']), 'CONFIRMED')).toBe(false);
+    expect(canEditAllergy(mockAuth(['DOCTOR']), 'CONFIRMED')).toBe(true);
+    expect(canVerifyAllergy(mockAuth(['DOCTOR']))).toBe(true);
+    expect(canVerifyAllergy(mockAuth(['NURSE']))).toBe(false);
+    expect(canViewAllergyHistory(mockAuth(['NURSE']))).toBe(true);
+    expect(canViewAllergyHistory(mockAuth(['RECEPTIONIST']))).toBe(false);
   });
 });

@@ -386,4 +386,249 @@ public class PatientServiceIntegrationTest {
                         .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))))
                 .andExpect(status().isForbidden());
     }
+
+    // -------------------------------------------------------------
+    // Similar patients (advisory, does not replace PAT-2)
+    // -------------------------------------------------------------
+
+    @Test
+    @DisplayName("GET /api/patients/similar returns EXACT for a PAT-2 duplicate")
+    void similarExactDuplicate() throws Exception {
+        mockMvc.perform(get("/api/patients/similar")
+                        .param("firstName", "youssef")
+                        .param("lastName", "BEN SALAH")
+                        .param("birthDate", "1985-03-14")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_RECEPTIONIST"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(P1_ID))
+                .andExpect(jsonPath("$[0].match").value("EXACT"))
+                .andExpect(jsonPath("$[0].firstName").value("Youssef"))
+                .andExpect(jsonPath("$[0].lastName").value("Ben Salah"))
+                .andExpect(jsonPath("$[0].phone").doesNotExist())
+                .andExpect(jsonPath("$[0].email").doesNotExist())
+                .andExpect(jsonPath("$[0].allergies").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("GET /api/patients/similar matches names that differ only by accents")
+    void similarAccents() throws Exception {
+        String last = "Accent" + UUID.randomUUID().toString().substring(0, 8);
+        PatientInputDto input = new PatientInputDto();
+        input.setFirstName("Béatrice");
+        input.setLastName(last);
+        input.setBirthDate(LocalDate.of(1991, 4, 2));
+        input.setGender(Gender.FEMALE);
+
+        mockMvc.perform(post("/api/patients")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_RECEPTIONIST")))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(input)))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/api/patients/similar")
+                        .param("firstName", "Beatrice")
+                        .param("lastName", last)
+                        .param("birthDate", "1991-04-02")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_RECEPTIONIST"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].firstName").value("Béatrice"))
+                .andExpect(jsonPath("$[0].match").value("SIMILAR"));
+    }
+
+    @Test
+    @DisplayName("GET /api/patients/similar matches a one-letter spelling variant")
+    void similarSpellingVariant() throws Exception {
+        mockMvc.perform(get("/api/patients/similar")
+                        .param("firstName", "Yousseff")
+                        .param("lastName", "Ben Salah")
+                        .param("birthDate", "1985-03-14")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_RECEPTIONIST"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id=='" + P1_ID + "')].match").value(hasItem("SIMILAR")));
+    }
+
+    @Test
+    @DisplayName("GET /api/patients/similar flags a homonym (same names, different birth date)")
+    void similarHomonymDifferentBirthDate() throws Exception {
+        mockMvc.perform(get("/api/patients/similar")
+                        .param("firstName", "Youssef")
+                        .param("lastName", "Ben Salah")
+                        .param("birthDate", "1999-01-01")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_RECEPTIONIST"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(P1_ID))
+                .andExpect(jsonPath("$[0].match").value("SIMILAR"));
+    }
+
+    @Test
+    @DisplayName("Similar names do not block POST (only PAT-2 exact match returns 409)")
+    void similarDoesNotBlockRegistration() throws Exception {
+        String last = "Var" + UUID.randomUUID().toString().substring(0, 8);
+        PatientInputDto original = new PatientInputDto();
+        original.setFirstName("Nadia");
+        original.setLastName(last);
+        original.setBirthDate(LocalDate.of(1985, 3, 14));
+        original.setGender(Gender.FEMALE);
+
+        mockMvc.perform(post("/api/patients")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_RECEPTIONIST")))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(original)))
+                .andExpect(status().isCreated());
+
+        PatientInputDto similarSpelling = new PatientInputDto();
+        similarSpelling.setFirstName("Nadya");
+        similarSpelling.setLastName(last);
+        similarSpelling.setBirthDate(LocalDate.of(1985, 3, 14));
+        similarSpelling.setGender(Gender.FEMALE);
+
+        mockMvc.perform(post("/api/patients")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_RECEPTIONIST")))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(similarSpelling)))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    @DisplayName("GET /api/patients/similar is RECEPTIONIST only")
+    void similarForbiddenForDoctor() throws Exception {
+        mockMvc.perform(get("/api/patients/similar")
+                        .param("firstName", "Youssef")
+                        .param("lastName", "Ben Salah")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_DOCTOR"))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("GET /api/patients/similar without a token is 401")
+    void similarUnauthorized() throws Exception {
+        mockMvc.perform(get("/api/patients/similar")
+                        .param("firstName", "Youssef")
+                        .param("lastName", "Ben Salah"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    // -------------------------------------------------------------
+    // Statistics dashboard
+    // -------------------------------------------------------------
+
+    @Test
+    @DisplayName("GET /api/patients/statistics returns KPIs, month series and breakdowns")
+    void statisticsDefaultLast12Months() throws Exception {
+        mockMvc.perform(get("/api/patients/statistics")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_DOCTOR"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.period.preset").value("LAST_12_MONTHS"))
+                .andExpect(jsonPath("$.period.from").exists())
+                .andExpect(jsonPath("$.period.to").exists())
+                .andExpect(jsonPath("$.activePatients", greaterThanOrEqualTo(8)))
+                .andExpect(jsonPath("$.newRegistrations", greaterThanOrEqualTo(0)))
+                .andExpect(jsonPath("$.averageAge").isNumber())
+                .andExpect(jsonPath("$.registrationsByMonth", not(empty())))
+                .andExpect(jsonPath("$.ageGroups", hasSize(4)))
+                .andExpect(jsonPath("$.ageGroups[0].name").value("0-17"))
+                .andExpect(jsonPath("$.genders", hasSize(3)))
+                .andExpect(jsonPath("$.completeness.complete").isNumber())
+                .andExpect(jsonPath("$.completeness.incomplete").isNumber());
+    }
+
+    @Test
+    @DisplayName("GET /api/patients/statistics age buckets include seed adults and seniors")
+    void statisticsAgeBuckets() throws Exception {
+        mockMvc.perform(get("/api/patients/statistics")
+                        .param("period", "LAST_12_MONTHS")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_NURSE"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.ageGroups[1].name").value("18-35"))
+                .andExpect(jsonPath("$.ageGroups[1].count", greaterThanOrEqualTo(1)))
+                .andExpect(jsonPath("$.ageGroups[2].name").value("36-60"))
+                .andExpect(jsonPath("$.ageGroups[2].count", greaterThanOrEqualTo(1)))
+                .andExpect(jsonPath("$.ageGroups[3].name").value("60+"))
+                .andExpect(jsonPath("$.ageGroups[3].count", greaterThanOrEqualTo(1)));
+    }
+
+    @Test
+    @DisplayName("GET /api/patients/statistics gender filter OTHER can be empty")
+    void statisticsGenderFilter() throws Exception {
+        mockMvc.perform(get("/api/patients/statistics")
+                        .param("gender", "OTHER")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.genders[0].name").value("MALE"))
+                .andExpect(jsonPath("$.genders[0].count").value(0))
+                .andExpect(jsonPath("$.genders[1].count").value(0));
+    }
+
+    @Test
+    @DisplayName("Incomplete files count patients missing phone and ignore a later soft delete")
+    void statisticsIncompleteAndDeletedExcluded() throws Exception {
+        String before = mockMvc.perform(get("/api/patients/statistics")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_RECEPTIONIST"))))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        int incompleteBefore = objectMapper.readTree(before).get("incompleteFiles").asInt();
+        int activeBefore = objectMapper.readTree(before).get("activePatients").asInt();
+
+        String unique = "Inc" + UUID.randomUUID().toString().substring(0, 8);
+        PatientInputDto input = new PatientInputDto();
+        input.setFirstName(unique);
+        input.setLastName("File");
+        input.setBirthDate(LocalDate.of(1990, 1, 1));
+        input.setGender(Gender.FEMALE);
+        input.setEmail(unique.toLowerCase() + "@example.com");
+        input.setAddress("Tunis");
+
+        String created = mockMvc.perform(post("/api/patients")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_RECEPTIONIST")))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(input)))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        String id = objectMapper.readTree(created).get("id").asText();
+
+        mockMvc.perform(get("/api/patients/statistics")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_RECEPTIONIST"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.incompleteFiles").value(incompleteBefore + 1))
+                .andExpect(jsonPath("$.activePatients").value(activeBefore + 1));
+
+        mockMvc.perform(delete("/api/patients/" + id)
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/api/patients/statistics")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_RECEPTIONIST"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.incompleteFiles").value(incompleteBefore))
+                .andExpect(jsonPath("$.activePatients").value(activeBefore));
+    }
+
+    @Test
+    @DisplayName("CUSTOM period without dates is 422")
+    void statisticsCustomRequiresDates() throws Exception {
+        mockMvc.perform(get("/api/patients/statistics")
+                        .param("period", "CUSTOM")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_RECEPTIONIST"))))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.status").value(422));
+    }
+
+    @Test
+    @DisplayName("GET /api/patients/statistics is forbidden for PATIENT")
+    void statisticsForbiddenForPatient() throws Exception {
+        mockMvc.perform(get("/api/patients/statistics")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_PATIENT"))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("GET /api/patients/statistics without a token is 401")
+    void statisticsUnauthorized() throws Exception {
+        mockMvc.perform(get("/api/patients/statistics"))
+                .andExpect(status().isUnauthorized());
+    }
 }

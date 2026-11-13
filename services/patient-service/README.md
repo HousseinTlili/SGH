@@ -12,7 +12,7 @@ Service 1 (Patient) of the SGH Hospital Management System. Runs on port 8081, da
 ## Run and Test
 
 ```bash
-# Run unit and integration tests (23 tests). They use their own database,
+# Run unit and integration tests. They use their own database,
 # sgh_patient_test, created on first run, so the development data is never touched.
 ./mvnw test
 
@@ -28,7 +28,11 @@ Service 1 (Patient) of the SGH Hospital Management System. Runs on port 8081, da
 ## Business Rules Implemented
 
 - **PAT-1**: Patient registration: validates required fields, gender enum, phone pattern, and ensures birth date is strictly in the past (422 Unprocessable Entity).
-- **PAT-2**: Duplicate prevention: case-insensitive match on `(firstName, lastName, birthDate)` returns 409 Conflict.
+- **PAT-2**: Duplicate prevention: case-insensitive match on `(firstName, lastName, birthDate)` returns 409 Conflict. Unchanged: similar names never produce 409 by themselves.
+- **Similar patients (advisory)**: `GET /api/patients/similar?firstName=&lastName=&birthDate=` (RECEPTIONIST). Returns a short list `{ id, firstName, lastName, birthDate, match, score }` (`EXACT` = PAT-2 duplicate, `SIMILAR` = accents / spelling / homonym). The receptionist must confirm; this endpoint never blocks registration. No phone, email or clinical fields.
+- **Statistics**: `GET /api/patients/statistics` (RECEPTIONIST, DOCTOR, NURSE, ADMIN). Aggregates active patients in `sgh_patient` only. Period filters registrations; age and gender filter the current population. A file is incomplete if phone, email or address is missing. The model has no insured flag: insurance is required only when at least one of `insuranceProvider` / `insuranceNumber` is filled (declared insured). Both empty is not incomplete.
+- **Allergy passport QR**: each patient has an opaque `passportToken`. `GET /api/patients/{id}/allergy-passport` returns it; `GET /api/patients/passport/{passportToken}` resolves the passport after authentication. The QR must encode only that token (or the deep-link `/patients/passport/{token}`), never clinical allergy text.
+- **Smart Allergy Passport**: structured, FHIR AllergyIntolerance-inspired allergy records under `/api/patients/{id}/allergies` and a secure `/allergy-passport`. Receptionists may record and edit patient-declared information; only doctors can confirm or refute it. Every change stores an immutable before/after audit snapshot with actor, role, correlation id and timestamp. The legacy `Patient.allergies` string remains as a compatibility projection; V3 imports existing values as `DECLARED` without inferring clinical facts. No endpoint diagnoses an allergy or recommends treatment.
 - **PAT-3**: Patient search & list: case-insensitive substring search on first or last name; results ordered by `lastName ASC, firstName ASC`; soft-deleted patients are excluded.
 - **PAT-4**: Registration returns HTTP 201 Created with `Location: /api/patients/{id}` header.
 - **PAT-5**: Record access control: `PATIENT` role can access only their own patient record (matching `patientId` claim in JWT; 403 Forbidden on mismatch). Staff roles (`RECEPTIONIST`, `DOCTOR`, `NURSE`, `ADMIN`) can access any record.

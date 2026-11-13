@@ -1,0 +1,32 @@
+<h2 mat-dialog-title>Allergy history — {{ data.allergy.allergen }}</h2>
+<mat-dialog-content>
+  @if (loading()) {
+    <p class="sgh-muted">Loading history…</p>
+  } @else if (error()) {
+    <p class="error" role="alert">The audit history could not be loaded.</p>
+  } @else {
+    <ol class="timeline">
+      @for (entry of entries(); track entry.id) {
+        <li>
+          <div class="event-header">
+            <strong>{{ entry.action }}</strong>
+            <span class="sgh-muted">{{ entry.changedAt | localDatetime }}</span>
+          </div>
+          <p>
+            By {{ entry.changedByUsername }} ({{ entry.changedByRole }}) · Correlation
+            {{ entry.correlationId }}
+          </p>
+          <details>
+            <summary>Audit snapshot</summary>
+            <pre>{{ entry.afterSnapshot | json }}</pre>
+          </details>
+        </li>
+      } @empty {
+        <li>No history recorded.</li>
+      }
+    </ol>
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Close</button>
+</mat-dialog-actions>
