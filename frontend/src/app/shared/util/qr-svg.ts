@@ -1,6 +1,6 @@
 import * as QRCodeImport from 'qrcode';
 
-type QrApi = {
+interface QrApi {
   toString: (
     text: string,
     options: {
@@ -11,7 +11,7 @@ type QrApi = {
       color?: { dark: string; light: string };
     },
   ) => Promise<string>;
-};
+}
 
 function qrApi(): QrApi {
   const mod = QRCodeImport as unknown as QrApi & { default?: QrApi };
