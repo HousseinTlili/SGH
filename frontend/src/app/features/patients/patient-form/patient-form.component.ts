@@ -150,7 +150,9 @@ export class PatientFormComponent implements OnInit {
             firstName: raw.firstName.trim(),
             lastName: raw.lastName.trim(),
             birthDate:
-              typeof raw.birthDate === 'string' ? raw.birthDate.trim() : String(raw.birthDate ?? ''),
+              typeof raw.birthDate === 'string'
+                ? raw.birthDate.trim()
+                : String(raw.birthDate ?? ''),
           };
         }),
         debounceTime(400),
@@ -181,18 +183,16 @@ export class PatientFormComponent implements OnInit {
       return of(null);
     }
     this.similarLoading.set(true);
-    return this.api
-      .similar(firstName, lastName, isoDate, this.patientId() ?? undefined)
-      .pipe(
-        catchError((err: unknown) => {
-          const status = err instanceof HttpErrorResponse ? err.status : 0;
-          // Network / gateway down: optional hint. 4xx must not look like a duplicate.
-          this.similarCheckFailed.set(status === 0 || status === 502 || status === 503);
-          this.similarMatches.set([]);
-          this.similarLoading.set(false);
-          return of(null);
-        }),
-      );
+    return this.api.similar(firstName, lastName, isoDate, this.patientId() ?? undefined).pipe(
+      catchError((err: unknown) => {
+        const status = err instanceof HttpErrorResponse ? err.status : 0;
+        // Network / gateway down: optional hint. 4xx must not look like a duplicate.
+        this.similarCheckFailed.set(status === 0 || status === 502 || status === 503);
+        this.similarMatches.set([]);
+        this.similarLoading.set(false);
+        return of(null);
+      }),
+    );
   }
 
   loadPatient(id: string): void {

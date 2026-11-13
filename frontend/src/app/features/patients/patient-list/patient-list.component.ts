@@ -47,7 +47,9 @@ export class PatientListComponent implements OnInit {
   readonly loading = signal(false);
 
   protected readonly canCreate = canCreatePatient((role) => this.auth.hasRole(role));
-  protected readonly canViewStatistics = canViewPatientStatistics((role) => this.auth.hasRole(role));
+  protected readonly canViewStatistics = canViewPatientStatistics((role) =>
+    this.auth.hasRole(role),
+  );
 
   protected readonly columns: DataTableColumn<Patient>[] = [
     { key: 'lastName', header: 'Last name' },

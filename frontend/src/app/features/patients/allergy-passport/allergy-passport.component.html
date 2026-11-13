@@ -51,7 +51,9 @@
   @if (passport().allergies.length === 0) {
     <div class="empty-state">
       <mat-icon aria-hidden="true">info</mat-icon>
-      <span>Allergy information has not been recorded. This does not mean “no known allergies”.</span>
+      <span
+        >Allergy information has not been recorded. This does not mean “no known allergies”.</span
+      >
     </div>
   } @else {
     <div class="allergy-list">
@@ -73,7 +75,9 @@
           <dl>
             <div>
               <dt>Verification</dt>
-              <dd><span class="badge">{{ allergy.verificationStatus }}</span></dd>
+              <dd>
+                <span class="badge">{{ allergy.verificationStatus }}</span>
+              </dd>
             </div>
             <div>
               <dt>Clinical status</dt>
@@ -105,13 +109,21 @@
               </button>
             }
             @if (canVerify() && allergy.verificationStatus !== 'CONFIRMED') {
-              <button mat-button type="button" (click)="verify.emit({ allergy, status: 'CONFIRMED' })">
+              <button
+                mat-button
+                type="button"
+                (click)="verify.emit({ allergy, status: 'CONFIRMED' })"
+              >
                 <mat-icon>verified</mat-icon>
                 Confirm
               </button>
             }
             @if (canVerify() && allergy.verificationStatus !== 'REFUTED') {
-              <button mat-button type="button" (click)="verify.emit({ allergy, status: 'REFUTED' })">
+              <button
+                mat-button
+                type="button"
+                (click)="verify.emit({ allergy, status: 'REFUTED' })"
+              >
                 <mat-icon>block</mat-icon>
                 Refute
               </button>

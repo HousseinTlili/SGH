@@ -115,9 +115,12 @@ export class MyConsultationsComponent {
   private readonly names = inject(NameLookupService);
   private readonly status = inject(ServiceStatusService);
 
-  private readonly statusCell = viewChild<TemplateRef<{ $implicit: PatientConsultationRow }>>('statusCell');
-  private readonly dateCell = viewChild<TemplateRef<{ $implicit: PatientConsultationRow }>>('dateCell');
-  private readonly soapCell = viewChild<TemplateRef<{ $implicit: PatientConsultationRow }>>('soapCell');
+  private readonly statusCell =
+    viewChild<TemplateRef<{ $implicit: PatientConsultationRow }>>('statusCell');
+  private readonly dateCell =
+    viewChild<TemplateRef<{ $implicit: PatientConsultationRow }>>('dateCell');
+  private readonly soapCell =
+    viewChild<TemplateRef<{ $implicit: PatientConsultationRow }>>('soapCell');
 
   protected readonly consultations = signal<Consultation[]>([]);
   protected readonly doctorNames = signal<Record<string, string>>({});

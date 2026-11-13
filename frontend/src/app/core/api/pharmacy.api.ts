@@ -4,7 +4,13 @@ import type { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { clampPaging, toHttpParams } from '../../shared/util/paging';
 import type { Paged } from '../models/common';
-import type { DispenseLine, Dispensing, Drug, DrugInput, PharmacyPrescription } from '../models/pharmacy';
+import type {
+  DispenseLine,
+  Dispensing,
+  Drug,
+  DrugInput,
+  PharmacyPrescription,
+} from '../models/pharmacy';
 
 export interface PrescriptionFilters {
   /** One status, or several joined with commas (see docs/FRONTEND-DECISIONS.md, F-19). */
@@ -47,7 +53,9 @@ export class PharmacyApi {
   }
 
   dispense(id: string, lines: DispenseLine[]): Observable<PharmacyPrescription> {
-    return this.http.post<PharmacyPrescription>(`${this.base}/prescriptions/${id}/dispense`, { lines });
+    return this.http.post<PharmacyPrescription>(`${this.base}/prescriptions/${id}/dispense`, {
+      lines,
+    });
   }
 
   listDrugs(filters: DrugFilters = {}): Observable<Paged<Drug>> {

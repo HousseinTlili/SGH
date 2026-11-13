@@ -31,7 +31,10 @@ import { ErrorStateComponent } from '../../../shared/components/error-state/erro
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { ServiceGateDirective } from '../../../shared/components/service-gate/service-gate.directive';
 import { DrugDialogComponent } from '../drug-dialog/drug-dialog.component';
-import { StockDialogComponent, type StockDialogResult } from '../stock-dialog/stock-dialog.component';
+import {
+  StockDialogComponent,
+  type StockDialogResult,
+} from '../stock-dialog/stock-dialog.component';
 
 @Component({
   selector: 'app-drug-list',
@@ -162,7 +165,11 @@ export class DrugListComponent {
       { key: 'form', header: 'Form', cell: (r) => r.form },
       { key: 'strength', header: 'Strength', cell: (r) => r.strength },
       { key: 'stock', header: 'In Stock', cell: sTpl ?? ((r) => `${r.stock} ${r.unit}`) },
-      { key: 'reorderThreshold', header: 'Reorder At', cell: (r) => `${r.reorderThreshold} ${r.unit}` },
+      {
+        key: 'reorderThreshold',
+        header: 'Reorder At',
+        cell: (r) => `${r.reorderThreshold} ${r.unit}`,
+      },
       { key: 'actions', header: 'Actions', cell: aTpl },
     ];
   });

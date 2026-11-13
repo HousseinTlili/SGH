@@ -153,7 +153,9 @@ describe('PatientFormComponent', () => {
   it('does not treat a 400 from similar as a duplicate warning', () => {
     patientApi.similar = vi
       .fn()
-      .mockReturnValue(throwError(() => new HttpErrorResponse({ status: 400, statusText: 'Bad Request' })));
+      .mockReturnValue(
+        throwError(() => new HttpErrorResponse({ status: 400, statusText: 'Bad Request' })),
+      );
 
     component.lookupSimilar('Sami', 'Khelil', '1990-04-15').subscribe();
 
@@ -164,7 +166,9 @@ describe('PatientFormComponent', () => {
   it('still saves when the similar-patient lookup fails', () => {
     patientApi.similar = vi
       .fn()
-      .mockReturnValue(throwError(() => new HttpErrorResponse({ status: 0, statusText: 'Unknown Error' })));
+      .mockReturnValue(
+        throwError(() => new HttpErrorResponse({ status: 0, statusText: 'Unknown Error' })),
+      );
 
     component.form.patchValue({
       firstName: 'Sami',
@@ -201,14 +205,12 @@ describe('PatientFormComponent', () => {
       birthDate: '1985-03-14',
       gender: 'MALE',
     });
-    component
-      .lookupSimilar('Yousseff', 'Ben Salah', '1985-03-14')
-      .subscribe((matches) => {
-        if (matches) {
-          component.similarMatches.set(matches);
-          component.similarCheckFailed.set(false);
-        }
-      });
+    component.lookupSimilar('Yousseff', 'Ben Salah', '1985-03-14').subscribe((matches) => {
+      if (matches) {
+        component.similarMatches.set(matches);
+        component.similarCheckFailed.set(false);
+      }
+    });
 
     expect(component.similarMatches().length).toBe(1);
     expect(component.form.valid).toBe(true);

@@ -21,7 +21,12 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { toApiError } from '../../../core/http/api-error';
 import { NameLookupService } from '../../../core/lookup/name-lookup.service';
 import type { ApiError } from '../../../core/models/common';
-import type { DispenseLine, Dispensing, Drug, PharmacyPrescription } from '../../../core/models/pharmacy';
+import type {
+  DispenseLine,
+  Dispensing,
+  Drug,
+  PharmacyPrescription,
+} from '../../../core/models/pharmacy';
 import { ServiceStatusService } from '../../../core/status/service-status.service';
 import { ConfirmService } from '../../../shared/components/confirm-dialog/confirm.service';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
@@ -157,8 +162,7 @@ export class PrescriptionDetailComponent {
       if (!item.dispensed) {
         // Find best match in available inventory
         const matched =
-          drugs.find((d) => item.drugName.toLowerCase().includes(d.name.toLowerCase())) ??
-          drugs[0];
+          drugs.find((d) => item.drugName.toLowerCase().includes(d.name.toLowerCase())) ?? drugs[0];
 
         rows.push({
           itemIndex: item.index,
@@ -187,7 +191,9 @@ export class PrescriptionDetailComponent {
     const rx = this.prescription();
     if (!rx) return;
 
-    const selectedRows = this.dispenseRows().filter((r) => r.selected && r.drugId && r.quantity > 0);
+    const selectedRows = this.dispenseRows().filter(
+      (r) => r.selected && r.drugId && r.quantity > 0,
+    );
     if (selectedRows.length === 0) return;
 
     // Check stock

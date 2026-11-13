@@ -49,7 +49,10 @@ function setup(getRequest = vi.fn(() => of(request()))) {
         provide: ActivatedRoute,
         useValue: { snapshot: { paramMap: convertToParamMap({ id: ID }) } },
       },
-      { provide: LabApi, useValue: { getRequest, getTests, startRequest, enterResults, validateRequest } },
+      {
+        provide: LabApi,
+        useValue: { getRequest, getTests, startRequest, enterResults, validateRequest },
+      },
       {
         provide: NameLookupService,
         useValue: {
@@ -61,7 +64,15 @@ function setup(getRequest = vi.fn(() => of(request()))) {
   });
   const fixture = TestBed.createComponent(LabRequestDetailComponent);
   const el = fixture.nativeElement as HTMLElement;
-  return { fixture, el, getRequest, startRequest, enterResults, validateRequest, text: () => el.textContent ?? '' };
+  return {
+    fixture,
+    el,
+    getRequest,
+    startRequest,
+    enterResults,
+    validateRequest,
+    text: () => el.textContent ?? '',
+  };
 }
 
 const stepStates = (el: HTMLElement) =>

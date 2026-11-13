@@ -235,10 +235,7 @@ export class PatientDetailComponent implements OnInit {
     this.openAllergyDialog(allergy);
   }
 
-  onVerifyAllergy(event: {
-    allergy: PatientAllergy;
-    status: 'CONFIRMED' | 'REFUTED';
-  }): void {
+  onVerifyAllergy(event: { allergy: PatientAllergy; status: 'CONFIRMED' | 'REFUTED' }): void {
     const p = this.patient();
     if (!p) return;
     const verb = event.status === 'CONFIRMED' ? 'confirm' : 'refute';
