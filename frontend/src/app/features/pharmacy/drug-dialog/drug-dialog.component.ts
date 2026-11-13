@@ -133,8 +133,7 @@ export const DRUG_FORMS = [
 })
 export class DrugDialogComponent {
   protected readonly data = inject<DrugDialogData>(MAT_DIALOG_DATA);
-  protected readonly dialogRef =
-    inject<MatDialogRef<DrugDialogComponent, DrugInput>>(MatDialogRef);
+  protected readonly dialogRef = inject<MatDialogRef<DrugDialogComponent, DrugInput>>(MatDialogRef);
 
   protected readonly drugForms = DRUG_FORMS;
 

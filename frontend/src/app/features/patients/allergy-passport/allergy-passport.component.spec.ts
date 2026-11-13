@@ -32,7 +32,9 @@ const passport: AllergyPassport = {
 
 describe('AllergyPassportComponent', () => {
   it('renders structured allergy and important visual alert without treatment advice', async () => {
-    await TestBed.configureTestingModule({ imports: [AllergyPassportComponent] }).compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [AllergyPassportComponent],
+    }).compileComponents();
     const fixture = TestBed.createComponent(AllergyPassportComponent);
     fixture.componentRef.setInput('passport', passport);
     fixture.detectChanges();
@@ -49,7 +51,9 @@ describe('AllergyPassportComponent', () => {
   });
 
   it('does not infer no known allergies from an empty passport', async () => {
-    await TestBed.configureTestingModule({ imports: [AllergyPassportComponent] }).compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [AllergyPassportComponent],
+    }).compileComponents();
     const fixture = TestBed.createComponent(AllergyPassportComponent);
     fixture.componentRef.setInput('passport', { ...passport, allergies: [] });
     fixture.detectChanges();

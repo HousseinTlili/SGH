@@ -50,7 +50,12 @@ const history: Dispensing[] = [
 ];
 
 function setup(
-  api: Partial<Record<'getPrescription' | 'getDispensings' | 'listDrugs' | 'dispense', ReturnType<typeof vi.fn>>> = {},
+  api: Partial<
+    Record<
+      'getPrescription' | 'getDispensings' | 'listDrugs' | 'dispense',
+      ReturnType<typeof vi.fn>
+    >
+  > = {},
 ) {
   const pharmacy = {
     getPrescription: vi.fn(() => of(rx)),

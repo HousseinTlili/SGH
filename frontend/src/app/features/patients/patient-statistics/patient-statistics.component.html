@@ -63,8 +63,8 @@
     <p class="sgh-muted">Loading statistics…</p>
   } @else if (stats(); as data) {
     <p class="sgh-muted range">
-      Registration window {{ data.period.from }} → {{ data.period.to }} ({{ data.period.preset }}). Age, gender and
-      completeness use the current active population.
+      Registration window {{ data.period.from }} → {{ data.period.to }} ({{ data.period.preset }}).
+      Age, gender and completeness use the current active population.
     </p>
 
     <section class="kpi-grid" aria-label="Key figures">
@@ -131,11 +131,18 @@
           <svg viewBox="0 0 160 160" role="img" aria-label="Patients by gender">
             @for (slice of genderSlices(); track slice.label) {
               @if (slice.d) {
-                <path [attr.d]="slice.d" fill="none" [attr.stroke]="slice.color" stroke-width="22" />
+                <path
+                  [attr.d]="slice.d"
+                  fill="none"
+                  [attr.stroke]="slice.color"
+                  stroke-width="22"
+                />
               }
             }
             <circle cx="80" cy="80" r="40" fill="var(--sgh-surface)" />
-            <text x="80" y="84" text-anchor="middle" class="donut-center">{{ data.activePatients }}</text>
+            <text x="80" y="84" text-anchor="middle" class="donut-center">
+              {{ data.activePatients }}
+            </text>
           </svg>
           <ul class="legend">
             @for (slice of genderSlices(); track slice.label) {
@@ -151,14 +158,19 @@
       <article class="chart-card">
         <h2>File completeness</h2>
         <p class="hint">
-          Incomplete if phone, email or address is missing. Insurance is required only when a provider or number is
-          already filled.
+          Incomplete if phone, email or address is missing. Insurance is required only when a
+          provider or number is already filled.
         </p>
         <div class="donut-row">
           <svg viewBox="0 0 160 160" role="img" aria-label="Complete versus incomplete files">
             @for (slice of completenessSlices(); track slice.label) {
               @if (slice.d) {
-                <path [attr.d]="slice.d" fill="none" [attr.stroke]="slice.color" stroke-width="22" />
+                <path
+                  [attr.d]="slice.d"
+                  fill="none"
+                  [attr.stroke]="slice.color"
+                  stroke-width="22"
+                />
               }
             }
             <circle cx="80" cy="80" r="40" fill="var(--sgh-surface)" />

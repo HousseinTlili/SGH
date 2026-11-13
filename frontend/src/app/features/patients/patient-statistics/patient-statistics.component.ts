@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -52,19 +59,27 @@ export class PatientStatisticsComponent implements OnInit {
   readonly stats = signal<PatientStatistics | null>(null);
 
   readonly filterForm = new FormGroup({
-    period: new FormControl<PatientStatisticsQuery['period']>('LAST_12_MONTHS', { nonNullable: true }),
+    period: new FormControl<PatientStatisticsQuery['period']>('LAST_12_MONTHS', {
+      nonNullable: true,
+    }),
     from: new FormControl('', { nonNullable: true }),
     to: new FormControl('', { nonNullable: true }),
     ageGroup: new FormControl<NonNullable<PatientStatisticsQuery['ageGroup']>>('ALL', {
       nonNullable: true,
     }),
-    gender: new FormControl<NonNullable<PatientStatisticsQuery['gender']>>('ALL', { nonNullable: true }),
+    gender: new FormControl<NonNullable<PatientStatisticsQuery['gender']>>('ALL', {
+      nonNullable: true,
+    }),
   });
 
   readonly monthBars = computed(() => barsFromSeries(this.stats()?.registrationsByMonth ?? []));
   readonly ageBars = computed(() => barsFromNamed(this.stats()?.ageGroups ?? []));
   readonly genderSlices = computed(() =>
-    donutSlices(this.stats()?.genders ?? [], ['var(--sgh-brand)', 'var(--sgh-tone-accent-solid)', 'var(--sgh-tone-neutral-solid)']),
+    donutSlices(this.stats()?.genders ?? [], [
+      'var(--sgh-brand)',
+      'var(--sgh-tone-accent-solid)',
+      'var(--sgh-tone-neutral-solid)',
+    ]),
   );
   readonly completenessSlices = computed(() => {
     const c = this.stats()?.completeness;
@@ -113,9 +128,7 @@ export class PatientStatisticsComponent implements OnInit {
 }
 
 function barsFromSeries(items: { month: string; count: number }[]): SvgBar[] {
-  return toBars(
-    items.map((item) => ({ label: item.month.slice(5), value: item.count })),
-  );
+  return toBars(items.map((item) => ({ label: item.month.slice(5), value: item.count })));
 }
 
 function barsFromNamed(items: { name: string; count: number }[]): SvgBar[] {

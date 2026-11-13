@@ -21,9 +21,7 @@
           @if (similarCheckFailed() && similarMatches().length === 0) {
             <div class="similar-alert similar-alert-warn" role="status">
               <mat-icon>cloud_off</mat-icon>
-              <p>
-                Could not check for similar patients. You can still save this registration.
-              </p>
+              <p>Could not check for similar patients. You can still save this registration.</p>
             </div>
           }
 
@@ -31,7 +29,9 @@
             <div class="similar-alert" role="alert">
               <mat-icon>person_search</mat-icon>
               <div>
-                <p class="similar-title">Possible existing patient{{ similarMatches().length > 1 ? 's' : '' }}</p>
+                <p class="similar-title">
+                  Possible existing patient{{ similarMatches().length > 1 ? 's' : '' }}
+                </p>
                 <p class="similar-lead">
                   Review the file before continuing. Similar names do not block registration; an
                   exact same name and birth date will still be rejected.
@@ -42,7 +42,9 @@
                       <span>
                         <strong>{{ hit.firstName }} {{ hit.lastName }}</strong>
                         ({{ hit.birthDate }})
-                        <span class="similar-tag">{{ hit.match === 'EXACT' ? 'exact match' : 'similar' }}</span>
+                        <span class="similar-tag">{{
+                          hit.match === 'EXACT' ? 'exact match' : 'similar'
+                        }}</span>
                       </span>
                       <a routerLink="/patients/{{ hit.id }}">Open file</a>
                     </li>
