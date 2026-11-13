@@ -19,6 +19,7 @@ $Modules = @(
     @{ Name = "lab";          Port = 8084; Dir = "services\lab-service";       Command = ".venv\Scripts\python.exe -m uvicorn app.main:app --port 8084"; Python = $true },
     @{ Name = "pharmacy";     Port = 8085; Dir = "services\pharmacy-service";  Command = "npm start"; Npm = $true },
     @{ Name = "staff";        Port = 8086; Dir = "services\staff-service";     Command = ".\mvnw.cmd spring-boot:run" },
+    @{ Name = "notification"; Port = 8087; Dir = "services\notification-service"; Command = "npm start"; Npm = $true },
     @{ Name = "gateway";      Port = 8080; Dir = "gateway";                    Command = ".\mvnw.cmd spring-boot:run" },
     @{ Name = "frontend";     Port = 4200; Dir = "frontend";                   Command = "npm start"; Npm = $true }
 )
