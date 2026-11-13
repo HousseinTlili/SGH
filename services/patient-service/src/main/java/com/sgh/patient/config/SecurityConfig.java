@@ -46,6 +46,7 @@ public class SecurityConfig {
                         // Patients sub-endpoints (declared before /api/patients/{id})
                         .requestMatchers(HttpMethod.GET, "/api/patients/statistics").hasAnyRole("RECEPTIONIST", "DOCTOR", "NURSE", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/patients/similar").hasRole("RECEPTIONIST")
+                        .requestMatchers(HttpMethod.GET, "/api/patients/staff/*").hasAnyRole("RECEPTIONIST", "DOCTOR", "NURSE", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/patients/passport/*").hasAnyRole("RECEPTIONIST", "DOCTOR", "NURSE", "ADMIN", "PATIENT")
                         .requestMatchers(HttpMethod.POST, "/api/patients/*/allergies/*/verification").hasRole("DOCTOR")
                         .requestMatchers(HttpMethod.GET, "/api/patients/*/allergies/*/history").hasAnyRole("DOCTOR", "NURSE", "ADMIN")

@@ -471,6 +471,34 @@ paths:
         "403": { $ref: "#/components/responses/Forbidden" }
         "404": { $ref: "#/components/responses/NotFound" }
         "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/patients/staff/{staffId}:
+    parameters:
+      - name: staffId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      tags: [patients]
+      operationId: lookupStaff
+      summary: Minimal view of one staff member, fetched from Staff service through OpenFeign
+      description: "Roles: RECEPTIONIST, DOCTOR, NURSE, ADMIN. Patient service calls Staff service GET /api/staff/{id}/public with an OpenFeign client (2 s timeout, forwards Authorization and X-Correlation-Id). 404 when Staff service answers 404 (unknown or inactive). Fallback: when Staff service is down, slow or answers any other error, 200 with available false, source fallback and null fullName, role and specialty."
+      x-roles: [RECEPTIONIST, DOCTOR, NURSE, ADMIN]
+      responses:
+        "200":
+          description: The staff member, or the fallback when Staff service is unreachable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StaffLookup"
+              examples:
+                found:
+                  value: { staffId: b2b2b2b2-0000-4000-8000-000000000001, available: true, fullName: Amel Trabelsi, role: DOCTOR, specialty: Cardiology, source: staff-service }
+                fallback:
+                  value: { staffId: b2b2b2b2-0000-4000-8000-000000000001, available: false, fullName: null, role: null, specialty: null, source: fallback }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
   /api/patients/{id}/medical-file:
     parameters:
       - $ref: "#/components/parameters/id"
@@ -672,6 +700,16 @@ components:
         id: { type: string, format: uuid }
         fullName: { type: string }
         birthDate: { type: string, format: date }
+    StaffLookup:
+      type: object
+      required: [staffId, available, fullName, role, specialty, source]
+      properties:
+        staffId: { type: string, format: uuid }
+        available: { type: boolean, description: "false when the fallback answered" }
+        fullName: { type: string, nullable: true }
+        role: { type: string, nullable: true }
+        specialty: { type: string, nullable: true }
+        source: { type: string, enum: [staff-service, fallback] }
     SimilarPatient:
       type: object
       required: [id, firstName, lastName, birthDate, match, score]

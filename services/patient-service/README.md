@@ -40,6 +40,7 @@ Service 1 (Patient) of the SGH Hospital Management System. Runs on port 8081, da
 - **PAT-7**: Soft delete: `DELETE /api/patients/{id}` (ADMIN only) marks patient as deleted with timestamp; subsequent GET requests return 404 Not Found.
 - **PAT-8**: Medical file note creation: `DOCTOR` role can add notes of type `NOTE` with `sourceService = patient` (returns 201 Created).
 - **PAT-9**: Summary endpoint: `GET /api/patients/{id}/summary` returns compact `{ id, fullName, birthDate }` for inter-service communication (used by Doctor and Reception services).
+- **OpenFeign call to Staff service**: `GET /api/patients/staff/{staffId}` (RECEPTIONIST, DOCTOR, NURSE, ADMIN) calls Staff service `GET /api/staff/{id}/public` through the OpenFeign client `client/StaffClient` (Spring Cloud 2024.0.1, static URL `STAFF_SERVICE_URL`, 2 s connect and read timeouts, no retry). `client/FeignForwardingConfig` forwards the caller's bearer token and `X-Correlation-Id`. Staff 404 gives 404. Fallback: when Staff service is down, slower than 2 s or answers any other error, the answer is 200 `{ available: false, source: "fallback", fullName/role/specialty: null }` and a WARN log line. Tests: `StaffLookupFeignTest` (stub Staff service on a random port).
 - **X-6 / X-8**: Resilient Boot: Service boots immediately even if PostgreSQL is offline; `/health` returns 200 UP; database-backed endpoints answer 503 `Database unavailable` until background migrations succeed.
 
 ---
@@ -54,6 +55,7 @@ Service 1 (Patient) of the SGH Hospital Management System. Runs on port 8081, da
 | `DATABASE_PASSWORD` | `sgh_dev_password` | Database password |
 | `KEYCLOAK_ISSUER` | `http://localhost:8180/realms/sgh` | Keycloak realm issuer |
 | `KEYCLOAK_JWKS_URI` | `http://localhost:8180/realms/sgh/protocol/openid-connect/certs` | Keycloak JWKS certs endpoint |
+| `STAFF_SERVICE_URL` | `http://localhost:8086` | Staff service base URL for the OpenFeign client |
 
 ---
 
