@@ -41,7 +41,7 @@ public class SecurityConfig {
                         // Public endpoints
                         .requestMatchers("/health", "/actuator/**").permitAll()
                         .requestMatchers("/docs", "/docs/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/openapi.json").permitAll()
-                        .requestMatchers("/api/staff/config/**").permitAll()
+                        .requestMatchers("/api/staff/config/**", "/api/staff/patient-summary/**").permitAll()
 
 
                         // Public registration: must come before /api/staff collection

@@ -42,7 +42,7 @@ public class SecurityConfig {
                         // Public liveness, actuator, and documentation endpoints
                         .requestMatchers("/health", "/actuator/**").permitAll()
                         .requestMatchers("/docs", "/docs/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/openapi.json").permitAll()
-                        .requestMatchers("/api/patients/config/**").permitAll()
+                        .requestMatchers("/api/patients/config/**", "/api/patients/practitioner/**").permitAll()
 
                         // Patients sub-endpoints (declared before /api/patients/{id})
                         .requestMatchers(HttpMethod.GET, "/api/patients/statistics").hasAnyRole("RECEPTIONIST", "DOCTOR", "NURSE", "ADMIN")
