@@ -83,10 +83,7 @@
                   }
                 </div>
                 <div class="kpi-footer">
-                  <span
-                    class="sgh-badge"
-                    [attr.data-tone]="bpEvaluation().tone"
-                  >
+                  <span class="sgh-badge" [attr.data-tone]="bpEvaluation().tone">
                     {{ bpEvaluation().category }}
                   </span>
                   @if (latestVitals(); as v) {
@@ -110,10 +107,7 @@
                   }
                 </div>
                 <div class="kpi-footer">
-                  <span
-                    class="sgh-badge"
-                    [attr.data-tone]="hrEvaluation().tone"
-                  >
+                  <span class="sgh-badge" [attr.data-tone]="hrEvaluation().tone">
                     {{ hrEvaluation().category }}
                   </span>
                   @if (latestVitals(); as v) {
@@ -175,7 +169,9 @@
               <div class="section-title-row">
                 <div class="title-group">
                   <h3>Vital Signs & Physiological Trends</h3>
-                  <p class="sgh-muted">Longitudinal vital telemetry recorded across consultations</p>
+                  <p class="sgh-muted">
+                    Longitudinal vital telemetry recorded across consultations
+                  </p>
                 </div>
               </div>
 
@@ -201,34 +197,103 @@
                     <div class="svg-chart-container">
                       <svg viewBox="0 0 480 160" class="clinical-svg" preserveAspectRatio="none">
                         <!-- Background Grid lines -->
-                        <line x1="40" y1="30" x2="440" y2="30" stroke="var(--sgh-border-subtle)" stroke-dasharray="3 3" />
-                        <line x1="40" y1="75" x2="440" y2="75" stroke="var(--sgh-border-subtle)" stroke-dasharray="3 3" />
-                        <line x1="40" y1="120" x2="440" y2="120" stroke="var(--sgh-border-subtle)" stroke-dasharray="3 3" />
+                        <line
+                          x1="40"
+                          y1="30"
+                          x2="440"
+                          y2="30"
+                          stroke="var(--sgh-border-subtle)"
+                          stroke-dasharray="3 3"
+                        />
+                        <line
+                          x1="40"
+                          y1="75"
+                          x2="440"
+                          y2="75"
+                          stroke="var(--sgh-border-subtle)"
+                          stroke-dasharray="3 3"
+                        />
+                        <line
+                          x1="40"
+                          y1="120"
+                          x2="440"
+                          y2="120"
+                          stroke="var(--sgh-border-subtle)"
+                          stroke-dasharray="3 3"
+                        />
 
                         <!-- Reference Line (Optimal 120 mmHg) -->
-                        <line x1="40" y1="70" x2="440" y2="70" stroke="rgba(16, 185, 129, 0.4)" stroke-width="1.5" stroke-dasharray="4 2" />
+                        <line
+                          x1="40"
+                          y1="70"
+                          x2="440"
+                          y2="70"
+                          stroke="rgba(16, 185, 129, 0.4)"
+                          stroke-width="1.5"
+                          stroke-dasharray="4 2"
+                        />
 
                         <!-- Systolic Curve -->
-                        <path [attr.d]="chart.sysPath" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" />
+                        <path
+                          [attr.d]="chart.sysPath"
+                          fill="none"
+                          stroke="#2563eb"
+                          stroke-width="3"
+                          stroke-linecap="round"
+                        />
 
                         <!-- Diastolic Curve -->
-                        <path [attr.d]="chart.diaPath" fill="none" stroke="#0d9488" stroke-width="3" stroke-linecap="round" />
+                        <path
+                          [attr.d]="chart.diaPath"
+                          fill="none"
+                          stroke="#0d9488"
+                          stroke-width="3"
+                          stroke-linecap="round"
+                        />
 
                         <!-- Data Points -->
                         @for (pt of chart.sysPoints; track pt.dateStr) {
-                          <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="5" fill="#2563eb" stroke="#ffffff" stroke-width="2">
+                          <circle
+                            [attr.cx]="pt.x"
+                            [attr.cy]="pt.y"
+                            r="5"
+                            fill="#2563eb"
+                            stroke="#ffffff"
+                            stroke-width="2"
+                          >
                             <title>{{ pt.dateStr }}: {{ pt.label }}</title>
                           </circle>
-                          <text [attr.x]="pt.x" [attr.y]="pt.y - 10" text-anchor="middle" font-size="10" font-weight="700" fill="#2563eb">
+                          <text
+                            [attr.x]="pt.x"
+                            [attr.y]="pt.y - 10"
+                            text-anchor="middle"
+                            font-size="10"
+                            font-weight="700"
+                            fill="#2563eb"
+                          >
                             {{ pt.val }}
                           </text>
                         }
 
                         @for (pt of chart.diaPoints; track pt.dateStr) {
-                          <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="5" fill="#0d9488" stroke="#ffffff" stroke-width="2">
+                          <circle
+                            [attr.cx]="pt.x"
+                            [attr.cy]="pt.y"
+                            r="5"
+                            fill="#0d9488"
+                            stroke="#ffffff"
+                            stroke-width="2"
+                          >
                             <title>{{ pt.dateStr }}: {{ pt.label }}</title>
                           </circle>
-                          <text [attr.x]="pt.x" [attr.y]="pt.y + 16" text-anchor="middle" font-size="10" font-weight="700" fill="#0d9488">
+                          <text
+                            [attr.x]="pt.x"
+                            [attr.y]="pt.y + 16"
+                            text-anchor="middle"
+                            font-size="10"
+                            font-weight="700"
+                            fill="#0d9488"
+                          >
                             {{ pt.val }}
                           </text>
                         }
@@ -267,22 +332,71 @@
                     <div class="svg-chart-container">
                       <svg viewBox="0 0 480 160" class="clinical-svg" preserveAspectRatio="none">
                         <!-- Grid lines -->
-                        <line x1="40" y1="30" x2="440" y2="30" stroke="var(--sgh-border-subtle)" stroke-dasharray="3 3" />
-                        <line x1="40" y1="75" x2="440" y2="75" stroke="var(--sgh-border-subtle)" stroke-dasharray="3 3" />
-                        <line x1="40" y1="120" x2="440" y2="120" stroke="var(--sgh-border-subtle)" stroke-dasharray="3 3" />
+                        <line
+                          x1="40"
+                          y1="30"
+                          x2="440"
+                          y2="30"
+                          stroke="var(--sgh-border-subtle)"
+                          stroke-dasharray="3 3"
+                        />
+                        <line
+                          x1="40"
+                          y1="75"
+                          x2="440"
+                          y2="75"
+                          stroke="var(--sgh-border-subtle)"
+                          stroke-dasharray="3 3"
+                        />
+                        <line
+                          x1="40"
+                          y1="120"
+                          x2="440"
+                          y2="120"
+                          stroke="var(--sgh-border-subtle)"
+                          stroke-dasharray="3 3"
+                        />
 
                         <!-- Normal reference band line (75 bpm) -->
-                        <line x1="40" y1="90" x2="440" y2="90" stroke="rgba(239, 68, 68, 0.25)" stroke-width="1.5" stroke-dasharray="4 2" />
+                        <line
+                          x1="40"
+                          y1="90"
+                          x2="440"
+                          y2="90"
+                          stroke="rgba(239, 68, 68, 0.25)"
+                          stroke-width="1.5"
+                          stroke-dasharray="4 2"
+                        />
 
                         <!-- Heart Rate Curve -->
-                        <path [attr.d]="chart.path" fill="none" stroke="#ef4444" stroke-width="3" stroke-linecap="round" />
+                        <path
+                          [attr.d]="chart.path"
+                          fill="none"
+                          stroke="#ef4444"
+                          stroke-width="3"
+                          stroke-linecap="round"
+                        />
 
                         <!-- Data Points -->
                         @for (pt of chart.points; track pt.dateStr) {
-                          <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="5" fill="#ef4444" stroke="#ffffff" stroke-width="2">
+                          <circle
+                            [attr.cx]="pt.x"
+                            [attr.cy]="pt.y"
+                            r="5"
+                            fill="#ef4444"
+                            stroke="#ffffff"
+                            stroke-width="2"
+                          >
                             <title>{{ pt.dateStr }}: {{ pt.label }}</title>
                           </circle>
-                          <text [attr.x]="pt.x" [attr.y]="pt.y - 10" text-anchor="middle" font-size="10" font-weight="700" fill="#ef4444">
+                          <text
+                            [attr.x]="pt.x"
+                            [attr.y]="pt.y - 10"
+                            text-anchor="middle"
+                            font-size="10"
+                            font-weight="700"
+                            fill="#ef4444"
+                          >
                             {{ pt.val }}
                           </text>
                         }
@@ -310,10 +424,17 @@
               <div class="section-title-row">
                 <div class="title-group">
                   <h3>Medical Consultations ({{ consultations().length }})</h3>
-                  <p class="sgh-muted">Clinical encounters, SOAP diagnoses, and medical decisions</p>
+                  <p class="sgh-muted">
+                    Clinical encounters, SOAP diagnoses, and medical decisions
+                  </p>
                 </div>
                 @if (canStartConsultation()) {
-                  <button mat-flat-button color="primary" type="button" (click)="onNewConsultation()">
+                  <button
+                    mat-flat-button
+                    color="primary"
+                    type="button"
+                    (click)="onNewConsultation()"
+                  >
                     <mat-icon>add</mat-icon>
                     New consultation
                   </button>
@@ -330,9 +451,16 @@
                 <div class="sgh-card empty-consult-card">
                   <mat-icon class="empty-icon">medical_services</mat-icon>
                   <h4>No consultations recorded for this patient</h4>
-                  <p class="sgh-muted">Begin by initiating the patient's first clinical examination encounter.</p>
+                  <p class="sgh-muted">
+                    Begin by initiating the patient's first clinical examination encounter.
+                  </p>
                   @if (canStartConsultation()) {
-                    <button mat-flat-button color="primary" (click)="onNewConsultation()" type="button">
+                    <button
+                      mat-flat-button
+                      color="primary"
+                      (click)="onNewConsultation()"
+                      type="button"
+                    >
                       <mat-icon>add</mat-icon>
                       Start First Consultation
                     </button>
@@ -341,7 +469,10 @@
               } @else {
                 <div class="consultations-list">
                   @for (consult of consultations(); track consult.id) {
-                    <div class="sgh-card consult-record-card" (click)="onOpenConsultation(consult.id)">
+                    <div
+                      class="sgh-card consult-record-card"
+                      (click)="onOpenConsultation(consult.id)"
+                    >
                       <!-- Top bar -->
                       <div class="consult-card-header">
                         <div class="consult-meta-col">
@@ -361,7 +492,9 @@
                         <div class="consult-badge-col">
                           <app-status-badge [status]="consult.status" />
                           @if (consult.status === 'SIGNED' && consult.signedAt) {
-                            <span class="signed-stamp">Signed {{ consult.signedAt | localDatetime }}</span>
+                            <span class="signed-stamp"
+                              >Signed {{ consult.signedAt | localDatetime }}</span
+                            >
                           }
                         </div>
                       </div>
@@ -370,7 +503,11 @@
                       <div class="consult-assessment-box">
                         <span class="box-tag">ASSESSMENT & DIAGNOSIS</span>
                         <p class="assessment-text">
-                          {{ consult.assessment || consult.subjective || 'Clinical encounter recorded. Click to view notes.' }}
+                          {{
+                            consult.assessment ||
+                              consult.subjective ||
+                              'Clinical encounter recorded. Click to view notes.'
+                          }}
                         </p>
                       </div>
 

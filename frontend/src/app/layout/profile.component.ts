@@ -174,11 +174,15 @@ export class ProfileComponent implements OnInit {
       return;
     }
     if (this.newPasswordInput.length < 8) {
-      this.snackBar.open('New password must be at least 8 characters', 'Dismiss', { duration: 3000 });
+      this.snackBar.open('New password must be at least 8 characters', 'Dismiss', {
+        duration: 3000,
+      });
       return;
     }
     if (this.newPasswordInput !== this.confirmPasswordInput) {
-      this.snackBar.open('New password and confirmation do not match', 'Dismiss', { duration: 3000 });
+      this.snackBar.open('New password and confirmation do not match', 'Dismiss', {
+        duration: 3000,
+      });
       return;
     }
 

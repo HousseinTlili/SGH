@@ -4,7 +4,11 @@ import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { provideFakeAuth } from '../../../../testing/auth';
 import { NotificationApi } from '../../../core/api/notification.api';
-import type { NotificationItem, NotificationPage, NotificationStats } from '../../../core/models/notification';
+import type {
+  NotificationItem,
+  NotificationPage,
+  NotificationStats,
+} from '../../../core/models/notification';
 import { NotificationListComponent } from './notification-list.component';
 
 const mockItem: NotificationItem = {
@@ -29,8 +33,14 @@ const mockPage: NotificationPage = {
 const mockStats: NotificationStats = {
   total: 10,
   unread: 4,
-  byType: [{ type: 'appointment.created', count: 8 }, { type: 'appointment.cancelled', count: 2 }],
-  bySeverity: [{ severity: 'INFO', count: 8 }, { severity: 'WARNING', count: 2 }],
+  byType: [
+    { type: 'appointment.created', count: 8 },
+    { type: 'appointment.cancelled', count: 2 },
+  ],
+  bySeverity: [
+    { severity: 'INFO', count: 8 },
+    { severity: 'WARNING', count: 2 },
+  ],
   last7Days: [{ date: '2026-11-09', count: 5 }],
 };
 

@@ -27,7 +27,11 @@
     matTooltip="Clinical Alerts"
     class="notification-bell-btn"
   >
-    <mat-icon [matBadge]="unreadCount() > 0 ? unreadCount() : null" matBadgeColor="warn" matBadgeSize="small">
+    <mat-icon
+      [matBadge]="unreadCount() > 0 ? unreadCount() : null"
+      matBadgeColor="warn"
+      matBadgeSize="small"
+    >
       notifications
     </mat-icon>
   </a>

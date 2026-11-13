@@ -5,7 +5,7 @@ export const NOTIFICATION_ROUTES: Routes = [
     path: '',
     loadComponent: () =>
       import('./notification-list/notification-list.component').then(
-        (m) => m.NotificationListComponent
+        (m) => m.NotificationListComponent,
       ),
   },
 ];

@@ -16,7 +16,7 @@
       mat-stroked-button
       class="action-btn"
       (click)="deleteRead()"
-      [disabled]="loading() || (stats()?.unread === stats()?.total)"
+      [disabled]="loading() || stats()?.unread === stats()?.total"
     >
       <mat-icon>delete_sweep</mat-icon>
       <span>Clear Read</span>
@@ -85,7 +85,7 @@
     <div class="card-data">
       <span class="card-label">Critical Alerts</span>
       <span class="card-val text-critical">
-        {{ stats()?.unread ?? 0 > 0 ? (stats()?.unread ?? 0) : 0 }}
+        {{ (stats()?.unread ?? 0 > 0) ? (stats()?.unread ?? 0) : 0 }}
       </span>
     </div>
   </div>
@@ -194,16 +194,16 @@
 
       <!-- Optional payload toggle -->
       <div *ngIf="item.payload" class="payload-container" (click)="$event.stopPropagation()">
-        <button
-          type="button"
-          class="payload-toggle-btn"
-          (click)="togglePayload(item.id)"
-        >
+        <button type="button" class="payload-toggle-btn" (click)="togglePayload(item.id)">
           <mat-icon>{{ expandedPayloadId() === item.id ? 'expand_less' : 'expand_more' }}</mat-icon>
-          <span>{{ expandedPayloadId() === item.id ? 'Hide Event Details' : 'View Event Payload' }}</span>
+          <span>{{
+            expandedPayloadId() === item.id ? 'Hide Event Details' : 'View Event Payload'
+          }}</span>
         </button>
 
-        <pre *ngIf="expandedPayloadId() === item.id" class="payload-pre">{{ item.payload | json }}</pre>
+        <pre *ngIf="expandedPayloadId() === item.id" class="payload-pre">{{
+          item.payload | json
+        }}</pre>
       </div>
     </div>
 
@@ -231,22 +231,14 @@
   <!-- Pagination Controls -->
   <footer *ngIf="totalPages() > 1" class="pagination-footer">
     <span class="pagination-info">
-      Showing page <strong>{{ page() + 1 }}</strong> of <strong>{{ totalPages() }}</strong>
-      ({{ totalElements() }} items total)
+      Showing page <strong>{{ page() + 1 }}</strong> of <strong>{{ totalPages() }}</strong> ({{
+        totalElements()
+      }}
+      items total)
     </span>
     <div class="pagination-btns">
-      <button
-        mat-stroked-button
-        (click)="prevPage()"
-        [disabled]="page() === 0"
-      >
-        Previous
-      </button>
-      <button
-        mat-stroked-button
-        (click)="nextPage()"
-        [disabled]="page() + 1 >= totalPages()"
-      >
+      <button mat-stroked-button (click)="prevPage()" [disabled]="page() === 0">Previous</button>
+      <button mat-stroked-button (click)="nextPage()" [disabled]="page() + 1 >= totalPages()">
         Next
       </button>
     </div>

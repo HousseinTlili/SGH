@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  OnInit,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -133,15 +127,11 @@ export class NotificationListComponent implements OnInit {
   }
 
   toggleRead(item: NotificationItem): void {
-    const action$ = item.read
-      ? this.api.markAsUnread(item.id)
-      : this.api.markAsRead(item.id);
+    const action$ = item.read ? this.api.markAsUnread(item.id) : this.api.markAsRead(item.id);
 
     action$.subscribe({
       next: (updated) => {
-        this.notifications.update((list) =>
-          list.map((n) => (n.id === updated.id ? updated : n))
-        );
+        this.notifications.update((list) => list.map((n) => (n.id === updated.id ? updated : n)));
         this.loadStats();
       },
     });

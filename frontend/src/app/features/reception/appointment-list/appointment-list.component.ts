@@ -183,11 +183,7 @@ export class AppointmentListComponent implements OnInit {
 
   // Next checked-in patient for today waiting for consultation
   readonly checkedInPatient = computed(() => {
-    return (
-      this.selectedDayAppointments().find(
-        (a) => a.status === 'CHECKED_IN'
-      ) ?? null
-    );
+    return this.selectedDayAppointments().find((a) => a.status === 'CHECKED_IN') ?? null;
   });
 
   // Week days (Mon to Sun)
@@ -281,22 +277,22 @@ export class AppointmentListComponent implements OnInit {
     if (mode === 'month') {
       const selMonth = this.selectedDate().getMonth();
       return this.allLoadedAppointments().filter(
-        (a) => new Date(a.startAt).getMonth() === selMonth
+        (a) => new Date(a.startAt).getMonth() === selMonth,
       );
     }
     return this.appointments();
   });
 
   readonly checkedInCount = computed(
-    () => this.currentPeriodAppointments().filter((a) => a.status === 'CHECKED_IN').length
+    () => this.currentPeriodAppointments().filter((a) => a.status === 'CHECKED_IN').length,
   );
 
   readonly scheduledCount = computed(
-    () => this.currentPeriodAppointments().filter((a) => a.status === 'SCHEDULED').length
+    () => this.currentPeriodAppointments().filter((a) => a.status === 'SCHEDULED').length,
   );
 
   readonly completedCount = computed(
-    () => this.currentPeriodAppointments().filter((a) => a.status === 'COMPLETED').length
+    () => this.currentPeriodAppointments().filter((a) => a.status === 'COMPLETED').length,
   );
 
   ngOnInit(): void {
@@ -331,7 +327,7 @@ export class AppointmentListComponent implements OnInit {
         ? this.currentDoctorId()
         : raw.doctorId || undefined;
 
-    const date = this.viewMode() === 'table' ? (raw.date || undefined) : undefined;
+    const date = this.viewMode() === 'table' ? raw.date || undefined : undefined;
     const status = raw.statuses?.length ? raw.statuses.join(',') : undefined;
 
     this.receptionApi
@@ -489,7 +485,7 @@ export class AppointmentListComponent implements OnInit {
     this.dialog
       .open<CancelAppointmentDialogComponent, { appointmentId: string }, string | null>(
         CancelAppointmentDialogComponent,
-        { data: { appointmentId: appt.id }, width: '420px' }
+        { data: { appointmentId: appt.id }, width: '420px' },
       )
       .afterClosed()
       .subscribe((reason) => {

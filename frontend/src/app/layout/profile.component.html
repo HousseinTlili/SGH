@@ -84,7 +84,8 @@
       <div class="notice" role="status">
         <mat-icon aria-hidden="true">cloud_off</mat-icon>
         <span>
-          Your profile is unavailable right now. Your username and roles above come from your sign-in.
+          Your profile is unavailable right now. Your username and roles above come from your
+          sign-in.
         </span>
         <button mat-stroked-button type="button" (click)="load()">Retry</button>
       </div>
@@ -99,24 +100,45 @@
             <div class="form-row">
               <mat-form-field appearance="outline" class="flex-1">
                 <mat-label>Full Name</mat-label>
-                <input matInput [(ngModel)]="fullNameInput" name="fullName" placeholder="Full Name" />
+                <input
+                  matInput
+                  [(ngModel)]="fullNameInput"
+                  name="fullName"
+                  placeholder="Full Name"
+                />
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="flex-1">
                 <mat-label>Contact Phone</mat-label>
-                <input matInput [(ngModel)]="phoneInput" name="phone" placeholder="+216 71 800 000" />
+                <input
+                  matInput
+                  [(ngModel)]="phoneInput"
+                  name="phone"
+                  placeholder="+216 71 800 000"
+                />
               </mat-form-field>
             </div>
 
             <div class="form-row">
               <mat-form-field appearance="outline" class="flex-1">
                 <mat-label>Hospital Email</mat-label>
-                <input matInput type="email" [(ngModel)]="emailInput" name="email" placeholder="email@sgh.hospital" />
+                <input
+                  matInput
+                  type="email"
+                  [(ngModel)]="emailInput"
+                  name="email"
+                  placeholder="email@sgh.hospital"
+                />
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="flex-1">
                 <mat-label>Department</mat-label>
-                <input matInput [(ngModel)]="departmentInput" name="department" placeholder="Department" />
+                <input
+                  matInput
+                  [(ngModel)]="departmentInput"
+                  name="department"
+                  placeholder="Department"
+                />
               </mat-form-field>
             </div>
 
@@ -144,7 +166,10 @@
           <form class="tab-form" (ngSubmit)="changePassword()">
             <div class="security-intro">
               <mat-icon class="sec-icon">lock</mat-icon>
-              <span>Ensure your account is protected with a strong clinical password (minimum 8 characters, numbers, and symbols).</span>
+              <span
+                >Ensure your account is protected with a strong clinical password (minimum 8
+                characters, numbers, and symbols).</span
+              >
             </div>
 
             <div class="form-row">
@@ -185,11 +210,7 @@
             </div>
 
             <div class="show-pw-toggle">
-              <button
-                type="button"
-                mat-button
-                (click)="showPassword.update(v => !v)"
-              >
+              <button type="button" mat-button (click)="showPassword.update((v) => !v)">
                 <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
                 {{ showPassword() ? 'Hide Passwords' : 'Show Passwords' }}
               </button>
@@ -211,7 +232,10 @@
                 <strong>Critical Clinical Alerts</strong>
                 <p>Receive instant notifications for abnormal vitals and urgent lab orders.</p>
               </div>
-              <mat-slide-toggle [checked]="emailAlerts()" (change)="emailAlerts.set($event.checked)" />
+              <mat-slide-toggle
+                [checked]="emailAlerts()"
+                (change)="emailAlerts.set($event.checked)"
+              />
             </div>
 
             <div class="pref-item">
@@ -227,7 +251,10 @@
                 <strong>Audio Telemetry Beeps</strong>
                 <p>Play audible tones during live encounter vitals monitoring alerts.</p>
               </div>
-              <mat-slide-toggle [checked]="soundAlerts()" (change)="soundAlerts.set($event.checked)" />
+              <mat-slide-toggle
+                [checked]="soundAlerts()"
+                (change)="soundAlerts.set($event.checked)"
+              />
             </div>
 
             <div class="pref-item">

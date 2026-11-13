@@ -165,10 +165,14 @@ import { LocalDatetimePipe } from '../../../shared/pipes/local-datetime.pipe';
                   <td>{{ patientDisplay(c) }}</td>
                   <td>
                     <div class="doctor-cell">
-                      <span class="doc-name">Dr. {{ (doctorName(c.doctorId) | async) || '—' }}</span>
+                      <span class="doc-name"
+                        >Dr. {{ (doctorName(c.doctorId) | async) || '—' }}</span
+                      >
                       <span
                         class="specialty-tag"
-                        [class.cardiology-tag]="(c.doctorSpecialty || '').toLowerCase().includes('cardio')"
+                        [class.cardiology-tag]="
+                          (c.doctorSpecialty || '').toLowerCase().includes('cardio')
+                        "
                       >
                         {{ c.doctorSpecialty || 'General practice' }}
                       </span>
