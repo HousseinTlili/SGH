@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, HostListener, inject, signal } from
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { StaffApi } from '../core/api/staff.api';
 import { AuthService } from '../core/auth/auth.service';
 import { MOCK_AUTH_ENABLED, MockAuthBackend } from '../core/auth/mock-auth.backend';
@@ -71,6 +71,7 @@ const PERSONA_DETAILS: Record<string, PersonaCardMeta> = {
 export class LoginComponent {
   protected readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly mock = inject(MockAuthBackend);
   private readonly staffApi = inject(StaffApi);
   protected readonly theme = inject(ThemeService);
@@ -168,13 +169,12 @@ export class LoginComponent {
   }
 
   goToWorkspace(): void {
-    const target = landingPathFor(this.auth.roles());
-    void this.router.navigateByUrl(target);
+    void this.router.navigateByUrl(this.postLoginTarget(this.auth.roles()));
   }
 
   signIn(username: string): void {
     this.auth.completeSignIn(this.mock.signIn(username));
-    void this.router.navigateByUrl('/');
+    void this.router.navigateByUrl(this.postLoginTarget(this.auth.roles()));
   }
 
   async onSubmit(event?: Event): Promise<void> {
@@ -198,8 +198,7 @@ export class LoginComponent {
           cleanUsername,
           this.passwordInput.trim() || 'Sgh@dev2026',
         );
-        const target = landingPathFor(user.roles);
-        void this.router.navigateByUrl(target);
+        void this.router.navigateByUrl(this.postLoginTarget(user.roles));
       }
     } catch (err: unknown) {
       const msg =
@@ -210,6 +209,15 @@ export class LoginComponent {
     } finally {
       this.loading.set(false);
     }
+  }
+
+  /** Prefer the opaque passport deep-link (or any safe in-app URL) over the role landing page. */
+  private postLoginTarget(roles: readonly Role[]): string {
+    const raw = this.route.snapshot.queryParamMap.get('returnUrl');
+    if (raw && raw.startsWith('/') && !raw.startsWith('//') && !raw.startsWith('/login')) {
+      return raw;
+    }
+    return landingPathFor(roles);
   }
 
   getDetails(username: string): PersonaCardMeta {

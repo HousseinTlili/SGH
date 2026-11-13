@@ -1,0 +1,190 @@
+<div *appServiceGate="'patient'">
+  <app-page-header
+    title="Patient statistics"
+    subtitle="Active files in the Patient service — registrations, age, gender and completeness"
+  >
+    <a mat-stroked-button routerLink="/patients">
+      <mat-icon>arrow_back</mat-icon>
+      Back to list
+    </a>
+  </app-page-header>
+
+  <form [formGroup]="filterForm" class="filter-bar" (ngSubmit)="load()">
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Period</mat-label>
+      <mat-select formControlName="period" (selectionChange)="onPeriodChange()">
+        <mat-option value="THIS_MONTH">This month</mat-option>
+        <mat-option value="LAST_3_MONTHS">Last 3 months</mat-option>
+        <mat-option value="LAST_12_MONTHS">Last 12 months</mat-option>
+        <mat-option value="CUSTOM">Custom</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    @if (filterForm.controls.period.value === 'CUSTOM') {
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>From</mat-label>
+        <input matInput type="date" formControlName="from" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>To</mat-label>
+        <input matInput type="date" formControlName="to" />
+      </mat-form-field>
+    }
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Age group</mat-label>
+      <mat-select formControlName="ageGroup" (selectionChange)="load()">
+        <mat-option value="ALL">All ages</mat-option>
+        <mat-option value="0-17">0–17</mat-option>
+        <mat-option value="18-35">18–35</mat-option>
+        <mat-option value="36-60">36–60</mat-option>
+        <mat-option value="60+">60+</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Gender</mat-label>
+      <mat-select formControlName="gender" (selectionChange)="load()">
+        <mat-option value="ALL">All genders</mat-option>
+        <mat-option value="MALE">Male</mat-option>
+        <mat-option value="FEMALE">Female</mat-option>
+        <mat-option value="OTHER">Other</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <button mat-flat-button color="primary" type="submit">Apply</button>
+  </form>
+
+  @if (error()) {
+    <p class="banner warning" role="status">{{ error() }}</p>
+  }
+
+  @if (loading() && !stats()) {
+    <p class="sgh-muted">Loading statistics…</p>
+  } @else if (stats(); as data) {
+    <p class="sgh-muted range">
+      Registration window {{ data.period.from }} → {{ data.period.to }} ({{ data.period.preset }}).
+      Age, gender and completeness use the current active population.
+    </p>
+
+    <section class="kpi-grid" aria-label="Key figures">
+      <article class="kpi">
+        <p class="kpi-label">Active patients</p>
+        <p class="kpi-value">{{ data.activePatients }}</p>
+      </article>
+      <article class="kpi">
+        <p class="kpi-label">New registrations</p>
+        <p class="kpi-value">{{ data.newRegistrations }}</p>
+      </article>
+      <article class="kpi">
+        <p class="kpi-label">Average age</p>
+        <p class="kpi-value">{{ data.averageAge ?? '—' }}</p>
+      </article>
+      <article class="kpi kpi-warn">
+        <p class="kpi-label">Incomplete files</p>
+        <p class="kpi-value">{{ data.incompleteFiles }}</p>
+      </article>
+    </section>
+
+    <section class="charts">
+      <article class="chart-card">
+        <h2>Registrations by month</h2>
+        <svg viewBox="0 0 400 160" role="img" aria-label="Monthly registrations">
+          @for (bar of monthBars(); track bar.label) {
+            <rect
+              [attr.x]="bar.x"
+              [attr.y]="bar.y"
+              [attr.width]="bar.width"
+              [attr.height]="bar.height"
+              rx="4"
+              fill="var(--sgh-brand)"
+            />
+            <text [attr.x]="bar.x + bar.width / 2" y="154" text-anchor="middle" class="axis">
+              {{ bar.label }}
+            </text>
+          }
+        </svg>
+      </article>
+
+      <article class="chart-card">
+        <h2>Age groups</h2>
+        <svg viewBox="0 0 400 160" role="img" aria-label="Patients by age group">
+          @for (bar of ageBars(); track bar.label) {
+            <rect
+              [attr.x]="bar.x"
+              [attr.y]="bar.y"
+              [attr.width]="bar.width"
+              [attr.height]="bar.height"
+              rx="4"
+              fill="var(--sgh-tone-info-solid)"
+            />
+            <text [attr.x]="bar.x + bar.width / 2" y="154" text-anchor="middle" class="axis">
+              {{ bar.label }}
+            </text>
+          }
+        </svg>
+      </article>
+
+      <article class="chart-card">
+        <h2>Gender</h2>
+        <div class="donut-row">
+          <svg viewBox="0 0 160 160" role="img" aria-label="Patients by gender">
+            @for (slice of genderSlices(); track slice.label) {
+              @if (slice.d) {
+                <path
+                  [attr.d]="slice.d"
+                  fill="none"
+                  [attr.stroke]="slice.color"
+                  stroke-width="22"
+                />
+              }
+            }
+            <circle cx="80" cy="80" r="40" fill="var(--sgh-surface)" />
+            <text x="80" y="84" text-anchor="middle" class="donut-center">
+              {{ data.activePatients }}
+            </text>
+          </svg>
+          <ul class="legend">
+            @for (slice of genderSlices(); track slice.label) {
+              <li>
+                <span class="swatch" [style.background]="slice.color"></span>
+                {{ slice.label }} — {{ slice.value }}
+              </li>
+            }
+          </ul>
+        </div>
+      </article>
+
+      <article class="chart-card">
+        <h2>File completeness</h2>
+        <p class="hint">
+          Incomplete if phone, email or address is missing. Insurance is required only when a
+          provider or number is already filled.
+        </p>
+        <div class="donut-row">
+          <svg viewBox="0 0 160 160" role="img" aria-label="Complete versus incomplete files">
+            @for (slice of completenessSlices(); track slice.label) {
+              @if (slice.d) {
+                <path
+                  [attr.d]="slice.d"
+                  fill="none"
+                  [attr.stroke]="slice.color"
+                  stroke-width="22"
+                />
+              }
+            }
+            <circle cx="80" cy="80" r="40" fill="var(--sgh-surface)" />
+          </svg>
+          <ul class="legend">
+            @for (slice of completenessSlices(); track slice.label) {
+              <li>
+                <span class="swatch" [style.background]="slice.color"></span>
+                {{ slice.label }} — {{ slice.value }}
+              </li>
+            }
+          </ul>
+        </div>
+      </article>
+    </section>
+  }
+</div>

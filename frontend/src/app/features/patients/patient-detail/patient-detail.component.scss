@@ -507,6 +507,20 @@
 // =============================================================================
 // Overview, Medical File, Appointments Tab Styles
 // =============================================================================
+.allergy-passport-section {
+  margin-bottom: var(--sgh-space-5);
+}
+
+.allergy-load-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sgh-space-3);
+  padding: var(--sgh-space-3);
+  border-radius: var(--sgh-radius-sm);
+  background: var(--sgh-tone-warning-bg);
+  color: var(--sgh-tone-warning-fg);
+}
 .info-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

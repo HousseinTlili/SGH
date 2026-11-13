@@ -1,5 +1,11 @@
 <div *appServiceGate="'patient'">
   <app-page-header title="Patients" subtitle="Manage registered patients and demographics">
+    @if (canViewStatistics) {
+      <button mat-stroked-button type="button" (click)="onStatistics()">
+        <mat-icon>bar_chart</mat-icon>
+        Statistics
+      </button>
+    }
     @if (canCreate) {
       <button mat-flat-button color="primary" type="button" (click)="onCreate()">
         <mat-icon>add</mat-icon>

@@ -49,6 +49,29 @@ export function calculateAge(birthDateStr: string | null | undefined): number | 
   return age >= 0 ? age : null;
 }
 
+export function canViewPatientStatistics(hasRole: (role: Role) => boolean): boolean {
+  return hasRole('RECEPTIONIST') || hasRole('DOCTOR') || hasRole('NURSE') || hasRole('ADMIN');
+}
+
+export function canRecordAllergy(hasRole: (role: Role) => boolean): boolean {
+  return hasRole('RECEPTIONIST') || hasRole('DOCTOR');
+}
+
+export function canEditAllergy(
+  hasRole: (role: Role) => boolean,
+  verificationStatus: string,
+): boolean {
+  return hasRole('DOCTOR') || (hasRole('RECEPTIONIST') && verificationStatus === 'DECLARED');
+}
+
+export function canVerifyAllergy(hasRole: (role: Role) => boolean): boolean {
+  return hasRole('DOCTOR');
+}
+
+export function canViewAllergyHistory(hasRole: (role: Role) => boolean): boolean {
+  return hasRole('DOCTOR') || hasRole('NURSE') || hasRole('ADMIN');
+}
+
 export function canCreatePatient(hasRole: (role: Role) => boolean): boolean {
   return hasRole('RECEPTIONIST');
 }

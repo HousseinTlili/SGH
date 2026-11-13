@@ -82,7 +82,10 @@ export const LAB_PRIORITY_OPTIONS: { label: string; value: string }[] = [
     </ng-template>
 
     <div *appServiceGate="'lab'">
-      <app-page-header title="Lab Queue" subtitle="Work queue of laboratory analysis requests (URGENT first)">
+      <app-page-header
+        title="Lab Queue"
+        subtitle="Work queue of laboratory analysis requests (URGENT first)"
+      >
         <button mat-stroked-button type="button" (click)="load()">
           <mat-icon>refresh</mat-icon>
           Refresh
@@ -151,7 +154,8 @@ export class LabQueueComponent {
   private readonly status = inject(ServiceStatusService);
   private readonly router = inject(Router);
 
-  private readonly priorityCell = viewChild<TemplateRef<{ $implicit: LabQueueRow }>>('priorityCell');
+  private readonly priorityCell =
+    viewChild<TemplateRef<{ $implicit: LabQueueRow }>>('priorityCell');
   private readonly statusCell = viewChild<TemplateRef<{ $implicit: LabQueueRow }>>('statusCell');
   private readonly dateCell = viewChild<TemplateRef<{ $implicit: LabQueueRow }>>('dateCell');
 

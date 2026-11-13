@@ -107,6 +107,279 @@ paths:
         "409": { $ref: "#/components/responses/Conflict" }
         "422": { $ref: "#/components/responses/Unprocessable" }
         "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/patients/similar:
+    get:
+      tags: [patients]
+      operationId: findSimilarPatients
+      summary: Advisory list of similar patients (does not block registration)
+      description: >-
+        Roles: RECEPTIONIST. Hint for the registration form. EXACT means PAT-2 would return 409
+        on POST; SIMILAR means accents, spelling or a homonym — the receptionist may still create
+        the patient. Never replaces PAT-2. Response is a plain array, identity fields only
+        (no phone, email, address, insurance or clinical data). Route /similar before /{id}.
+      x-roles: [RECEPTIONIST]
+      parameters:
+        - name: firstName
+          in: query
+          required: true
+          schema: { type: string, minLength: 1 }
+        - name: lastName
+          in: query
+          required: true
+          schema: { type: string, minLength: 1 }
+        - name: birthDate
+          in: query
+          schema: { type: string, format: date }
+        - name: excludeId
+          in: query
+          description: Ignore this patient (used when editing)
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Zero or more similar patients, highest score first (max 5)
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/SimilarPatient" }
+              example:
+                - id: a1a1a1a1-0000-4000-8000-000000000001
+                  firstName: Youssef
+                  lastName: Ben Salah
+                  birthDate: "1985-03-14"
+                  match: SIMILAR
+                  score: 80
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/patients/passport/{passportToken}:
+    parameters:
+      - name: passportToken
+        in: path
+        required: true
+        description: Opaque passport token (QR payload). Never contains clinical allergy text.
+        schema: { type: string, format: uuid }
+    get:
+      tags: [patients]
+      operationId: getAllergyPassportByToken
+      summary: Resolve allergy passport from an opaque QR token
+      description: >-
+        Roles: RECEPTIONIST, DOCTOR, NURSE, ADMIN, PATIENT (own). The QR encodes only this
+        opaque UUID (or a deep-link containing it). No allergen, reaction or severity is
+        embedded in the token. Route /passport/{token} before /{id}.
+      x-roles: [RECEPTIONIST, DOCTOR, NURSE, ADMIN, PATIENT]
+      responses:
+        "200":
+          description: Patient identity and structured allergy records
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AllergyPassport" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/patients/statistics:
+    get:
+      tags: [patients]
+      operationId: getPatientStatistics
+      summary: Aggregated statistics of active patients
+      description: >-
+        Roles: RECEPTIONIST, DOCTOR, NURSE, ADMIN. Counts only non-deleted rows in sgh_patient.
+        Period (THIS_MONTH, LAST_3_MONTHS, LAST_12_MONTHS, CUSTOM) applies to newRegistrations
+        and registrationsByMonth. activePatients, averageAge, incompleteFiles, ageGroups, genders
+        and completeness ignore the period and use the current active population, optionally
+        filtered by ageGroup and gender. Incomplete file: missing phone, email or address.
+        Insurance is required only when the patient is treated as declared insured: at least one of
+        insuranceProvider or insuranceNumber is filled (the model has no insured flag). Both empty
+        is uninsured and is not incomplete. Route /statistics before /{id}.
+      x-roles: [RECEPTIONIST, DOCTOR, NURSE, ADMIN]
+      parameters:
+        - name: period
+          in: query
+          schema: { type: string, enum: [THIS_MONTH, LAST_3_MONTHS, LAST_12_MONTHS, CUSTOM], default: LAST_12_MONTHS }
+        - name: from
+          in: query
+          description: Required when period=CUSTOM (inclusive, YYYY-MM-DD, UTC)
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          description: Required when period=CUSTOM (inclusive, YYYY-MM-DD, UTC)
+          schema: { type: string, format: date }
+        - name: ageGroup
+          in: query
+          schema: { type: string, enum: [ALL, "0-17", "18-35", "36-60", "60+"], default: ALL }
+        - name: gender
+          in: query
+          schema: { type: string, enum: [ALL, MALE, FEMALE, OTHER], default: ALL }
+      responses:
+        "200":
+          description: Aggregates for the selected filters
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PatientStatistics" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/patients/{id}/allergies:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    get:
+      tags: [patients]
+      operationId: listPatientAllergies
+      summary: List the patient's structured allergy records
+      description: "Roles: RECEPTIONIST, DOCTOR, NURSE, ADMIN, PATIENT (own). FHIR AllergyIntolerance-inspired; no automatic diagnosis."
+      x-roles: [RECEPTIONIST, DOCTOR, NURSE, ADMIN, PATIENT]
+      responses:
+        "200":
+          description: Allergy records, active and clinically important first
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/PatientAllergy" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+    post:
+      tags: [patients]
+      operationId: createPatientAllergy
+      summary: Record a patient-reported or clinical allergy
+      description: "Roles: RECEPTIONIST, DOCTOR. RECEPTIONIST records are forced to DECLARED; only DOCTOR can create a clinically verified record."
+      x-roles: [RECEPTIONIST, DOCTOR]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PatientAllergyInput" }
+      responses:
+        "201":
+          description: Allergy recorded
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PatientAllergy" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "503": { $ref: "#/components/responses/DatabaseUnavailable" }
+  /api/patients/{id}/allergies/{allergyId}:
+    parameters:
+      - $ref: "#/components/parameters/id"
+      - name: allergyId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      tags: [patients]
+      operationId: getPatientAllergy
+      summary: Get one structured allergy record
+      x-roles: [RECEPTIONIST, DOCTOR, NURSE, ADMIN, PATIENT]
+      responses:
+        "200":
+          description: Allergy record
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PatientAllergy" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    put:
+      tags: [patients]
+      operationId: updatePatientAllergy
+      summary: Update allergy details with optimistic locking
+      description: "Roles: RECEPTIONIST for DECLARED records only; DOCTOR for every record. Verification status is changed only through /verification."
+      x-roles: [RECEPTIONIST, DOCTOR]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PatientAllergyInput" }
+      responses:
+        "200":
+          description: Updated allergy
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PatientAllergy" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+  /api/patients/{id}/allergies/{allergyId}/verification:
+    parameters:
+      - $ref: "#/components/parameters/id"
+      - name: allergyId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      tags: [patients]
+      operationId: verifyPatientAllergy
+      summary: Confirm or refute an allergy without automatic diagnosis
+      description: "Role: DOCTOR only."
+      x-roles: [DOCTOR]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AllergyVerificationInput" }
+      responses:
+        "200":
+          description: Verified allergy
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PatientAllergy" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+  /api/patients/{id}/allergies/{allergyId}/history:
+    parameters:
+      - $ref: "#/components/parameters/id"
+      - name: allergyId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      tags: [patients]
+      operationId: getPatientAllergyHistory
+      summary: Immutable audit history for an allergy
+      x-roles: [DOCTOR, NURSE, ADMIN]
+      responses:
+        "200":
+          description: Newest changes first
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/AllergyHistory" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /api/patients/{id}/allergy-passport:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    get:
+      tags: [patients]
+      operationId: getAllergyPassport
+      summary: Secure digital allergy passport
+      description: >-
+        Roles: RECEPTIONIST, DOCTOR, NURSE, ADMIN, PATIENT (own). Authenticated view.
+        Response includes passportToken for QR generation; the QR must encode only that opaque
+        token (or a deep-link to /patients/passport/{token}), never clinical allergy fields.
+      x-roles: [RECEPTIONIST, DOCTOR, NURSE, ADMIN, PATIENT]
+      responses:
+        "200":
+          description: Patient identity and structured allergy records
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AllergyPassport" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
   /api/patients/{id}:
     parameters:
       - $ref: "#/components/parameters/id"
@@ -399,6 +672,92 @@ components:
         id: { type: string, format: uuid }
         fullName: { type: string }
         birthDate: { type: string, format: date }
+    SimilarPatient:
+      type: object
+      required: [id, firstName, lastName, birthDate, match, score]
+      properties:
+        id: { type: string, format: uuid }
+        firstName: { type: string }
+        lastName: { type: string }
+        birthDate: { type: string, format: date }
+        match: { type: string, enum: [EXACT, SIMILAR] }
+        score: { type: integer, minimum: 0, maximum: 100 }
+    AllergyCategory:
+      type: string
+      enum: [MEDICATION, FOOD, ENVIRONMENT, BIOLOGIC, OTHER]
+    ReactionSeverity:
+      type: string
+      enum: [MILD, MODERATE, SEVERE]
+    AllergyClinicalStatus:
+      type: string
+      enum: [ACTIVE, INACTIVE, RESOLVED]
+    AllergyVerificationStatus:
+      type: string
+      enum: [DECLARED, UNCONFIRMED, CONFIRMED, REFUTED]
+    AllergyCriticality:
+      type: string
+      enum: [LOW, HIGH, UNABLE_TO_ASSESS]
+    PatientAllergyInput:
+      type: object
+      required: [allergen, clinicalStatus, criticality, version]
+      properties:
+        allergen: { type: string, minLength: 1, maxLength: 255 }
+        category: { $ref: "#/components/schemas/AllergyCategory" }
+        observedReaction: { type: string, maxLength: 500, nullable: true }
+        reactionDate: { type: string, format: date, nullable: true }
+        reactionSeverity: { $ref: "#/components/schemas/ReactionSeverity" }
+        clinicalStatus: { $ref: "#/components/schemas/AllergyClinicalStatus" }
+        criticality: { $ref: "#/components/schemas/AllergyCriticality" }
+        version: { type: integer, format: int64, minimum: 0, description: "Use 0 when creating" }
+    AllergyVerificationInput:
+      type: object
+      required: [verificationStatus, version]
+      properties:
+        verificationStatus: { type: string, enum: [CONFIRMED, REFUTED] }
+        version: { type: integer, format: int64, minimum: 0 }
+    PatientAllergy:
+      allOf:
+        - $ref: "#/components/schemas/PatientAllergyInput"
+        - type: object
+          required: [id, patientId, verificationStatus, recordedByUsername, recordedByRole, createdAt, updatedAt]
+          properties:
+            id: { type: string, format: uuid }
+            patientId: { type: string, format: uuid }
+            verificationStatus: { $ref: "#/components/schemas/AllergyVerificationStatus" }
+            recordedByUsername: { type: string }
+            recordedByRole: { type: string }
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time }
+    AllergyHistory:
+      type: object
+      required: [id, allergyId, patientId, action, afterSnapshot, changedByUsername, changedByRole, correlationId, changedAt]
+      properties:
+        id: { type: string, format: uuid }
+        allergyId: { type: string, format: uuid }
+        patientId: { type: string, format: uuid }
+        action: { type: string, enum: [CREATE, UPDATE, CONFIRM, REFUTE] }
+        beforeSnapshot: { type: object, additionalProperties: true, nullable: true }
+        afterSnapshot: { type: object, additionalProperties: true }
+        changedByUsername: { type: string }
+        changedByRole: { type: string }
+        correlationId: { type: string }
+        changedAt: { type: string, format: date-time }
+    AllergyPassport:
+      type: object
+      required: [patientId, passportToken, fullName, birthDate, allergies, generatedAt]
+      properties:
+        patientId: { type: string, format: uuid }
+        passportToken:
+          type: string
+          format: uuid
+          description: Opaque token for QR codes; never contains allergen or clinical text
+        fullName: { type: string }
+        birthDate: { type: string, format: date }
+        bloodType: { type: string, nullable: true }
+        allergies:
+          type: array
+          items: { $ref: "#/components/schemas/PatientAllergy" }
+        generatedAt: { type: string, format: date-time }
     MedicalFileEntry:
       type: object
       required: [id, patientId, type, summary, sourceService, createdAt]
@@ -410,6 +769,51 @@ components:
         sourceService: { type: string, enum: [patient, consultation, lab, pharmacy] }
         referenceId: { type: string, format: uuid, nullable: true }
         createdAt: { type: string, format: date-time }
+    PatientStatistics:
+      type: object
+      required: [period, activePatients, newRegistrations, incompleteFiles, registrationsByMonth, ageGroups, genders, completeness]
+      properties:
+        period:
+          type: object
+          required: [from, to, preset]
+          properties:
+            from: { type: string, format: date }
+            to: { type: string, format: date }
+            preset: { type: string, enum: [THIS_MONTH, LAST_3_MONTHS, LAST_12_MONTHS, CUSTOM] }
+        activePatients: { type: integer }
+        newRegistrations: { type: integer }
+        averageAge: { type: number, nullable: true, description: "Mean age in completed years, one decimal, null when the filtered population is empty" }
+        incompleteFiles: { type: integer }
+        registrationsByMonth:
+          type: array
+          items:
+            type: object
+            required: [month, count]
+            properties:
+              month: { type: string, example: "2026-10" }
+              count: { type: integer }
+        ageGroups:
+          type: array
+          items:
+            type: object
+            required: [name, count]
+            properties:
+              name: { type: string, enum: ["0-17", "18-35", "36-60", "60+"] }
+              count: { type: integer }
+        genders:
+          type: array
+          items:
+            type: object
+            required: [name, count]
+            properties:
+              name: { $ref: "#/components/schemas/Gender" }
+              count: { type: integer }
+        completeness:
+          type: object
+          required: [complete, incomplete]
+          properties:
+            complete: { type: integer }
+            incomplete: { type: integer }
     PatientPage:
       type: object
       required: [content, page, size, totalElements, totalPages]

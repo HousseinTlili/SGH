@@ -10,7 +10,7 @@ import { provideFakeAuth, signInAs } from '../../../testing/auth';
 import { authenticatedGuard, roleGuard } from './auth.guard';
 
 const route = {} as ActivatedRouteSnapshot;
-const state = {} as RouterStateSnapshot;
+const state = { url: '/patients/passport/demo-token' } as RouterStateSnapshot;
 
 function run(guard: typeof authenticatedGuard) {
   return TestBed.runInInjectionContext(() => guard(route, state));
@@ -23,8 +23,10 @@ describe('route guards', () => {
 
   const asPath = (result: unknown) => TestBed.inject(Router).serializeUrl(result as UrlTree);
 
-  it('authenticatedGuard sends signed-out users to /login', () => {
-    expect(asPath(run(authenticatedGuard))).toBe('/login');
+  it('authenticatedGuard sends signed-out users to /login with returnUrl', () => {
+    expect(asPath(run(authenticatedGuard))).toBe(
+      '/login?returnUrl=%2Fpatients%2Fpassport%2Fdemo-token',
+    );
   });
 
   it('authenticatedGuard lets a signed-in user through', () => {
@@ -32,8 +34,10 @@ describe('route guards', () => {
     expect(run(authenticatedGuard)).toBe(true);
   });
 
-  it('roleGuard sends signed-out users to /login', () => {
-    expect(asPath(run(roleGuard('ADMIN')))).toBe('/login');
+  it('roleGuard sends signed-out users to /login with returnUrl', () => {
+    expect(asPath(run(roleGuard('ADMIN')))).toBe(
+      '/login?returnUrl=%2Fpatients%2Fpassport%2Fdemo-token',
+    );
   });
 
   it('roleGuard allows a matching role', () => {

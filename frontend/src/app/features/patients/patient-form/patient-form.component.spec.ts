@@ -31,6 +31,7 @@ describe('PatientFormComponent', () => {
       get: vi.fn().mockReturnValue(of(mockPatient)),
       create: vi.fn().mockReturnValue(of(mockPatient)),
       update: vi.fn().mockReturnValue(of(mockPatient)),
+      similar: vi.fn().mockReturnValue(of([])),
     };
     authService = {
       hasRole: vi.fn().mockReturnValue(true),
@@ -77,6 +78,25 @@ describe('PatientFormComponent', () => {
       gender: 'MALE',
     });
     expect(component.form.valid).toBe(true);
+  });
+
+  it('keeps legacy allergy input bounded for backward compatibility', () => {
+    component.form.controls.allergies.setValue('x'.repeat(501));
+    expect(component.form.controls.allergies.hasError('maxlength')).toBe(true);
+  });
+
+  it('preserves trimmed legacy allergy text in an existing create request', () => {
+    component.form.patchValue({
+      firstName: 'Youssef',
+      lastName: 'Ben Salah',
+      birthDate: '1985-03-14',
+      gender: 'MALE',
+      allergies: '  Penicillin  ',
+    });
+    component.onSubmit();
+    expect(patientApi.create).toHaveBeenCalledWith(
+      expect.objectContaining({ allergies: 'Penicillin' }),
+    );
   });
 
   it('handles 409 conflict duplicate response at form level', () => {
@@ -128,5 +148,71 @@ describe('PatientFormComponent', () => {
     component.onSubmit();
 
     expect(component.form.get('birthDate')?.errors?.['server']).toBe('Must not be in the future');
+  });
+
+  it('does not treat a 400 from similar as a duplicate warning', () => {
+    patientApi.similar = vi
+      .fn()
+      .mockReturnValue(
+        throwError(() => new HttpErrorResponse({ status: 400, statusText: 'Bad Request' })),
+      );
+
+    component.lookupSimilar('Sami', 'Khelil', '1990-04-15').subscribe();
+
+    expect(component.similarCheckFailed()).toBe(false);
+    expect(component.similarMatches()).toEqual([]);
+  });
+
+  it('still saves when the similar-patient lookup fails', () => {
+    patientApi.similar = vi
+      .fn()
+      .mockReturnValue(
+        throwError(() => new HttpErrorResponse({ status: 0, statusText: 'Unknown Error' })),
+      );
+
+    component.form.patchValue({
+      firstName: 'Sami',
+      lastName: 'Khelil',
+      birthDate: '1990-04-15',
+      gender: 'MALE',
+    });
+    component.lookupSimilar('Sami', 'Khelil', '1990-04-15').subscribe();
+
+    expect(component.similarCheckFailed()).toBe(true);
+    expect(component.similarMatches()).toEqual([]);
+
+    component.onSubmit();
+    expect(patientApi.create).toHaveBeenCalled();
+  });
+
+  it('lists similar patients without blocking the form', () => {
+    patientApi.similar = vi.fn().mockReturnValue(
+      of([
+        {
+          id: mockPatient.id,
+          firstName: 'Youssef',
+          lastName: 'Ben Salah',
+          birthDate: '1985-03-14',
+          match: 'SIMILAR' as const,
+          score: 80,
+        },
+      ]),
+    );
+
+    component.form.patchValue({
+      firstName: 'Yousseff',
+      lastName: 'Ben Salah',
+      birthDate: '1985-03-14',
+      gender: 'MALE',
+    });
+    component.lookupSimilar('Yousseff', 'Ben Salah', '1985-03-14').subscribe((matches) => {
+      if (matches) {
+        component.similarMatches.set(matches);
+        component.similarCheckFailed.set(false);
+      }
+    });
+
+    expect(component.similarMatches().length).toBe(1);
+    expect(component.form.valid).toBe(true);
   });
 });

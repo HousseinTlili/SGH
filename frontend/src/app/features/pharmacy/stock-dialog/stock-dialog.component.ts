@@ -35,12 +35,7 @@ export interface StockDialogResult {
       <form [formGroup]="form" class="dialog-form">
         <mat-form-field appearance="outline">
           <mat-label>Adjustment (Delta)</mat-label>
-          <input
-            matInput
-            type="number"
-            formControlName="delta"
-            placeholder="e.g. 50 or -10"
-          />
+          <input matInput type="number" formControlName="delta" placeholder="e.g. 50 or -10" />
           <mat-hint>Positive to add stock, negative to deduct</mat-hint>
           @if (form.controls.delta.hasError('required')) {
             <mat-error>Delta is required</mat-error>

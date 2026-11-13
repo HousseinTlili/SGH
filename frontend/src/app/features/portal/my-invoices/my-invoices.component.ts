@@ -100,10 +100,13 @@ export class MyInvoicesComponent {
   private readonly status = inject(ServiceStatusService);
   private readonly confirm = inject(ConfirmService);
 
-  private readonly statusCell = viewChild<TemplateRef<{ $implicit: PatientInvoiceRow }>>('statusCell');
+  private readonly statusCell =
+    viewChild<TemplateRef<{ $implicit: PatientInvoiceRow }>>('statusCell');
   private readonly dateCell = viewChild<TemplateRef<{ $implicit: PatientInvoiceRow }>>('dateCell');
-  private readonly totalCell = viewChild<TemplateRef<{ $implicit: PatientInvoiceRow }>>('totalCell');
-  private readonly actionsCell = viewChild<TemplateRef<{ $implicit: PatientInvoiceRow }>>('actionsCell');
+  private readonly totalCell =
+    viewChild<TemplateRef<{ $implicit: PatientInvoiceRow }>>('totalCell');
+  private readonly actionsCell =
+    viewChild<TemplateRef<{ $implicit: PatientInvoiceRow }>>('actionsCell');
 
   protected readonly invoices = signal<Invoice[]>([]);
   protected readonly total = signal(0);
@@ -117,7 +120,9 @@ export class MyInvoicesComponent {
   protected readonly rows = computed<PatientInvoiceRow[]>(() =>
     this.invoices().map((inv) => ({
       ...inv,
-      linesFormatted: inv.lines.map((l) => `${l.description} (${l.quantity}x ${l.unitPrice} TND)`).join(', '),
+      linesFormatted: inv.lines
+        .map((l) => `${l.description} (${l.quantity}x ${l.unitPrice} TND)`)
+        .join(', '),
     })),
   );
 
