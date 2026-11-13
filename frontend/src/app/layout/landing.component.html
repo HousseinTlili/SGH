@@ -1,7 +1,10 @@
-<div class="bg-clinical-surface dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans antialiased selection:bg-sky-600 selection:text-white transition-colors duration-200 bg-clinical-grid min-h-screen flex flex-col relative">
-
+<div
+  class="bg-clinical-surface dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans antialiased selection:bg-sky-600 selection:text-white transition-colors duration-200 bg-clinical-grid min-h-screen flex flex-col relative"
+>
   <!-- Fixed Top Clinical Scroll Progress Telemetry Bar -->
-  <div class="fixed top-0 left-0 right-0 h-1 z-50 bg-slate-900/20 dark:bg-slate-800/50 pointer-events-none">
+  <div
+    class="fixed top-0 left-0 right-0 h-1 z-50 bg-slate-900/20 dark:bg-slate-800/50 pointer-events-none"
+  >
     <div
       id="scroll-progress-bar"
       class="h-full bg-gradient-to-r from-sky-500 via-teal-400 to-emerald-400 shadow-[0_0_12px_rgba(14,165,233,0.8)] transition-[width] duration-75 ease-out"
@@ -34,14 +37,20 @@
   </div>
 
   <!-- Top Hospital Activity Bar + Live Scrolling Clinical Care Ticker -->
-  <div class="bg-slate-900 dark:bg-slate-900/95 text-slate-300 text-xs border-b border-slate-800 py-1.5 px-4 overflow-hidden">
+  <div
+    class="bg-slate-900 dark:bg-slate-900/95 text-slate-300 text-xs border-b border-slate-800 py-1.5 px-4 overflow-hidden"
+  >
     <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
       <div class="flex items-center space-x-2.5 shrink-0">
         <span class="relative flex h-2 w-2 text-teal-400">
-          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+          <span
+            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"
+          ></span>
           <span class="relative inline-flex rounded-full h-2 w-2 bg-teal-400"></span>
         </span>
-        <span class="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 rounded bg-teal-500/15 text-teal-400 border border-teal-500/30 font-medium">
+        <span
+          class="font-mono text-[11px] uppercase tracking-wider px-2 py-0.5 rounded bg-teal-500/15 text-teal-400 border border-teal-500/30 font-medium"
+        >
           LIVE HOSPITAL OPERATIONS
         </span>
       </div>
@@ -49,22 +58,46 @@
       <!-- Kinetic Hospital Event Stream Marquee -->
       <div class="hidden md:block flex-1 overflow-hidden relative mask-fade">
         <div class="animate-marquee font-mono text-[11px] text-slate-400 space-x-8">
-          <span><strong class="text-sky-400">[CONSULTATION]</strong> Care plan finalized for Visit #4410 by Dr. Amel Trabelsi</span>
+          <span
+            ><strong class="text-sky-400">[CONSULTATION]</strong> Care plan finalized for Visit
+            #4410 by Dr. Amel Trabelsi</span
+          >
           <span>•</span>
-          <span><strong class="text-amber-400">[LABORATORY]</strong> Fasting Blood Glucose result ready: 115 mg/dL (Flagged High)</span>
+          <span
+            ><strong class="text-amber-400">[LABORATORY]</strong> Fasting Blood Glucose result
+            ready: 115 mg/dL (Flagged High)</span
+          >
           <span>•</span>
-          <span><strong class="text-teal-400">[PHARMACY]</strong> Prescription ready for pickup: Amoxicillin 500mg × 21 caps</span>
+          <span
+            ><strong class="text-teal-400">[PHARMACY]</strong> Prescription ready for pickup:
+            Amoxicillin 500mg × 21 caps</span
+          >
           <span>•</span>
-          <span><strong class="text-emerald-400">[ADMISSIONS]</strong> Patient Y. Mansouri checked in → Internal Medicine Room 304B</span>
+          <span
+            ><strong class="text-emerald-400">[ADMISSIONS]</strong> Patient Y. Mansouri checked in →
+            Internal Medicine Room 304B</span
+          >
           <span>•</span>
-          <span><strong class="text-sky-400">[PATIENT PORTAL]</strong> Outpatient follow-up confirmed for Thu 10:30 AM</span>
+          <span
+            ><strong class="text-sky-400">[PATIENT PORTAL]</strong> Outpatient follow-up confirmed
+            for Thu 10:30 AM</span
+          >
           <span>•</span>
           <!-- Duplicate segment for seamless marquee loop -->
-          <span><strong class="text-sky-400">[CONSULTATION]</strong> Care plan finalized for Visit #4410 by Dr. Amel Trabelsi</span>
+          <span
+            ><strong class="text-sky-400">[CONSULTATION]</strong> Care plan finalized for Visit
+            #4410 by Dr. Amel Trabelsi</span
+          >
           <span>•</span>
-          <span><strong class="text-amber-400">[LABORATORY]</strong> Fasting Blood Glucose result ready: 115 mg/dL (Flagged High)</span>
+          <span
+            ><strong class="text-amber-400">[LABORATORY]</strong> Fasting Blood Glucose result
+            ready: 115 mg/dL (Flagged High)</span
+          >
           <span>•</span>
-          <span><strong class="text-teal-400">[PHARMACY]</strong> Prescription ready for pickup: Amoxicillin 500mg × 21 caps</span>
+          <span
+            ><strong class="text-teal-400">[PHARMACY]</strong> Prescription ready for pickup:
+            Amoxicillin 500mg × 21 caps</span
+          >
         </div>
       </div>
 
@@ -78,23 +111,47 @@
 
   <!-- 1. Floating Modern Header -->
   <header class="sticky top-3 z-40 px-4 sm:px-6 lg:px-8 mt-3">
-    <div class="max-w-7xl mx-auto bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-clinical px-4 sm:px-6 py-3 transition-all">
+    <div
+      class="max-w-7xl mx-auto bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-clinical px-4 sm:px-6 py-3 transition-all"
+    >
       <div class="flex items-center justify-between gap-4">
-        
         <!-- Left: Minimalist Medical Emblem & Brand -->
         <a routerLink="/" class="flex items-center gap-3 group focus:outline-none">
-          <div class="w-10 h-10 rounded-xl bg-slate-900 dark:bg-sky-600 flex items-center justify-center text-white shadow-sm group-hover:bg-sky-600 dark:group-hover:bg-sky-500 transition-colors">
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-              <circle cx="12" cy="12" r="3" class="fill-slate-900 dark:fill-sky-600" stroke="currentColor" stroke-width="2"/>
+          <div
+            class="w-10 h-10 rounded-xl bg-slate-900 dark:bg-sky-600 flex items-center justify-center text-white shadow-sm group-hover:bg-sky-600 dark:group-hover:bg-sky-500 transition-colors"
+          >
+            <svg
+              class="w-5 h-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+              <circle
+                cx="12"
+                cy="12"
+                r="3"
+                class="fill-slate-900 dark:fill-sky-600"
+                stroke="currentColor"
+                stroke-width="2"
+              />
             </svg>
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <span class="font-display font-extrabold text-lg tracking-tight text-slate-900 dark:text-white leading-none">SGH</span>
-              <span class="text-[10px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">CARE</span>
+              <span
+                class="font-display font-extrabold text-lg tracking-tight text-slate-900 dark:text-white leading-none"
+                >SGH</span
+              >
+              <span
+                class="text-[10px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
+                >CARE</span
+              >
             </div>
-            <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium tracking-tight mt-0.5">
+            <p
+              class="text-[11px] text-slate-500 dark:text-slate-400 font-medium tracking-tight mt-0.5"
+            >
               St. Gabriel Hospital — Système de Gestion Hospitalière
             </p>
           </div>
@@ -136,7 +193,9 @@
               <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
             <span>All Clinical Services Online</span>
-            <span class="font-mono text-[10px] text-emerald-600 dark:text-emerald-400 pl-1 border-l border-emerald-200 dark:border-emerald-800">
+            <span
+              class="font-mono text-[10px] text-emerald-600 dark:text-emerald-400 pl-1 border-l border-emerald-200 dark:border-emerald-800"
+            >
               24/7 Care
             </span>
           </a>
@@ -149,12 +208,32 @@
             class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
           >
             @if (theme.mode() === 'dark') {
-              <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              <svg
+                class="w-4 h-4 text-amber-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                />
               </svg>
             } @else {
-              <svg class="w-4 h-4 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              <svg
+                class="w-4 h-4 text-slate-700"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                />
               </svg>
             }
           </button>
@@ -167,8 +246,18 @@
                 (click)="goToPortal()"
                 class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs sm:text-sm font-semibold shadow-sm transition-all"
               >
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                  />
                 </svg>
                 <span>My Workspace ({{ auth.user()?.fullName }})</span>
               </button>
@@ -177,8 +266,18 @@
                 class="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-semibold transition-all"
                 title="Switch persona or sign in as another user"
               >
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                  />
                 </svg>
                 <span>Switch User</span>
               </a>
@@ -189,8 +288,18 @@
               href="/login"
               class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-sky-600 hover:bg-slate-800 dark:hover:bg-sky-500 text-white text-xs sm:text-sm font-semibold shadow-sm transition-all"
             >
-              <svg class="w-4 h-4 text-sky-400 dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+              <svg
+                class="w-4 h-4 text-sky-400 dark:text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
+                />
               </svg>
               <span>Sign In / Portal Access</span>
             </a>
@@ -202,23 +311,34 @@
 
   <main class="flex-grow">
     <!-- 2. Hero Section -->
-    <section id="hero-section" class="relative pt-8 pb-16 lg:pt-14 lg:pb-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
+    <section
+      id="hero-section"
+      class="relative pt-8 pb-16 lg:pt-14 lg:pb-24 px-4 sm:px-6 lg:px-8 overflow-hidden"
+    >
       <div class="max-w-7xl mx-auto">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-start">
-          
           <!-- Left Column: Direct Clinical Value Proposition & Dual CTAs (5 cols) -->
           <div class="lg:col-span-5 pt-2 lg:pt-6 scroll-reveal" data-reveal="left">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800/80 text-sky-800 dark:text-sky-300 text-xs font-mono font-medium mb-6">
+            <div
+              class="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800/80 text-sky-800 dark:text-sky-300 text-xs font-mono font-medium mb-6"
+            >
               <span class="w-2 h-2 rounded-full bg-sky-600 dark:bg-sky-400"></span>
               <span>SYSTÈME DE GESTION HOSPITALIÈRE</span>
             </div>
 
-            <h1 class="font-display font-extrabold text-3xl sm:text-4xl lg:text-[42px] text-slate-900 dark:text-white tracking-tight leading-[1.14] mb-5">
+            <h1
+              class="font-display font-extrabold text-3xl sm:text-4xl lg:text-[42px] text-slate-900 dark:text-white tracking-tight leading-[1.14] mb-5"
+            >
               Connected Hospital Care &amp; Seamless Patient Experience
             </h1>
 
-            <p class="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed mb-8 font-normal">
-              St. Gabriel Hospital unites medical consultations, diagnostic laboratory testing, hospital pharmacy dispensing, transparent billing, and patient self-service together into one calm, coordinated care environment. Compassionate Care powered by reliable distributed microservices.
+            <p
+              class="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed mb-8 font-normal"
+            >
+              St. Gabriel Hospital unites medical consultations, diagnostic laboratory testing,
+              hospital pharmacy dispensing, transparent billing, and patient self-service together
+              into one calm, coordinated care environment. Compassionate Care powered by reliable
+              distributed microservices.
             </p>
 
             <!-- Dual Primary CTAs -->
@@ -230,8 +350,18 @@
                   class="inline-flex items-center justify-center gap-2.5 px-5 py-3.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-semibold text-sm shadow-sm transition-all group"
                 >
                   <span>Open Staff Workspace</span>
-                  <svg class="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  <svg
+                    class="w-4 h-4 group-hover:translate-x-0.5 transition-transform"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M13 7l5 5m0 0l-5 5m5-5H6"
+                    />
                   </svg>
                 </button>
               } @else {
@@ -241,8 +371,18 @@
                   class="inline-flex items-center justify-center gap-2.5 px-5 py-3.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-semibold text-sm shadow-sm transition-all group"
                 >
                   <span>Sign In to Staff Workspace</span>
-                  <svg class="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  <svg
+                    class="w-4 h-4 group-hover:translate-x-0.5 transition-transform"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M13 7l5 5m0 0l-5 5m5-5H6"
+                    />
                   </svg>
                 </button>
               }
@@ -251,8 +391,18 @@
                 (click)="openAuthModal('patient')"
                 class="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 font-semibold text-sm transition-all"
               >
-                <svg class="w-4 h-4 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                <svg
+                  class="w-4 h-4 text-teal-600 dark:text-teal-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
                 </svg>
                 <span>Access Patient Portal</span>
               </button>
@@ -260,38 +410,80 @@
 
             <!-- Dedicated Care Team Portals -->
             <div class="pt-6 border-t border-slate-200/80 dark:border-slate-800">
-              <div class="text-xs font-mono uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3">
+              <div
+                class="text-xs font-mono uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3"
+              >
                 DEDICATED WORKSPACES FOR EVERY CARE TEAM
               </div>
               <div class="flex flex-wrap gap-1.5">
-                <button (click)="openAuthModal('staff', 'Attending Physician')" class="px-2.5 py-1 rounded-md text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-sky-500 hover:-translate-y-0.5 transition-all">Attending Physicians</button>
-                <button (click)="openAuthModal('staff', 'Triage Nurse')" class="px-2.5 py-1 rounded-md text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-sky-500 hover:-translate-y-0.5 transition-all">Triage Nurses</button>
-                <button (click)="openAuthModal('staff', 'Hospital Pharmacist')" class="px-2.5 py-1 rounded-md text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-sky-500 hover:-translate-y-0.5 transition-all">Hospital Pharmacists</button>
-                <button (click)="openAuthModal('staff', 'Laboratory Specialist')" class="px-2.5 py-1 rounded-md text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-sky-500 hover:-translate-y-0.5 transition-all">Laboratory Specialists</button>
-                <button (click)="openAuthModal('staff', 'Reception & Billing')" class="px-2.5 py-1 rounded-md text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-sky-500 hover:-translate-y-0.5 transition-all">Admissions &amp; Patient Billing</button>
+                <button
+                  (click)="openAuthModal('staff', 'Attending Physician')"
+                  class="px-2.5 py-1 rounded-md text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-sky-500 hover:-translate-y-0.5 transition-all"
+                >
+                  Attending Physicians
+                </button>
+                <button
+                  (click)="openAuthModal('staff', 'Triage Nurse')"
+                  class="px-2.5 py-1 rounded-md text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-sky-500 hover:-translate-y-0.5 transition-all"
+                >
+                  Triage Nurses
+                </button>
+                <button
+                  (click)="openAuthModal('staff', 'Hospital Pharmacist')"
+                  class="px-2.5 py-1 rounded-md text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-sky-500 hover:-translate-y-0.5 transition-all"
+                >
+                  Hospital Pharmacists
+                </button>
+                <button
+                  (click)="openAuthModal('staff', 'Laboratory Specialist')"
+                  class="px-2.5 py-1 rounded-md text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-sky-500 hover:-translate-y-0.5 transition-all"
+                >
+                  Laboratory Specialists
+                </button>
+                <button
+                  (click)="openAuthModal('staff', 'Reception & Billing')"
+                  class="px-2.5 py-1 rounded-md text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-sky-500 hover:-translate-y-0.5 transition-all"
+                >
+                  Admissions &amp; Patient Billing
+                </button>
               </div>
             </div>
           </div>
 
           <!-- Right Column: Interactive 3D-Tilt Clinical Workstation Preview Card (7 cols) -->
-          <div id="hero-parallax-wrap" class="lg:col-span-7 tilt-card-wrapper scroll-reveal" data-reveal="right" style="transition-delay: 120ms;">
-            <div id="hero-workstation-card" class="tilt-card relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-clinical-lg overflow-hidden">
-              
+          <div
+            id="hero-parallax-wrap"
+            class="lg:col-span-7 tilt-card-wrapper scroll-reveal"
+            data-reveal="right"
+            style="transition-delay: 120ms"
+          >
+            <div
+              id="hero-workstation-card"
+              class="tilt-card relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-clinical-lg overflow-hidden"
+            >
               <!-- Animated Biomedical Laser Scanner Line -->
               <div class="scanner-beam pointer-events-none absolute inset-x-0 top-0 z-20"></div>
 
               <!-- Workstation Window Top Bar + Interactive Patient Switcher -->
-              <div class="bg-slate-900 text-white px-4 sm:px-6 py-3.5 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
+              <div
+                class="bg-slate-900 text-white px-4 sm:px-6 py-3.5 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3"
+              >
                 <div class="flex items-center gap-3">
                   <span class="relative flex h-2.5 w-2.5 text-teal-400 pulse-indicator">
                     <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-teal-400"></span>
                   </span>
-                  <span class="font-mono text-xs tracking-wide text-slate-300">CLINICAL CHART PREVIEW // PATIENT SUMMARY</span>
+                  <span class="font-mono text-xs tracking-wide text-slate-300"
+                    >CLINICAL CHART PREVIEW // PATIENT SUMMARY</span
+                  >
                 </div>
-                
+
                 <!-- Patient Switcher Tabs -->
-                <div class="flex items-center bg-slate-800/90 p-1 rounded-lg border border-slate-700 text-xs">
-                  <span class="text-slate-400 px-2 hidden sm:inline font-mono text-[11px]">Active Chart:</span>
+                <div
+                  class="flex items-center bg-slate-800/90 p-1 rounded-lg border border-slate-700 text-xs"
+                >
+                  <span class="text-slate-400 px-2 hidden sm:inline font-mono text-[11px]"
+                    >Active Chart:</span
+                  >
                   @for (pt of heroPatients; track pt.id; let idx = $index) {
                     <button
                       type="button"
@@ -304,7 +496,8 @@
                       [class.text-slate-300]="activePatientIndex() !== idx"
                       [class.hover:text-white]="activePatientIndex() !== idx"
                     >
-                      {{ pt.initials }} ({{ pt.name.split(' ')[0][0] }}. {{ pt.name.split(' ')[1] }})
+                      {{ pt.initials }} ({{ pt.name.split(' ')[0][0] }}.
+                      {{ pt.name.split(' ')[1] }})
                     </button>
                   }
                 </div>
@@ -312,15 +505,24 @@
 
               <!-- Patient Demographic Banner -->
               @if (activePatient(); as pt) {
-                <div class="px-5 sm:px-6 py-3.5 bg-slate-50/90 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                <div
+                  class="px-5 sm:px-6 py-3.5 bg-slate-50/90 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3"
+                >
                   <div class="flex items-center gap-3.5">
-                    <div class="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-950 border border-sky-300 dark:border-sky-800 text-sky-800 dark:text-sky-300 font-display font-bold text-sm flex items-center justify-center shadow-sm">
+                    <div
+                      class="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-950 border border-sky-300 dark:border-sky-800 text-sky-800 dark:text-sky-300 font-display font-bold text-sm flex items-center justify-center shadow-sm"
+                    >
                       {{ pt.initials }}
                     </div>
                     <div>
                       <div class="flex items-center gap-2.5">
-                        <h2 class="font-display font-bold text-base text-slate-900 dark:text-white">{{ pt.name }}</h2>
-                        <span class="font-mono text-xs px-2 py-0.5 rounded bg-slate-200/70 dark:bg-slate-700 text-slate-700 dark:text-slate-300">{{ pt.mrn }}</span>
+                        <h2 class="font-display font-bold text-base text-slate-900 dark:text-white">
+                          {{ pt.name }}
+                        </h2>
+                        <span
+                          class="font-mono text-xs px-2 py-0.5 rounded bg-slate-200/70 dark:bg-slate-700 text-slate-700 dark:text-slate-300"
+                          >{{ pt.mrn }}</span
+                        >
                       </div>
                       <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 tabular-vitals">
                         {{ pt.meta }}
@@ -328,7 +530,9 @@
                     </div>
                   </div>
                   <div class="flex items-center gap-2">
-                    <span class="text-xs font-mono px-2.5 py-1 rounded-md bg-teal-50 dark:bg-teal-950/70 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+                    <span
+                      class="text-xs font-mono px-2.5 py-1 rounded-md bg-teal-50 dark:bg-teal-950/70 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800"
+                    >
                       {{ pt.ward }}
                     </span>
                   </div>
@@ -336,30 +540,47 @@
 
                 <!-- Workstation Body Content -->
                 <div class="p-5 sm:p-6 space-y-5">
-                  
                   <!-- Row 1: Clinical Vitals Triage Strip + Real-Time Canvas Oscilloscope -->
                   <div>
                     <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
                       <div class="flex items-center gap-2">
-                        <span class="text-xs font-mono uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400">1. NURSE VITALS TRIAGE</span>
-                        <span class="text-[11px] font-mono text-slate-400 dark:text-slate-500">{{ pt.vitalsTime }}</span>
+                        <span
+                          class="text-xs font-mono uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400"
+                          >1. NURSE VITALS TRIAGE</span
+                        >
+                        <span class="text-[11px] font-mono text-slate-400 dark:text-slate-500">{{
+                          pt.vitalsTime
+                        }}</span>
                       </div>
                       <!-- Live Canvas ECG Monitor Strip -->
-                      <div class="flex items-center gap-2.5 bg-slate-950 px-3 py-1 rounded-lg border border-slate-800">
+                      <div
+                        class="flex items-center gap-2.5 bg-slate-950 px-3 py-1 rounded-lg border border-slate-800"
+                      >
                         <canvas id="ecg-canvas" class="w-28 h-5 block"></canvas>
-                        <span class="font-mono text-[10px] text-teal-400 font-semibold tracking-wider animate-pulse">LEAD II • 25mm/s</span>
+                        <span
+                          class="font-mono text-[10px] text-teal-400 font-semibold tracking-wider animate-pulse"
+                          >LEAD II • 25mm/s</span
+                        >
                       </div>
                     </div>
 
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 tabular-vitals">
                       <!-- Blood Pressure -->
-                      <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 hover:border-sky-400 dark:hover:border-sky-500 transition-all group">
-                        <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+                      <div
+                        class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 hover:border-sky-400 dark:hover:border-sky-500 transition-all group"
+                      >
+                        <div
+                          class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1"
+                        >
                           <span>Blood Pressure</span>
                           <span
                             class="font-mono text-[10px] px-1.5 py-0.2 rounded font-semibold"
-                            [class.bg-emerald-100]="pt.bpStatus === 'NORMAL' || pt.bpStatus === 'OPTIMAL'"
-                            [class.text-emerald-700]="pt.bpStatus === 'NORMAL' || pt.bpStatus === 'OPTIMAL'"
+                            [class.bg-emerald-100]="
+                              pt.bpStatus === 'NORMAL' || pt.bpStatus === 'OPTIMAL'
+                            "
+                            [class.text-emerald-700]="
+                              pt.bpStatus === 'NORMAL' || pt.bpStatus === 'OPTIMAL'
+                            "
                             [class.bg-amber-100]="pt.bpStatus === 'ELEVATED'"
                             [class.text-amber-700]="pt.bpStatus === 'ELEVATED'"
                           >
@@ -367,19 +588,31 @@
                           </span>
                         </div>
                         <div class="flex items-baseline gap-1">
-                          <span class="font-mono font-bold text-lg text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">{{ pt.bp }}</span>
+                          <span
+                            class="font-mono font-bold text-lg text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors"
+                            >{{ pt.bp }}</span
+                          >
                           <span class="text-[11px] text-slate-500 font-mono">mmHg</span>
                         </div>
                       </div>
 
                       <!-- Heart Rate -->
-                      <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 hover:border-teal-400 dark:hover:border-teal-500 transition-all group">
-                        <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+                      <div
+                        class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 hover:border-teal-400 dark:hover:border-teal-500 transition-all group"
+                      >
+                        <div
+                          class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1"
+                        >
                           <span>Heart Rate</span>
-                          <span class="font-mono text-[10px] px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 font-semibold">NORMAL</span>
+                          <span
+                            class="font-mono text-[10px] px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 font-semibold"
+                            >NORMAL</span
+                          >
                         </div>
                         <div class="flex items-baseline gap-1">
-                          <span class="font-mono font-bold text-lg text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
+                          <span
+                            class="font-mono font-bold text-lg text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors"
+                          >
                             {{ liveJitterHr() ?? pt.hr }}
                           </span>
                           <span class="text-[11px] text-slate-500 font-mono">bpm</span>
@@ -387,20 +620,34 @@
                       </div>
 
                       <!-- SpO2 -->
-                      <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 hover:border-sky-400 dark:hover:border-sky-500 transition-all group">
-                        <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+                      <div
+                        class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 hover:border-sky-400 dark:hover:border-sky-500 transition-all group"
+                      >
+                        <div
+                          class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1"
+                        >
                           <span>O₂ Saturation</span>
-                          <span class="font-mono text-[10px] px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 font-semibold">98% RA</span>
+                          <span
+                            class="font-mono text-[10px] px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 font-semibold"
+                            >98% RA</span
+                          >
                         </div>
                         <div class="flex items-baseline gap-1">
-                          <span class="font-mono font-bold text-lg text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">{{ pt.spo2 }}</span>
+                          <span
+                            class="font-mono font-bold text-lg text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors"
+                            >{{ pt.spo2 }}</span
+                          >
                           <span class="text-[11px] text-slate-500 font-mono">%</span>
                         </div>
                       </div>
 
                       <!-- Temperature -->
-                      <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 hover:border-amber-400 dark:hover:border-amber-500 transition-all group">
-                        <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+                      <div
+                        class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 hover:border-amber-400 dark:hover:border-amber-500 transition-all group"
+                      >
+                        <div
+                          class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1"
+                        >
                           <span>Core Temp</span>
                           <span
                             class="font-mono text-[10px] px-1.5 py-0.2 rounded font-semibold"
@@ -413,7 +660,10 @@
                           </span>
                         </div>
                         <div class="flex items-baseline gap-1">
-                          <span class="font-mono font-bold text-lg text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">{{ pt.temp }}</span>
+                          <span
+                            class="font-mono font-bold text-lg text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors"
+                            >{{ pt.temp }}</span
+                          >
                           <span class="text-[11px] text-slate-500 font-mono">°C</span>
                         </div>
                       </div>
@@ -422,27 +672,52 @@
 
                   <!-- Row 2: Diagnostic Lab Panel with Animated Reference Range Bars -->
                   <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                    <div class="md:col-span-7 rounded-xl border border-slate-200 dark:border-slate-800 p-4 bg-white dark:bg-slate-900/60">
+                    <div
+                      class="md:col-span-7 rounded-xl border border-slate-200 dark:border-slate-800 p-4 bg-white dark:bg-slate-900/60"
+                    >
                       <div class="flex items-center justify-between mb-3">
-                        <span class="text-xs font-mono uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400">2. DIAGNOSTIC LAB ANALYZER</span>
-                        <span class="font-mono text-[11px] text-sky-600 dark:text-sky-400">Order #LAB-8921 • Cobas c503</span>
+                        <span
+                          class="text-xs font-mono uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400"
+                          >2. DIAGNOSTIC LAB ANALYZER</span
+                        >
+                        <span class="font-mono text-[11px] text-sky-600 dark:text-sky-400"
+                          >Order #LAB-8921 • Cobas c503</span
+                        >
                       </div>
-                      
-                      <div class="divide-y divide-slate-100 dark:divide-slate-800 text-xs tabular-vitals">
+
+                      <div
+                        class="divide-y divide-slate-100 dark:divide-slate-800 text-xs tabular-vitals"
+                      >
                         @for (lab of pt.labs; track lab.test) {
                           <div class="py-2.5 space-y-1.5">
                             <div class="flex items-center justify-between gap-2">
                               <div>
-                                <div class="font-medium text-slate-800 dark:text-slate-200">{{ lab.test }}</div>
-                                <div class="text-[11px] font-mono text-slate-400">Ref Interval: {{ lab.ref }}</div>
+                                <div class="font-medium text-slate-800 dark:text-slate-200">
+                                  {{ lab.test }}
+                                </div>
+                                <div class="text-[11px] font-mono text-slate-400">
+                                  Ref Interval: {{ lab.ref }}
+                                </div>
                               </div>
                               <div class="flex items-center gap-2.5">
-                                <span class="font-mono font-bold text-slate-900 dark:text-white">{{ lab.value }}</span>
-                                <span class="font-mono text-[10px] font-semibold px-2 py-0.5 rounded border {{ lab.flagClass }}">{{ lab.flag }}</span>
+                                <span class="font-mono font-bold text-slate-900 dark:text-white">{{
+                                  lab.value
+                                }}</span>
+                                <span
+                                  class="font-mono text-[10px] font-semibold px-2 py-0.5 rounded border {{
+                                    lab.flagClass
+                                  }}"
+                                  >{{ lab.flag }}</span
+                                >
                               </div>
                             </div>
-                            <div class="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                              <div class="h-full {{ lab.barColor }} rounded-full lab-range-fill" [style.width.%]="lab.pct"></div>
+                            <div
+                              class="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden"
+                            >
+                              <div
+                                class="h-full {{ lab.barColor }} rounded-full lab-range-fill"
+                                [style.width.%]="lab.pct"
+                              ></div>
                             </div>
                           </div>
                         }
@@ -450,19 +725,37 @@
                     </div>
 
                     <!-- Active Electronic Prescriptions (5 cols) -->
-                    <div class="md:col-span-5 rounded-xl border border-slate-200 dark:border-slate-800 p-4 bg-white dark:bg-slate-900/60 flex flex-col justify-between">
+                    <div
+                      class="md:col-span-5 rounded-xl border border-slate-200 dark:border-slate-800 p-4 bg-white dark:bg-slate-900/60 flex flex-col justify-between"
+                    >
                       <div>
                         <div class="flex items-center justify-between mb-3">
-                          <span class="text-xs font-mono uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400">3. E-PRESCRIPTIONS</span>
-                          <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800">VERIFIED STOCK</span>
+                          <span
+                            class="text-xs font-mono uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400"
+                            >3. E-PRESCRIPTIONS</span
+                          >
+                          <span
+                            class="font-mono text-[10px] px-2 py-0.5 rounded bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800"
+                            >VERIFIED STOCK</span
+                          >
                         </div>
-                        
+
                         <div class="space-y-2.5">
                           @for (rxItem of pt.rx; track rxItem.drug) {
-                            <div class="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/70 hover:border-teal-500/60 transition-colors">
-                              <div class="font-semibold text-xs text-slate-900 dark:text-white">{{ rxItem.drug }}</div>
-                              <div class="font-mono text-[11px] text-slate-600 dark:text-slate-300 mt-0.5">{{ rxItem.sig }}</div>
-                              <div class="text-[10px] font-mono text-teal-600 dark:text-teal-400 mt-1.5 flex items-center gap-1">
+                            <div
+                              class="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/70 hover:border-teal-500/60 transition-colors"
+                            >
+                              <div class="font-semibold text-xs text-slate-900 dark:text-white">
+                                {{ rxItem.drug }}
+                              </div>
+                              <div
+                                class="font-mono text-[11px] text-slate-600 dark:text-slate-300 mt-0.5"
+                              >
+                                {{ rxItem.sig }}
+                              </div>
+                              <div
+                                class="text-[10px] font-mono text-teal-600 dark:text-teal-400 mt-1.5 flex items-center gap-1"
+                              >
                                 <span class="w-1.5 h-1.5 rounded-full bg-teal-500"></span>
                                 <span>{{ rxItem.stock }}</span>
                               </div>
@@ -471,47 +764,62 @@
                         </div>
                       </div>
 
-                      <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
-                        <span class="text-slate-500 dark:text-slate-400 font-mono">Status: <strong class="text-teal-600 dark:text-teal-400">Ready at Pharmacy</strong></span>
-                        <button type="button" (click)="triggerRxVerifyToast()" class="font-semibold text-sky-600 dark:text-sky-400 hover:underline">
+                      <div
+                        class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]"
+                      >
+                        <span class="text-slate-500 dark:text-slate-400 font-mono"
+                          >Status:
+                          <strong class="text-teal-600 dark:text-teal-400"
+                            >Ready at Pharmacy</strong
+                          ></span
+                        >
+                        <button
+                          type="button"
+                          (click)="triggerRxVerifyToast()"
+                          class="font-semibold text-sky-600 dark:text-sky-400 hover:underline"
+                        >
                           Confirm Medication Handover →
                         </button>
                       </div>
                     </div>
                   </div>
-
                 </div>
               }
             </div>
           </div>
-
         </div>
       </div>
     </section>
 
     <!-- 3. Clinical & Department Workflows (The 5 Core Operations) -->
-    <section id="clinical-workflows" class="py-16 lg:py-24 px-4 sm:px-6 lg:px-8 border-t border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/40 overflow-hidden">
+    <section
+      id="clinical-workflows"
+      class="py-16 lg:py-24 px-4 sm:px-6 lg:px-8 border-t border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/40 overflow-hidden"
+    >
       <div class="max-w-7xl mx-auto">
-        
         <!-- Section Header -->
         <div class="max-w-3xl mb-12 scroll-reveal" data-reveal="up">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-mono uppercase tracking-wider mb-3">
+          <div
+            class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-mono uppercase tracking-wider mb-3"
+          >
             COORDINATED HOSPITAL DEPARTMENTS
           </div>
-          <h2 class="font-display font-bold text-2xl sm:text-3xl lg:text-4xl text-slate-900 dark:text-white tracking-tight mb-4">
+          <h2
+            class="font-display font-bold text-2xl sm:text-3xl lg:text-4xl text-slate-900 dark:text-white tracking-tight mb-4"
+          >
             Five Hospital Departments Working as One Care Team.
           </h2>
           <p class="text-slate-600 dark:text-slate-300 text-base leading-relaxed">
-            From the moment a patient checks in at reception to laboratory testing, prescription pickup, and final billing, every department shares up-to-the-second clinical information without paper delays.
+            From the moment a patient checks in at reception to laboratory testing, prescription
+            pickup, and final billing, every department shares up-to-the-second clinical information
+            without paper delays.
           </p>
         </div>
 
         <!-- Interactive Department Selector + Live Department Inspector -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          
           <!-- Left: 5 Department Cards (5 Columns) -->
           <div class="lg:col-span-5 space-y-2.5" role="tablist">
-            
             <!-- Dept 0: Clinical Consultation & SOAP Notes -->
             <button
               type="button"
@@ -526,18 +834,38 @@
               [class.border-slate-200]="activeDepartmentIndex() !== 0"
               [class.dark:border-slate-800]="activeDepartmentIndex() !== 0"
             >
-              <div class="w-10 h-10 rounded-lg bg-sky-600 text-white flex items-center justify-center shrink-0 mt-0.5">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <div
+                class="w-10 h-10 rounded-lg bg-sky-600 text-white flex items-center justify-center shrink-0 mt-0.5"
+              >
+                <svg
+                  class="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
                 </svg>
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
-                  <h3 class="font-display font-bold text-sm sm:text-base text-slate-900 dark:text-white">1. Clinical Consultation</h3>
-                  <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-sky-100 dark:bg-sky-900 text-sky-800 dark:text-sky-200">Consultations &amp; SOAP Notes</span>
+                  <h3
+                    class="font-display font-bold text-sm sm:text-base text-slate-900 dark:text-white"
+                  >
+                    1. Clinical Consultation
+                  </h3>
+                  <span
+                    class="font-mono text-[10px] px-2 py-0.5 rounded bg-sky-100 dark:bg-sky-900 text-sky-800 dark:text-sky-200"
+                    >Consultations &amp; SOAP Notes</span
+                  >
                 </div>
                 <p class="text-xs text-slate-600 dark:text-slate-400 mt-1 line-clamp-2">
-                  Physician examination notes, nurse vitals triage, complete medical history, and instant lab or medication orders.
+                  Physician examination notes, nurse vitals triage, complete medical history, and
+                  instant lab or medication orders.
                 </p>
               </div>
             </button>
@@ -556,18 +884,38 @@
               [class.border-slate-200]="activeDepartmentIndex() !== 1"
               [class.dark:border-slate-800]="activeDepartmentIndex() !== 1"
             >
-              <div class="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0 mt-0.5">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+              <div
+                class="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0 mt-0.5"
+              >
+                <svg
+                  class="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
+                  />
                 </svg>
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
-                  <h3 class="font-display font-bold text-sm sm:text-base text-slate-900 dark:text-white">2. Diagnostic Laboratory</h3>
-                  <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">RAPID RESULTS</span>
+                  <h3
+                    class="font-display font-bold text-sm sm:text-base text-slate-900 dark:text-white"
+                  >
+                    2. Diagnostic Laboratory
+                  </h3>
+                  <span
+                    class="font-mono text-[10px] px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                    >RAPID RESULTS</span
+                  >
                 </div>
                 <p class="text-xs text-slate-600 dark:text-slate-400 mt-1 line-clamp-2">
-                  Sample tracking, precision analyzer readings, and clear safety alerts (NORMAL, HIGH, LOW, CRITICAL) sent straight to doctors.
+                  Sample tracking, precision analyzer readings, and clear safety alerts (NORMAL,
+                  HIGH, LOW, CRITICAL) sent straight to doctors.
                 </p>
               </div>
             </button>
@@ -586,18 +934,38 @@
               [class.border-slate-200]="activeDepartmentIndex() !== 2"
               [class.dark:border-slate-800]="activeDepartmentIndex() !== 2"
             >
-              <div class="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0 mt-0.5">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              <div
+                class="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0 mt-0.5"
+              >
+                <svg
+                  class="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                  />
                 </svg>
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
-                  <h3 class="font-display font-bold text-sm sm:text-base text-slate-900 dark:text-white">3. Pharmacy &amp; Medication</h3>
-                  <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">SAFE DISPENSE</span>
+                  <h3
+                    class="font-display font-bold text-sm sm:text-base text-slate-900 dark:text-white"
+                  >
+                    3. Pharmacy &amp; Medication
+                  </h3>
+                  <span
+                    class="font-mono text-[10px] px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                    >SAFE DISPENSE</span
+                  >
                 </div>
                 <p class="text-xs text-slate-600 dark:text-slate-400 mt-1 line-clamp-2">
-                  Paperless prescriptions, verified dosage dispensing, expiration date monitoring, and proactive stock replenishment alerts.
+                  Paperless prescriptions, verified dosage dispensing, expiration date monitoring,
+                  and proactive stock replenishment alerts.
                 </p>
               </div>
             </button>
@@ -616,18 +984,38 @@
               [class.border-slate-200]="activeDepartmentIndex() !== 3"
               [class.dark:border-slate-800]="activeDepartmentIndex() !== 3"
             >
-              <div class="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0 mt-0.5">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <div
+                class="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0 mt-0.5"
+              >
+                <svg
+                  class="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
                 </svg>
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
-                  <h3 class="font-display font-bold text-sm sm:text-base text-slate-900 dark:text-white">4. Reception &amp; Admissions</h3>
-                  <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">FAST CHECK-IN</span>
+                  <h3
+                    class="font-display font-bold text-sm sm:text-base text-slate-900 dark:text-white"
+                  >
+                    4. Reception &amp; Admissions
+                  </h3>
+                  <span
+                    class="font-mono text-[10px] px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                    >FAST CHECK-IN</span
+                  >
                 </div>
                 <p class="text-xs text-slate-600 dark:text-slate-400 mt-1 line-clamp-2">
-                  Quick patient registration, real-time specialist availability calendars, and streamlined arrival check-in.
+                  Quick patient registration, real-time specialist availability calendars, and
+                  streamlined arrival check-in.
                 </p>
               </div>
             </button>
@@ -646,95 +1034,185 @@
               [class.border-slate-200]="activeDepartmentIndex() !== 4"
               [class.dark:border-slate-800]="activeDepartmentIndex() !== 4"
             >
-              <div class="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0 mt-0.5">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
+              <div
+                class="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0 mt-0.5"
+              >
+                <svg
+                  class="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"
+                  />
                 </svg>
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between">
-                  <h3 class="font-display font-bold text-sm sm:text-base text-slate-900 dark:text-white">5. Patient Billing &amp; Cashier</h3>
-                  <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">CLEAR INVOICES</span>
+                  <h3
+                    class="font-display font-bold text-sm sm:text-base text-slate-900 dark:text-white"
+                  >
+                    5. Patient Billing &amp; Cashier
+                  </h3>
+                  <span
+                    class="font-mono text-[10px] px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                    >CLEAR INVOICES</span
+                  >
                 </div>
                 <p class="text-xs text-slate-600 dark:text-slate-400 mt-1 line-clamp-2">
-                  Clear itemized statements for consultations, lab tests, and medications, with convenient cash or card payment options.
+                  Clear itemized statements for consultations, lab tests, and medications, with
+                  convenient cash or card payment options.
                 </p>
               </div>
             </button>
-
           </div>
 
           <!-- Right: Interactive Department Live Workbench View (7 Columns) -->
-          <div class="lg:col-span-7 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-clinical overflow-hidden scroll-reveal" data-reveal="scale" style="transition-delay: 140ms;">
-            
+          <div
+            class="lg:col-span-7 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-clinical overflow-hidden scroll-reveal"
+            data-reveal="scale"
+            style="transition-delay: 140ms"
+          >
             @switch (activeDepartmentIndex()) {
               @case (0) {
                 <!-- Consultation Workbench -->
-                <div class="px-6 py-4 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-2">
+                <div
+                  class="px-6 py-4 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-2"
+                >
                   <div class="flex items-center gap-2.5">
                     <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
-                    <span class="font-mono text-xs text-sky-300">Department Workspace • Clinical Consultation</span>
+                    <span class="font-mono text-xs text-sky-300"
+                      >Department Workspace • Clinical Consultation</span
+                    >
                   </div>
-                  <span class="font-mono text-[11px] px-2.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                  <span
+                    class="font-mono text-[11px] px-2.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700"
+                  >
                     Connected with Lab &amp; Pharmacy
                   </span>
                 </div>
                 <div class="p-6">
-                  <div class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-200 dark:border-slate-800">
+                  <div
+                    class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-200 dark:border-slate-800"
+                  >
                     <div>
-                      <span class="text-xs font-mono uppercase text-sky-600 dark:text-sky-400 font-semibold">PHYSICIAN &amp; NURSING WORKSPACE</span>
-                      <h3 class="font-display font-bold text-xl text-slate-900 dark:text-white mt-0.5">Structured Consultation Notes &amp; Vital Signs Triage</h3>
+                      <span
+                        class="text-xs font-mono uppercase text-sky-600 dark:text-sky-400 font-semibold"
+                        >PHYSICIAN &amp; NURSING WORKSPACE</span
+                      >
+                      <h3
+                        class="font-display font-bold text-xl text-slate-900 dark:text-white mt-0.5"
+                      >
+                        Structured Consultation Notes &amp; Vital Signs Triage
+                      </h3>
                     </div>
-                    <span class="font-mono text-xs px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">Visit #ENC-2026-4410</span>
+                    <span
+                      class="font-mono text-xs px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
+                      >Visit #ENC-2026-4410</span
+                    >
                   </div>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
-                    <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
-                      <div class="text-xs font-mono uppercase text-slate-500 dark:text-slate-400 mb-2">Symptoms &amp; Vital Signs (Nurse Triage)</div>
+                    <div
+                      class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700"
+                    >
+                      <div
+                        class="text-xs font-mono uppercase text-slate-500 dark:text-slate-400 mb-2"
+                      >
+                        Symptoms &amp; Vital Signs (Nurse Triage)
+                      </div>
                       <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed mb-3">
-                        Patient presents with 48h productive cough and mild fever (37.8°C). Chest examination shows mild congestion in right lower lobe. Blood Pressure 120/80 mmHg, Oxygen Saturation 98.4%.
+                        Patient presents with 48h productive cough and mild fever (37.8°C). Chest
+                        examination shows mild congestion in right lower lobe. Blood Pressure 120/80
+                        mmHg, Oxygen Saturation 98.4%.
                       </p>
                       <div class="flex flex-wrap gap-1.5 font-mono text-[11px]">
-                        <span class="px-2 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">BMI: 24.1 kg/m²</span>
-                        <span class="px-2 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">Comfort Level: Stable</span>
+                        <span
+                          class="px-2 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700"
+                          >BMI: 24.1 kg/m²</span
+                        >
+                        <span
+                          class="px-2 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700"
+                          >Comfort Level: Stable</span
+                        >
                       </div>
                     </div>
-                    <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
-                      <div class="text-xs font-mono uppercase text-slate-500 dark:text-slate-400 mb-2">Medical Assessment &amp; Care Plan</div>
+                    <div
+                      class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700"
+                    >
+                      <div
+                        class="text-xs font-mono uppercase text-slate-500 dark:text-slate-400 mb-2"
+                      >
+                        Medical Assessment &amp; Care Plan
+                      </div>
                       <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed mb-3">
-                        <strong>Clinical Diagnosis:</strong> Acute bronchitis. Ordered Complete Blood Count and Fasting Blood Glucose panel to monitor overall recovery.
+                        <strong>Clinical Diagnosis:</strong> Acute bronchitis. Ordered Complete
+                        Blood Count and Fasting Blood Glucose panel to monitor overall recovery.
                       </p>
-                      <div class="text-[11px] font-mono text-teal-600 dark:text-teal-400">✓ Signed by Dr. Amel Trabelsi (Internal Medicine)</div>
+                      <div class="text-[11px] font-mono text-teal-600 dark:text-teal-400">
+                        ✓ Signed by Dr. Amel Trabelsi (Internal Medicine)
+                      </div>
                     </div>
                   </div>
-                  <div class="p-3.5 rounded-xl bg-sky-50/70 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800/80 flex flex-wrap items-center justify-between gap-2 text-xs">
-                    <span class="text-slate-700 dark:text-slate-300">Completing a consultation immediately notifies the Laboratory and Hospital Pharmacy.</span>
-                    <span class="font-mono text-sky-700 dark:text-sky-300 font-semibold">Zero paper forms required</span>
+                  <div
+                    class="p-3.5 rounded-xl bg-sky-50/70 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800/80 flex flex-wrap items-center justify-between gap-2 text-xs"
+                  >
+                    <span class="text-slate-700 dark:text-slate-300"
+                      >Completing a consultation immediately notifies the Laboratory and Hospital
+                      Pharmacy.</span
+                    >
+                    <span class="font-mono text-sky-700 dark:text-sky-300 font-semibold"
+                      >Zero paper forms required</span
+                    >
                   </div>
                 </div>
               }
               @case (1) {
                 <!-- Diagnostic Lab Workbench -->
-                <div class="px-6 py-4 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-2">
+                <div
+                  class="px-6 py-4 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-2"
+                >
                   <div class="flex items-center gap-2.5">
                     <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
-                    <span class="font-mono text-xs text-sky-300">Department Workspace • Diagnostic Laboratory</span>
+                    <span class="font-mono text-xs text-sky-300"
+                      >Department Workspace • Diagnostic Laboratory</span
+                    >
                   </div>
-                  <span class="font-mono text-[11px] px-2.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                  <span
+                    class="font-mono text-[11px] px-2.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700"
+                  >
                     Instant Physician Alerting
                   </span>
                 </div>
                 <div class="p-6">
-                  <div class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-200 dark:border-slate-800">
+                  <div
+                    class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-200 dark:border-slate-800"
+                  >
                     <div>
-                      <span class="text-xs font-mono uppercase text-sky-600 dark:text-sky-400 font-semibold">MEDICAL LABORATORY</span>
-                      <h3 class="font-display font-bold text-xl text-slate-900 dark:text-white mt-0.5">Analyzer Measurements &amp; Automated Safety Flags</h3>
+                      <span
+                        class="text-xs font-mono uppercase text-sky-600 dark:text-sky-400 font-semibold"
+                        >MEDICAL LABORATORY</span
+                      >
+                      <h3
+                        class="font-display font-bold text-xl text-slate-900 dark:text-white mt-0.5"
+                      >
+                        Analyzer Measurements &amp; Automated Safety Flags
+                      </h3>
                     </div>
-                    <span class="font-mono text-xs px-2.5 py-1 rounded-md bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">Reference Range Checks Active</span>
+                    <span
+                      class="font-mono text-xs px-2.5 py-1 rounded-md bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800"
+                      >Reference Range Checks Active</span
+                    >
                   </div>
                   <div class="overflow-x-auto mb-4">
                     <table class="w-full text-left border-collapse text-xs tabular-vitals">
                       <thead>
-                        <tr class="border-b border-slate-200 dark:border-slate-800 font-mono text-[11px] text-slate-500 uppercase">
+                        <tr
+                          class="border-b border-slate-200 dark:border-slate-800 font-mono text-[11px] text-slate-500 uppercase"
+                        >
                           <th class="py-2.5 pr-3">Test Name</th>
                           <th class="py-2.5 px-3">Measured Value</th>
                           <th class="py-2.5 px-3">Normal Range</th>
@@ -746,25 +1224,45 @@
                           <td class="py-3 pr-3 font-medium">Blood Glucose (Fasting)</td>
                           <td class="py-3 px-3 font-mono font-bold">115 mg/dL</td>
                           <td class="py-3 px-3 font-mono text-slate-500">70 – 99 mg/dL</td>
-                          <td class="py-3 pl-3 text-right"><span class="font-mono text-[10px] px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 font-semibold">HIGH</span></td>
+                          <td class="py-3 pl-3 text-right">
+                            <span
+                              class="font-mono text-[10px] px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 font-semibold"
+                              >HIGH</span
+                            >
+                          </td>
                         </tr>
                         <tr>
                           <td class="py-3 pr-3 font-medium">Hemoglobin (Whole Blood)</td>
                           <td class="py-3 px-3 font-mono font-bold">14.2 g/dL</td>
                           <td class="py-3 px-3 font-mono text-slate-500">13.5 – 17.5 g/dL</td>
-                          <td class="py-3 pl-3 text-right"><span class="font-mono text-[10px] px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-semibold">NORMAL</span></td>
+                          <td class="py-3 pl-3 text-right">
+                            <span
+                              class="font-mono text-[10px] px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-semibold"
+                              >NORMAL</span
+                            >
+                          </td>
                         </tr>
                         <tr>
                           <td class="py-3 pr-3 font-medium">Serum Ferritin</td>
                           <td class="py-3 px-3 font-mono font-bold">18 ng/mL</td>
                           <td class="py-3 px-3 font-mono text-slate-500">30 – 400 ng/mL</td>
-                          <td class="py-3 pl-3 text-right"><span class="font-mono text-[10px] px-2 py-0.5 rounded bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 font-semibold">LOW</span></td>
+                          <td class="py-3 pl-3 text-right">
+                            <span
+                              class="font-mono text-[10px] px-2 py-0.5 rounded bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 font-semibold"
+                              >LOW</span
+                            >
+                          </td>
                         </tr>
                         <tr>
                           <td class="py-3 pr-3 font-medium">Serum Potassium (K+)</td>
                           <td class="py-3 px-3 font-mono font-bold">5.8 mmol/L</td>
                           <td class="py-3 px-3 font-mono text-slate-500">3.5 – 5.1 mmol/L</td>
-                          <td class="py-3 pl-3 text-right"><span class="font-mono text-[10px] px-2 py-0.5 rounded bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 font-semibold">CRITICAL</span></td>
+                          <td class="py-3 pl-3 text-right">
+                            <span
+                              class="font-mono text-[10px] px-2 py-0.5 rounded bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 font-semibold"
+                              >CRITICAL</span
+                            >
+                          </td>
                         </tr>
                       </tbody>
                     </table>
@@ -773,42 +1271,84 @@
               }
               @case (2) {
                 <!-- Pharmacy Workbench -->
-                <div class="px-6 py-4 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-2">
+                <div
+                  class="px-6 py-4 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-2"
+                >
                   <div class="flex items-center gap-2.5">
                     <span class="w-2.5 h-2.5 rounded-full bg-teal-400"></span>
-                    <span class="font-mono text-xs text-teal-300">Department Workspace • Hospital Pharmacy</span>
+                    <span class="font-mono text-xs text-teal-300"
+                      >Department Workspace • Hospital Pharmacy</span
+                    >
                   </div>
-                  <span class="font-mono text-[11px] px-2.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                  <span
+                    class="font-mono text-[11px] px-2.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700"
+                  >
                     Verified Stock &amp; Dosage Safety
                   </span>
                 </div>
                 <div class="p-6">
-                  <div class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-200 dark:border-slate-800">
+                  <div
+                    class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-200 dark:border-slate-800"
+                  >
                     <div>
-                      <span class="text-xs font-mono uppercase text-teal-600 dark:text-teal-400 font-semibold">PHARMACY &amp; MEDICATION SAFETY</span>
-                      <h3 class="font-display font-bold text-xl text-slate-900 dark:text-white mt-0.5">Digital Prescriptions &amp; Stock Monitoring</h3>
+                      <span
+                        class="text-xs font-mono uppercase text-teal-600 dark:text-teal-400 font-semibold"
+                        >PHARMACY &amp; MEDICATION SAFETY</span
+                      >
+                      <h3
+                        class="font-display font-bold text-xl text-slate-900 dark:text-white mt-0.5"
+                      >
+                        Digital Prescriptions &amp; Stock Monitoring
+                      </h3>
                     </div>
-                    <span class="font-mono text-xs px-2.5 py-1 rounded-md bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800">Guaranteed Availability</span>
+                    <span
+                      class="font-mono text-xs px-2.5 py-1 rounded-md bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800"
+                      >Guaranteed Availability</span
+                    >
                   </div>
                   <div class="space-y-3 mb-4 tabular-vitals">
-                    <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-3">
+                    <div
+                      class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-3"
+                    >
                       <div>
-                        <div class="font-semibold text-sm text-slate-900 dark:text-white">Amoxicillin 500mg Capsules</div>
-                        <div class="text-xs font-mono text-slate-500">Lot #AX-294 • Exp: 11/2027 • Minimum Reserve: 200 caps</div>
+                        <div class="font-semibold text-sm text-slate-900 dark:text-white">
+                          Amoxicillin 500mg Capsules
+                        </div>
+                        <div class="text-xs font-mono text-slate-500">
+                          Lot #AX-294 • Exp: 11/2027 • Minimum Reserve: 200 caps
+                        </div>
                       </div>
                       <div class="text-right">
-                        <div class="font-mono font-bold text-sm text-emerald-600 dark:text-emerald-400">1,180 in stock</div>
-                        <div class="text-[11px] font-mono text-slate-400">Status: READY TO DISPENSE</div>
+                        <div
+                          class="font-mono font-bold text-sm text-emerald-600 dark:text-emerald-400"
+                        >
+                          1,180 in stock
+                        </div>
+                        <div class="text-[11px] font-mono text-slate-400">
+                          Status: READY TO DISPENSE
+                        </div>
                       </div>
                     </div>
-                    <div class="p-3.5 rounded-xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-800 flex flex-wrap items-center justify-between gap-3">
+                    <div
+                      class="p-3.5 rounded-xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-800 flex flex-wrap items-center justify-between gap-3"
+                    >
                       <div>
-                        <div class="font-semibold text-sm text-slate-900 dark:text-white">Ceftriaxone 1g IV Vial</div>
-                        <div class="text-xs font-mono text-amber-800 dark:text-amber-300">Lot #CF-104 • Exp: 08/2027 • Minimum Reserve: 150 vials</div>
+                        <div class="font-semibold text-sm text-slate-900 dark:text-white">
+                          Ceftriaxone 1g IV Vial
+                        </div>
+                        <div class="text-xs font-mono text-amber-800 dark:text-amber-300">
+                          Lot #CF-104 • Exp: 08/2027 • Minimum Reserve: 150 vials
+                        </div>
                       </div>
                       <div class="text-right">
-                        <div class="font-mono font-bold text-sm text-amber-700 dark:text-amber-400">112 in stock</div>
-                        <div class="text-[11px] font-mono text-amber-700 dark:text-amber-300 font-semibold">⚠ RESTOCK ORDER SENT</div>
+                        <div class="font-mono font-bold text-sm text-amber-700 dark:text-amber-400">
+                          112 in stock
+                        </div>
+                        <div
+                          class="text-[11px] font-mono text-amber-700 dark:text-amber-300 font-semibold"
+                        >
+                          ⚠ RESTOCK ORDER SENT
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -816,37 +1356,73 @@
               }
               @case (3) {
                 <!-- Reception Workbench -->
-                <div class="px-6 py-4 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-2">
+                <div
+                  class="px-6 py-4 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-2"
+                >
                   <div class="flex items-center gap-2.5">
                     <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
-                    <span class="font-mono text-xs text-sky-300">Department Workspace • Reception &amp; Admissions</span>
+                    <span class="font-mono text-xs text-sky-300"
+                      >Department Workspace • Reception &amp; Admissions</span
+                    >
                   </div>
-                  <span class="font-mono text-[11px] px-2.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                  <span
+                    class="font-mono text-[11px] px-2.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700"
+                  >
                     Live Clinic Schedule
                   </span>
                 </div>
                 <div class="p-6">
-                  <div class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-200 dark:border-slate-800">
+                  <div
+                    class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-200 dark:border-slate-800"
+                  >
                     <div>
-                      <span class="text-xs font-mono uppercase text-sky-600 dark:text-sky-400 font-semibold">WELCOME &amp; ADMISSIONS DESK</span>
-                      <h3 class="font-display font-bold text-xl text-slate-900 dark:text-white mt-0.5">Fast Check-In &amp; Specialist Availability Calendar</h3>
+                      <span
+                        class="text-xs font-mono uppercase text-sky-600 dark:text-sky-400 font-semibold"
+                        >WELCOME &amp; ADMISSIONS DESK</span
+                      >
+                      <h3
+                        class="font-display font-bold text-xl text-slate-900 dark:text-white mt-0.5"
+                      >
+                        Fast Check-In &amp; Specialist Availability Calendar
+                      </h3>
                     </div>
-                    <span class="font-mono text-xs px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">Today's Morning Clinic</span>
+                    <span
+                      class="font-mono text-xs px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+                      >Today's Morning Clinic</span
+                    >
                   </div>
                   <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 tabular-vitals">
-                    <div class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                    <div
+                      class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50"
+                    >
                       <div class="font-mono text-xs text-slate-500">09:30 • Checked In</div>
-                      <div class="font-bold text-sm text-slate-900 dark:text-white mt-1">Youssef Mansouri</div>
-                      <div class="text-xs text-sky-600 dark:text-sky-400 mt-0.5">Dr. Amel Trabelsi (Internal Med)</div>
+                      <div class="font-bold text-sm text-slate-900 dark:text-white mt-1">
+                        Youssef Mansouri
+                      </div>
+                      <div class="text-xs text-sky-600 dark:text-sky-400 mt-0.5">
+                        Dr. Amel Trabelsi (Internal Med)
+                      </div>
                     </div>
-                    <div class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                    <div
+                      class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50"
+                    >
                       <div class="font-mono text-xs text-slate-500">10:00 • In Triage</div>
-                      <div class="font-bold text-sm text-slate-900 dark:text-white mt-1">Amina Ben Salah</div>
-                      <div class="text-xs text-sky-600 dark:text-sky-400 mt-0.5">Dr. Amel Trabelsi (Cardiology)</div>
+                      <div class="font-bold text-sm text-slate-900 dark:text-white mt-1">
+                        Amina Ben Salah
+                      </div>
+                      <div class="text-xs text-sky-600 dark:text-sky-400 mt-0.5">
+                        Dr. Amel Trabelsi (Cardiology)
+                      </div>
                     </div>
-                    <div class="p-3.5 rounded-xl border border-dashed border-teal-400 dark:border-teal-700 bg-teal-50/40 dark:bg-teal-950/20">
-                      <div class="font-mono text-xs text-teal-700 dark:text-teal-400">10:30 • AVAILABLE</div>
-                      <div class="font-bold text-sm text-slate-900 dark:text-white mt-1">Open Consultation Slot</div>
+                    <div
+                      class="p-3.5 rounded-xl border border-dashed border-teal-400 dark:border-teal-700 bg-teal-50/40 dark:bg-teal-950/20"
+                    >
+                      <div class="font-mono text-xs text-teal-700 dark:text-teal-400">
+                        10:30 • AVAILABLE
+                      </div>
+                      <div class="font-bold text-sm text-slate-900 dark:text-white mt-1">
+                        Open Consultation Slot
+                      </div>
                       <div class="text-xs text-slate-500 mt-0.5">Bookable Online or at Desk</div>
                     </div>
                   </div>
@@ -854,37 +1430,63 @@
               }
               @case (4) {
                 <!-- Billing Workbench -->
-                <div class="px-6 py-4 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-2">
+                <div
+                  class="px-6 py-4 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-2"
+                >
                   <div class="flex items-center gap-2.5">
                     <span class="w-2.5 h-2.5 rounded-full bg-teal-400"></span>
-                    <span class="font-mono text-xs text-teal-300">Department Workspace • Patient Billing &amp; Cashier</span>
+                    <span class="font-mono text-xs text-teal-300"
+                      >Department Workspace • Patient Billing &amp; Cashier</span
+                    >
                   </div>
-                  <span class="font-mono text-[11px] px-2.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                  <span
+                    class="font-mono text-[11px] px-2.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700"
+                  >
                     Transparent Itemized Statements
                   </span>
                 </div>
                 <div class="p-6">
-                  <div class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-200 dark:border-slate-800">
+                  <div
+                    class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-200 dark:border-slate-800"
+                  >
                     <div>
-                      <span class="text-xs font-mono uppercase text-teal-600 dark:text-teal-400 font-semibold">CLEAR PATIENT BILLING</span>
-                      <h3 class="font-display font-bold text-xl text-slate-900 dark:text-white mt-0.5">Itemized Care Statement &amp; Easy Payment</h3>
+                      <span
+                        class="text-xs font-mono uppercase text-teal-600 dark:text-teal-400 font-semibold"
+                        >CLEAR PATIENT BILLING</span
+                      >
+                      <h3
+                        class="font-display font-bold text-xl text-slate-900 dark:text-white mt-0.5"
+                      >
+                        Itemized Care Statement &amp; Easy Payment
+                      </h3>
                     </div>
-                    <span class="font-mono text-xs px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">Statement #INV-2026-9042</span>
+                    <span
+                      class="font-mono text-xs px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
+                      >Statement #INV-2026-9042</span
+                    >
                   </div>
                   <div class="space-y-2 text-xs tabular-vitals mb-4">
-                    <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                    <div
+                      class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800"
+                    >
                       <span>Specialist Consultation (Internal Medicine)</span>
                       <span class="font-mono font-semibold">$65.00</span>
                     </div>
-                    <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                    <div
+                      class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800"
+                    >
                       <span>Diagnostic Lab Panel (Fasting Glucose + Complete Blood Count)</span>
                       <span class="font-mono font-semibold">$38.50</span>
                     </div>
-                    <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                    <div
+                      class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800"
+                    >
                       <span>Hospital Pharmacy (Amoxicillin 500mg × 21 + Paracetamol)</span>
                       <span class="font-mono font-semibold">$18.00</span>
                     </div>
-                    <div class="flex justify-between pt-2 text-sm font-bold text-slate-900 dark:text-white">
+                    <div
+                      class="flex justify-between pt-2 text-sm font-bold text-slate-900 dark:text-white"
+                    >
                       <span>Total Statement Balance</span>
                       <span class="font-mono text-sky-600 dark:text-sky-400">$121.50</span>
                     </div>
@@ -892,30 +1494,35 @@
                 </div>
               }
             }
-
           </div>
-
         </div>
       </div>
     </section>
 
     <!-- 4. Patient Self-Service Portal Section -->
-    <section id="patient-portal" class="py-16 lg:py-24 px-4 sm:px-6 lg:px-8 border-t border-slate-200/80 dark:border-slate-800/80 overflow-hidden">
+    <section
+      id="patient-portal"
+      class="py-16 lg:py-24 px-4 sm:px-6 lg:px-8 border-t border-slate-200/80 dark:border-slate-800/80 overflow-hidden"
+    >
       <div class="max-w-7xl mx-auto">
-        
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-          
           <!-- Left Overview & 3 Pillar Cards (5 Cols) -->
           <div class="lg:col-span-5 space-y-6 scroll-reveal" data-reveal="left">
             <div>
-              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 text-teal-800 dark:text-teal-300 text-xs font-mono uppercase tracking-wider mb-3">
+              <div
+                class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 text-teal-800 dark:text-teal-300 text-xs font-mono uppercase tracking-wider mb-3"
+              >
                 PATIENT SELF-SERVICE PORTAL
               </div>
-              <h2 class="font-display font-bold text-2xl sm:text-3xl lg:text-4xl text-slate-900 dark:text-white tracking-tight mb-4">
+              <h2
+                class="font-display font-bold text-2xl sm:text-3xl lg:text-4xl text-slate-900 dark:text-white tracking-tight mb-4"
+              >
                 Your Health Records, Appointments &amp; Bills in One Place
               </h2>
               <p class="text-slate-600 dark:text-slate-300 text-base leading-relaxed">
-                Patients enjoy 24/7 private access to book or reschedule specialist visits, read their doctor’s care instructions and lab findings, and pay hospital statements online with complete clarity.
+                Patients enjoy 24/7 private access to book or reschedule specialist visits, read
+                their doctor’s care instructions and lab findings, and pay hospital statements
+                online with complete clarity.
               </p>
             </div>
 
@@ -933,14 +1540,31 @@
                 [class.border-slate-200]="activePortalTab() !== 'appointments'"
                 [class.dark:border-slate-800]="activePortalTab() !== 'appointments'"
               >
-                <div class="w-9 h-9 rounded-lg bg-teal-600 text-white flex items-center justify-center shrink-0">
-                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <div
+                  class="w-9 h-9 rounded-lg bg-teal-600 text-white flex items-center justify-center shrink-0"
+                >
+                  <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
                   </svg>
                 </div>
                 <div>
-                  <h3 class="font-display font-bold text-sm text-slate-900 dark:text-white">My Appointments</h3>
-                  <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Book specialist slots in real time, view preparation instructions, or cancel visits.</p>
+                  <h3 class="font-display font-bold text-sm text-slate-900 dark:text-white">
+                    My Appointments
+                  </h3>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Book specialist slots in real time, view preparation instructions, or cancel
+                    visits.
+                  </p>
                 </div>
               </button>
 
@@ -956,14 +1580,31 @@
                 [class.border-slate-200]="activePortalTab() !== 'consultations'"
                 [class.dark:border-slate-800]="activePortalTab() !== 'consultations'"
               >
-                <div class="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0">
-                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                <div
+                  class="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0"
+                >
+                  <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                    />
                   </svg>
                 </div>
                 <div>
-                  <h3 class="font-display font-bold text-sm text-slate-900 dark:text-white">My Consultations</h3>
-                  <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Access verified clinical diagnoses, physician assessments, and active treatment plans.</p>
+                  <h3 class="font-display font-bold text-sm text-slate-900 dark:text-white">
+                    My Consultations
+                  </h3>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Access verified clinical diagnoses, physician assessments, and active treatment
+                    plans.
+                  </p>
                 </div>
               </button>
 
@@ -979,35 +1620,67 @@
                 [class.border-slate-200]="activePortalTab() !== 'invoices'"
                 [class.dark:border-slate-800]="activePortalTab() !== 'invoices'"
               >
-                <div class="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0">
-                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                <div
+                  class="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0"
+                >
+                  <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                    />
                   </svg>
                 </div>
                 <div>
-                  <h3 class="font-display font-bold text-sm text-slate-900 dark:text-white">My Invoices</h3>
-                  <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Review transparent multi-item statement breakdowns and complete secure card payment.</p>
+                  <h3 class="font-display font-bold text-sm text-slate-900 dark:text-white">
+                    My Invoices
+                  </h3>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Review transparent multi-item statement breakdowns and complete secure card
+                    payment.
+                  </p>
                 </div>
               </button>
             </div>
           </div>
 
           <!-- Right: Interactive Patient Portal Simulator Window (7 Cols) -->
-          <div class="lg:col-span-7 scroll-reveal" data-reveal="right" style="transition-delay: 140ms;">
-            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-clinical-lg overflow-hidden">
-              
+          <div
+            class="lg:col-span-7 scroll-reveal"
+            data-reveal="right"
+            style="transition-delay: 140ms"
+          >
+            <div
+              class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-clinical-lg overflow-hidden"
+            >
               <!-- Portal Header -->
-              <div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/70 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4">
+              <div
+                class="px-6 py-4 bg-slate-50 dark:bg-slate-800/70 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4"
+              >
                 <div class="flex items-center gap-3">
-                  <div class="w-9 h-9 rounded-full bg-teal-600 text-white font-display font-bold text-xs flex items-center justify-center">
+                  <div
+                    class="w-9 h-9 rounded-full bg-teal-600 text-white font-display font-bold text-xs flex items-center justify-center"
+                  >
                     YM
                   </div>
                   <div>
-                    <div class="text-xs font-semibold text-slate-900 dark:text-white">Patient Portal • Youssef Mansouri</div>
-                    <div class="text-[11px] font-mono text-slate-500 dark:text-slate-400">File #MRN-2026-0849 • Verified Patient Access</div>
+                    <div class="text-xs font-semibold text-slate-900 dark:text-white">
+                      Patient Portal • Youssef Mansouri
+                    </div>
+                    <div class="text-[11px] font-mono text-slate-500 dark:text-slate-400">
+                      File #MRN-2026-0849 • Verified Patient Access
+                    </div>
                   </div>
                 </div>
-                <div class="flex items-center gap-1.5 bg-slate-200/70 dark:bg-slate-900 p-1 rounded-lg text-xs font-medium">
+                <div
+                  class="flex items-center gap-1.5 bg-slate-200/70 dark:bg-slate-900 p-1 rounded-lg text-xs font-medium"
+                >
                   <button
                     type="button"
                     (click)="switchPatientPortalTab('appointments')"
@@ -1058,41 +1731,74 @@
                 @switch (activePortalTab()) {
                   @case ('appointments') {
                     <div class="flex items-center justify-between mb-4">
-                      <h4 class="font-display font-bold text-base text-slate-900 dark:text-white">Upcoming &amp; Past Outpatient Visits</h4>
+                      <h4 class="font-display font-bold text-base text-slate-900 dark:text-white">
+                        Upcoming &amp; Past Outpatient Visits
+                      </h4>
                       <button
                         type="button"
-                        (click)="showToast('Appointment Slot Reserved', 'Follow-up slot requested with Dr. Amel Trabelsi. Confirmation queued.')"
+                        (click)="
+                          showToast(
+                            'Appointment Slot Reserved',
+                            'Follow-up slot requested with Dr. Amel Trabelsi. Confirmation queued.'
+                          )
+                        "
                         class="px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold transition-colors"
                       >
                         + Schedule New Visit
                       </button>
                     </div>
                     <div class="space-y-3 tabular-vitals">
-                      <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-3">
+                      <div
+                        class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-3"
+                      >
                         <div>
                           <div class="flex items-center gap-2">
-                            <span class="font-mono text-xs font-bold text-teal-700 dark:text-teal-400">THU, 12 NOV 2026 • 10:30 AM</span>
-                            <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">CONFIRMED</span>
+                            <span
+                              class="font-mono text-xs font-bold text-teal-700 dark:text-teal-400"
+                              >THU, 12 NOV 2026 • 10:30 AM</span
+                            >
+                            <span
+                              class="font-mono text-[10px] px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300"
+                              >CONFIRMED</span
+                            >
                           </div>
-                          <div class="font-semibold text-sm text-slate-900 dark:text-white mt-1">Dr. Amel Trabelsi — Internal Medicine Follow-Up</div>
-                          <div class="text-xs text-slate-500">Building B, Floor 2, Consultation Room 204</div>
+                          <div class="font-semibold text-sm text-slate-900 dark:text-white mt-1">
+                            Dr. Amel Trabelsi — Internal Medicine Follow-Up
+                          </div>
+                          <div class="text-xs text-slate-500">
+                            Building B, Floor 2, Consultation Room 204
+                          </div>
                         </div>
                         <button
                           type="button"
-                          (click)="showToast('Cancellation Policy', 'Visits can be rescheduled or cancelled up to 4 hours prior to check-in.')"
+                          (click)="
+                            showToast(
+                              'Cancellation Policy',
+                              'Visits can be rescheduled or cancelled up to 4 hours prior to check-in.'
+                            )
+                          "
                           class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                         >
                           Reschedule / Cancel
                         </button>
                       </div>
 
-                      <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 opacity-80">
+                      <div
+                        class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 opacity-80"
+                      >
                         <div>
                           <div class="flex items-center gap-2">
-                            <span class="font-mono text-xs text-slate-500">MON, 02 NOV 2026 • 09:30 AM</span>
-                            <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">COMPLETED</span>
+                            <span class="font-mono text-xs text-slate-500"
+                              >MON, 02 NOV 2026 • 09:30 AM</span
+                            >
+                            <span
+                              class="font-mono text-[10px] px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+                              >COMPLETED</span
+                            >
                           </div>
-                          <div class="font-semibold text-sm text-slate-900 dark:text-white mt-1">Dr. Amel Trabelsi — Acute Consultation &amp; Lab Workup</div>
+                          <div class="font-semibold text-sm text-slate-900 dark:text-white mt-1">
+                            Dr. Amel Trabelsi — Acute Consultation &amp; Lab Workup
+                          </div>
                         </div>
                         <button
                           type="button"
@@ -1106,31 +1812,55 @@
                   }
                   @case ('consultations') {
                     <div class="mb-4">
-                      <span class="font-mono text-xs text-teal-600 dark:text-teal-400">ENCOUNTER #ENC-2026-4410 • 02 NOV 2026</span>
-                      <h4 class="font-display font-bold text-base text-slate-900 dark:text-white mt-0.5">Signed Physician Assessment &amp; Care Plan</h4>
+                      <span class="font-mono text-xs text-teal-600 dark:text-teal-400"
+                        >ENCOUNTER #ENC-2026-4410 • 02 NOV 2026</span
+                      >
+                      <h4
+                        class="font-display font-bold text-base text-slate-900 dark:text-white mt-0.5"
+                      >
+                        Signed Physician Assessment &amp; Care Plan
+                      </h4>
                     </div>
-                    <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3 text-xs">
+                    <div
+                      class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3 text-xs"
+                    >
                       <div>
-                        <div class="font-mono uppercase text-[10px] text-slate-400">Clinical Diagnosis</div>
-                        <div class="font-semibold text-slate-900 dark:text-white mt-0.5">Acute Bronchitis (ICD-10 J20.9) • Mild Fasting Hyperglycemia (115 mg/dL)</div>
+                        <div class="font-mono uppercase text-[10px] text-slate-400">
+                          Clinical Diagnosis
+                        </div>
+                        <div class="font-semibold text-slate-900 dark:text-white mt-0.5">
+                          Acute Bronchitis (ICD-10 J20.9) • Mild Fasting Hyperglycemia (115 mg/dL)
+                        </div>
                       </div>
                       <div>
-                        <div class="font-mono uppercase text-[10px] text-slate-400">Treatment Plan &amp; Instructions</div>
+                        <div class="font-mono uppercase text-[10px] text-slate-400">
+                          Treatment Plan &amp; Instructions
+                        </div>
                         <p class="text-slate-600 dark:text-slate-300 leading-relaxed mt-0.5">
-                          Complete 7-day course of Amoxicillin/Clavulanate 500mg every 8 hours with meals. Maintain oral hydration. Repeat fasting blood glucose panel in 10 days during follow-up visit.
+                          Complete 7-day course of Amoxicillin/Clavulanate 500mg every 8 hours with
+                          meals. Maintain oral hydration. Repeat fasting blood glucose panel in 10
+                          days during follow-up visit.
                         </p>
                       </div>
-                      <div class="pt-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between font-mono text-[11px] text-slate-500">
+                      <div
+                        class="pt-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between font-mono text-[11px] text-slate-500"
+                      >
                         <span>Attending: Dr. Amel Trabelsi</span>
-                        <span class="text-emerald-600 dark:text-emerald-400">✓ Lab Results Attached</span>
+                        <span class="text-emerald-600 dark:text-emerald-400"
+                          >✓ Lab Results Attached</span
+                        >
                       </div>
                     </div>
                   }
                   @case ('invoices') {
                     <div class="flex items-center justify-between mb-4">
                       <div>
-                        <span class="font-mono text-xs text-slate-400">STATEMENT #INV-2026-9042</span>
-                        <h4 class="font-display font-bold text-base text-slate-900 dark:text-white">Itemized Hospital Billing Statement</h4>
+                        <span class="font-mono text-xs text-slate-400"
+                          >STATEMENT #INV-2026-9042</span
+                        >
+                        <h4 class="font-display font-bold text-base text-slate-900 dark:text-white">
+                          Itemized Hospital Billing Statement
+                        </h4>
                       </div>
                       <span
                         class="font-mono text-xs px-2.5 py-1 rounded font-semibold"
@@ -1142,24 +1872,37 @@
                         {{ invoicePaid() ? 'PAID IN FULL' : 'BALANCE DUE: $121.50' }}
                       </span>
                     </div>
-                    <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2 text-xs tabular-vitals mb-4">
-                      <div class="flex justify-between py-1.5 border-b border-slate-200/70 dark:border-slate-700">
+                    <div
+                      class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2 text-xs tabular-vitals mb-4"
+                    >
+                      <div
+                        class="flex justify-between py-1.5 border-b border-slate-200/70 dark:border-slate-700"
+                      >
                         <span>Outpatient Specialist Consultation (Dr. Amel Trabelsi)</span>
                         <span class="font-mono font-semibold">$65.00</span>
                       </div>
-                      <div class="flex justify-between py-1.5 border-b border-slate-200/70 dark:border-slate-700">
+                      <div
+                        class="flex justify-between py-1.5 border-b border-slate-200/70 dark:border-slate-700"
+                      >
                         <span>Diagnostic Lab Analyzer (Glucose 115 mg/dL + CBC Panel)</span>
                         <span class="font-mono font-semibold">$38.50</span>
                       </div>
                       <div class="flex justify-between py-1.5">
-                        <span>Hospital Pharmacy Dispense (Amoxicillin 500mg × 21 + Paracetamol)</span>
+                        <span
+                          >Hospital Pharmacy Dispense (Amoxicillin 500mg × 21 + Paracetamol)</span
+                        >
                         <span class="font-mono font-semibold">$18.00</span>
                       </div>
                     </div>
                     <div class="flex items-center justify-between">
-                      <span class="text-xs text-slate-500 font-mono">Payment Method: Visa / Mastercard / Hospital Cashier</span>
+                      <span class="text-xs text-slate-500 font-mono"
+                        >Payment Method: Visa / Mastercard / Hospital Cashier</span
+                      >
                       @if (invoicePaid()) {
-                        <span class="text-xs font-mono font-semibold text-emerald-600 dark:text-emerald-400">✓ Receipt #RCP-88412 Confirmed</span>
+                        <span
+                          class="text-xs font-mono font-semibold text-emerald-600 dark:text-emerald-400"
+                          >✓ Receipt #RCP-88412 Confirmed</span
+                        >
                       } @else {
                         <button
                           type="button"
@@ -1173,30 +1916,37 @@
                   }
                 }
               </div>
-
             </div>
           </div>
-
         </div>
-
       </div>
     </section>
 
     <!-- 5. Hospital Service Status & Patient Safety Guarantees -->
-    <section id="system-status" class="py-16 lg:py-24 px-4 sm:px-6 lg:px-8 bg-slate-900 text-slate-100 border-t border-slate-800 overflow-hidden">
+    <section
+      id="system-status"
+      class="py-16 lg:py-24 px-4 sm:px-6 lg:px-8 bg-slate-900 text-slate-100 border-t border-slate-800 overflow-hidden"
+    >
       <div class="max-w-7xl mx-auto">
-        
         <!-- Top Row: Hospital Service Header + Care Journey Simulator Button -->
-        <div class="flex flex-col lg:flex-row lg:items-end justify-between mb-12 gap-6 scroll-reveal" data-reveal="up">
+        <div
+          class="flex flex-col lg:flex-row lg:items-end justify-between mb-12 gap-6 scroll-reveal"
+          data-reveal="up"
+        >
           <div class="max-w-2xl">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-mono uppercase tracking-wider mb-3">
+            <div
+              class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-mono uppercase tracking-wider mb-3"
+            >
               LIVE HOSPITAL SERVICE STATUS
             </div>
-            <h2 class="font-display font-bold text-2xl sm:text-3xl lg:text-4xl text-white tracking-tight mb-3">
+            <h2
+              class="font-display font-bold text-2xl sm:text-3xl lg:text-4xl text-white tracking-tight mb-3"
+            >
               Always-On Clinical Care &amp; Real-Time Department Coordination
             </h2>
             <p class="text-slate-400 text-base leading-relaxed">
-              Patients and medical teams can check live department availability, average response times, and how care updates flow seamlessly from reception to discharge.
+              Patients and medical teams can check live department availability, average response
+              times, and how care updates flow seamlessly from reception to discharge.
             </p>
           </div>
 
@@ -1206,8 +1956,18 @@
               (click)="simulateRabbitMQFlow()"
               class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-mono font-semibold shadow-sm transition-all active:scale-95"
             >
-              <svg class="w-4 h-4 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              <svg
+                class="w-4 h-4 animate-bounce"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
               </svg>
               <span>Trace Live Patient Care Journey</span>
             </button>
@@ -1215,21 +1975,46 @@
         </div>
 
         <!-- Animated SVG Patient Care Journey Visualizer -->
-        <div class="mb-8 p-4 sm:p-5 rounded-2xl bg-slate-950/90 border border-slate-800 relative overflow-hidden scroll-reveal" data-reveal="scale">
+        <div
+          class="mb-8 p-4 sm:p-5 rounded-2xl bg-slate-950/90 border border-slate-800 relative overflow-hidden scroll-reveal"
+          data-reveal="scale"
+        >
           <div class="flex flex-wrap items-center justify-between gap-2 mb-3 text-xs font-mono">
             <div class="flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
-              <span class="text-slate-300 font-semibold">COORDINATED PATIENT JOURNEY // INSTANT CROSS-DEPARTMENT UPDATES</span>
+              <span class="text-slate-300 font-semibold"
+                >COORDINATED PATIENT JOURNEY // INSTANT CROSS-DEPARTMENT UPDATES</span
+              >
             </div>
-            <span class="text-teal-400 text-[11px]">Zero paper handoffs — clinical orders and results arrive in seconds</span>
+            <span class="text-teal-400 text-[11px]"
+              >Zero paper handoffs — clinical orders and results arrive in seconds</span
+            >
           </div>
 
           <div class="w-full overflow-x-auto">
             <svg class="w-full min-w-[680px] h-28" viewBox="0 0 900 110" fill="none">
               <!-- Animated Bus Lines -->
-              <path class="bus-stream-line" d="M90 55 H810" stroke="#0284C7" stroke-width="2" stroke-opacity="0.65" />
-              <path class="bus-stream-line" d="M230 55 V22 H450 V55" stroke="#0D9488" stroke-width="1.5" stroke-opacity="0.5" />
-              <path class="bus-stream-line" d="M450 55 V88 H670 V55" stroke="#38BDF8" stroke-width="1.5" stroke-opacity="0.5" />
+              <path
+                class="bus-stream-line"
+                d="M90 55 H810"
+                stroke="#0284C7"
+                stroke-width="2"
+                stroke-opacity="0.65"
+              />
+              <path
+                class="bus-stream-line"
+                d="M230 55 V22 H450 V55"
+                stroke="#0D9488"
+                stroke-width="1.5"
+                stroke-opacity="0.5"
+              />
+              <path
+                class="bus-stream-line"
+                d="M450 55 V88 H670 V55"
+                stroke="#38BDF8"
+                stroke-width="1.5"
+                stroke-opacity="0.5"
+              />
 
               <!-- Moving Glowing Packet Circles -->
               <circle r="4.5" fill="#38BDF8">
@@ -1241,166 +2026,396 @@
 
               <!-- 6 Hospital Department Nodes -->
               <g transform="translate(40, 33)">
-                <rect width="105" height="44" rx="8" fill="#0F172A" stroke="#334155" stroke-width="1.5"/>
-                <circle cx="16" cy="22" r="4" fill="#34D399"/>
-                <text x="28" y="20" fill="#F8FAFC" font-family="JetBrains Mono" font-size="10" font-weight="600">PATIENT</text>
-                <text x="28" y="33" fill="#94A3B8" font-family="JetBrains Mono" font-size="8">PORTAL 24/7</text>
+                <rect
+                  width="105"
+                  height="44"
+                  rx="8"
+                  fill="#0F172A"
+                  stroke="#334155"
+                  stroke-width="1.5"
+                />
+                <circle cx="16" cy="22" r="4" fill="#34D399" />
+                <text
+                  x="28"
+                  y="20"
+                  fill="#F8FAFC"
+                  font-family="JetBrains Mono"
+                  font-size="10"
+                  font-weight="600"
+                >
+                  PATIENT
+                </text>
+                <text x="28" y="33" fill="#94A3B8" font-family="JetBrains Mono" font-size="8">
+                  PORTAL 24/7
+                </text>
               </g>
 
               <g transform="translate(190, 33)">
-                <rect width="110" height="44" rx="8" fill="#0F172A" stroke="#334155" stroke-width="1.5"/>
-                <circle cx="16" cy="22" r="4" fill="#34D399"/>
-                <text x="28" y="20" fill="#F8FAFC" font-family="JetBrains Mono" font-size="10" font-weight="600">RECEPTION</text>
-                <text x="28" y="33" fill="#94A3B8" font-family="JetBrains Mono" font-size="8">CHECK-IN</text>
+                <rect
+                  width="110"
+                  height="44"
+                  rx="8"
+                  fill="#0F172A"
+                  stroke="#334155"
+                  stroke-width="1.5"
+                />
+                <circle cx="16" cy="22" r="4" fill="#34D399" />
+                <text
+                  x="28"
+                  y="20"
+                  fill="#F8FAFC"
+                  font-family="JetBrains Mono"
+                  font-size="10"
+                  font-weight="600"
+                >
+                  RECEPTION
+                </text>
+                <text x="28" y="33" fill="#94A3B8" font-family="JetBrains Mono" font-size="8">
+                  CHECK-IN
+                </text>
               </g>
 
               <g transform="translate(345, 33)">
-                <rect width="120" height="44" rx="8" fill="#0F172A" stroke="#0284C7" stroke-width="1.8"/>
-                <circle cx="16" cy="22" r="4" fill="#38BDF8"/>
-                <text x="28" y="20" fill="#F8FAFC" font-family="JetBrains Mono" font-size="10" font-weight="600">CONSULTATION</text>
-                <text x="28" y="33" fill="#38BDF8" font-family="JetBrains Mono" font-size="8">MEDICAL CARE</text>
+                <rect
+                  width="120"
+                  height="44"
+                  rx="8"
+                  fill="#0F172A"
+                  stroke="#0284C7"
+                  stroke-width="1.8"
+                />
+                <circle cx="16" cy="22" r="4" fill="#38BDF8" />
+                <text
+                  x="28"
+                  y="20"
+                  fill="#F8FAFC"
+                  font-family="JetBrains Mono"
+                  font-size="10"
+                  font-weight="600"
+                >
+                  CONSULTATION
+                </text>
+                <text x="28" y="33" fill="#38BDF8" font-family="JetBrains Mono" font-size="8">
+                  MEDICAL CARE
+                </text>
               </g>
 
               <g transform="translate(510, 33)">
-                <rect width="105" height="44" rx="8" fill="#0F172A" stroke="#334155" stroke-width="1.5"/>
-                <circle cx="16" cy="22" r="4" fill="#34D399"/>
-                <text x="28" y="20" fill="#F8FAFC" font-family="JetBrains Mono" font-size="10" font-weight="600">LABORATORY</text>
-                <text x="28" y="33" fill="#94A3B8" font-family="JetBrains Mono" font-size="8">DIAGNOSTICS</text>
+                <rect
+                  width="105"
+                  height="44"
+                  rx="8"
+                  fill="#0F172A"
+                  stroke="#334155"
+                  stroke-width="1.5"
+                />
+                <circle cx="16" cy="22" r="4" fill="#34D399" />
+                <text
+                  x="28"
+                  y="20"
+                  fill="#F8FAFC"
+                  font-family="JetBrains Mono"
+                  font-size="10"
+                  font-weight="600"
+                >
+                  LABORATORY
+                </text>
+                <text x="28" y="33" fill="#94A3B8" font-family="JetBrains Mono" font-size="8">
+                  DIAGNOSTICS
+                </text>
               </g>
 
               <g transform="translate(660, 33)">
-                <rect width="105" height="44" rx="8" fill="#0F172A" stroke="#0D9488" stroke-width="1.8"/>
-                <circle cx="16" cy="22" r="4" fill="#2DD4BF"/>
-                <text x="28" y="20" fill="#F8FAFC" font-family="JetBrains Mono" font-size="10" font-weight="600">PHARMACY</text>
-                <text x="28" y="33" fill="#2DD4BF" font-family="JetBrains Mono" font-size="8">DISPENSING</text>
+                <rect
+                  width="105"
+                  height="44"
+                  rx="8"
+                  fill="#0F172A"
+                  stroke="#0D9488"
+                  stroke-width="1.8"
+                />
+                <circle cx="16" cy="22" r="4" fill="#2DD4BF" />
+                <text
+                  x="28"
+                  y="20"
+                  fill="#F8FAFC"
+                  font-family="JetBrains Mono"
+                  font-size="10"
+                  font-weight="600"
+                >
+                  PHARMACY
+                </text>
+                <text x="28" y="33" fill="#2DD4BF" font-family="JetBrains Mono" font-size="8">
+                  DISPENSING
+                </text>
               </g>
 
               <g transform="translate(795, 33)">
-                <rect width="90" height="44" rx="8" fill="#0F172A" stroke="#334155" stroke-width="1.5"/>
-                <circle cx="16" cy="22" r="4" fill="#34D399"/>
-                <text x="28" y="20" fill="#F8FAFC" font-family="JetBrains Mono" font-size="10" font-weight="600">MEDICAL</text>
-                <text x="28" y="33" fill="#94A3B8" font-family="JetBrains Mono" font-size="8">SPECIALISTS</text>
+                <rect
+                  width="90"
+                  height="44"
+                  rx="8"
+                  fill="#0F172A"
+                  stroke="#334155"
+                  stroke-width="1.5"
+                />
+                <circle cx="16" cy="22" r="4" fill="#34D399" />
+                <text
+                  x="28"
+                  y="20"
+                  fill="#F8FAFC"
+                  font-family="JetBrains Mono"
+                  font-size="10"
+                  font-weight="600"
+                >
+                  MEDICAL
+                </text>
+                <text x="28" y="33" fill="#94A3B8" font-family="JetBrains Mono" font-size="8">
+                  SPECIALISTS
+                </text>
               </g>
             </svg>
           </div>
         </div>
 
         <!-- Live Status Grid of the 6 Core Hospital Services -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10 tabular-vitals" id="microservice-grid">
-          
+        <div
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10 tabular-vitals"
+          id="microservice-grid"
+        >
           <!-- 1. Patient Records & Portal -->
-          <div class="scroll-reveal p-5 rounded-xl bg-slate-800/70 border border-slate-700/80 transition-all duration-300" data-reveal="up">
+          <div
+            class="scroll-reveal p-5 rounded-xl bg-slate-800/70 border border-slate-700/80 transition-all duration-300"
+            data-reveal="up"
+          >
             <div class="flex items-center justify-between mb-3">
               <div class="flex items-center gap-2.5">
-                <span class="w-2.5 h-2.5 rounded-full" [class.bg-emerald-400]="status.isUp('patient')" [class.bg-amber-400]="!status.isUp('patient')"></span>
-                <h3 class="font-display font-bold text-sm text-white">Patient Records &amp; Portal</h3>
+                <span
+                  class="w-2.5 h-2.5 rounded-full"
+                  [class.bg-emerald-400]="status.isUp('patient')"
+                  [class.bg-amber-400]="!status.isUp('patient')"
+                ></span>
+                <h3 class="font-display font-bold text-sm text-white">
+                  Patient Records &amp; Portal
+                </h3>
               </div>
-              <span class="font-mono text-[11px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">ONLINE</span>
+              <span
+                class="font-mono text-[11px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                >ONLINE</span
+              >
             </div>
-            <p class="text-xs text-slate-400 mb-4">24/7 digital health records, allergy alerts, past visit summaries, and online patient self-service.</p>
-            <div class="pt-3 border-t border-slate-700/70 flex items-center justify-between font-mono text-[11px] text-slate-400">
+            <p class="text-xs text-slate-400 mb-4">
+              24/7 digital health records, allergy alerts, past visit summaries, and online patient
+              self-service.
+            </p>
+            <div
+              class="pt-3 border-t border-slate-700/70 flex items-center justify-between font-mono text-[11px] text-slate-400"
+            >
               <span>Access: <strong class="text-slate-200">Web &amp; Mobile 24/7</strong></span>
               <span>Sync: <strong class="text-emerald-400">Instant</strong></span>
             </div>
           </div>
 
           <!-- 2. Reception & Admissions -->
-          <div class="scroll-reveal p-5 rounded-xl bg-slate-800/70 border border-slate-700/80 transition-all duration-300" data-reveal="up" style="transition-delay: 80ms;">
+          <div
+            class="scroll-reveal p-5 rounded-xl bg-slate-800/70 border border-slate-700/80 transition-all duration-300"
+            data-reveal="up"
+            style="transition-delay: 80ms"
+          >
             <div class="flex items-center justify-between mb-3">
               <div class="flex items-center gap-2.5">
-                <span class="w-2.5 h-2.5 rounded-full" [class.bg-emerald-400]="status.isUp('reception')" [class.bg-amber-400]="!status.isUp('reception')"></span>
-                <h3 class="font-display font-bold text-sm text-white">Reception &amp; Patient Billing</h3>
+                <span
+                  class="w-2.5 h-2.5 rounded-full"
+                  [class.bg-emerald-400]="status.isUp('reception')"
+                  [class.bg-amber-400]="!status.isUp('reception')"
+                ></span>
+                <h3 class="font-display font-bold text-sm text-white">
+                  Reception &amp; Patient Billing
+                </h3>
               </div>
-              <span class="font-mono text-[11px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">ONLINE</span>
+              <span
+                class="font-mono text-[11px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                >ONLINE</span
+              >
             </div>
-            <p class="text-xs text-slate-400 mb-4">Outpatient appointment booking, rapid arrival check-in, specialist schedules, and itemized invoices.</p>
-            <div class="pt-3 border-t border-slate-700/70 flex items-center justify-between font-mono text-[11px] text-slate-400">
+            <p class="text-xs text-slate-400 mb-4">
+              Outpatient appointment booking, rapid arrival check-in, specialist schedules, and
+              itemized invoices.
+            </p>
+            <div
+              class="pt-3 border-t border-slate-700/70 flex items-center justify-between font-mono text-[11px] text-slate-400"
+            >
               <span>Desk Wait: <strong class="text-slate-200">~4 mins</strong></span>
               <span>Sync: <strong class="text-emerald-400">Instant</strong></span>
             </div>
           </div>
 
           <!-- 3. Medical Consultations -->
-          <div class="scroll-reveal p-5 rounded-xl bg-slate-800/70 border border-slate-700/80 transition-all duration-300" data-reveal="up" style="transition-delay: 140ms;">
+          <div
+            class="scroll-reveal p-5 rounded-xl bg-slate-800/70 border border-slate-700/80 transition-all duration-300"
+            data-reveal="up"
+            style="transition-delay: 140ms"
+          >
             <div class="flex items-center justify-between mb-3">
               <div class="flex items-center gap-2.5">
-                <span class="w-2.5 h-2.5 rounded-full" [class.bg-emerald-400]="status.isUp('consultation')" [class.bg-amber-400]="!status.isUp('consultation')"></span>
-                <h3 class="font-display font-bold text-sm text-white">Outpatient &amp; Inpatient Care</h3>
+                <span
+                  class="w-2.5 h-2.5 rounded-full"
+                  [class.bg-emerald-400]="status.isUp('consultation')"
+                  [class.bg-amber-400]="!status.isUp('consultation')"
+                ></span>
+                <h3 class="font-display font-bold text-sm text-white">
+                  Outpatient &amp; Inpatient Care
+                </h3>
               </div>
-              <span class="font-mono text-[11px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">ONLINE</span>
+              <span
+                class="font-mono text-[11px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                >ONLINE</span
+              >
             </div>
-            <p class="text-xs text-slate-400 mb-4">Nurse vitals triage, specialist consultations, clinical diagnoses, and personalized treatment plans.</p>
-            <div class="pt-3 border-t border-slate-700/70 flex items-center justify-between font-mono text-[11px] text-slate-400">
+            <p class="text-xs text-slate-400 mb-4">
+              Nurse vitals triage, specialist consultations, clinical diagnoses, and personalized
+              treatment plans.
+            </p>
+            <div
+              class="pt-3 border-t border-slate-700/70 flex items-center justify-between font-mono text-[11px] text-slate-400"
+            >
               <span>Clinics Active: <strong class="text-slate-200">18 Rooms</strong></span>
               <span>Sync: <strong class="text-emerald-400">Instant</strong></span>
             </div>
           </div>
 
           <!-- 4. Diagnostic Laboratory -->
-          <div class="scroll-reveal p-5 rounded-xl bg-slate-800/70 border border-slate-700/80 transition-all duration-300" data-reveal="up" style="transition-delay: 200ms;">
+          <div
+            class="scroll-reveal p-5 rounded-xl bg-slate-800/70 border border-slate-700/80 transition-all duration-300"
+            data-reveal="up"
+            style="transition-delay: 200ms"
+          >
             <div class="flex items-center justify-between mb-3">
               <div class="flex items-center gap-2.5">
-                <span class="w-2.5 h-2.5 rounded-full" [class.bg-emerald-400]="status.isUp('lab')" [class.bg-amber-400]="!status.isUp('lab')"></span>
+                <span
+                  class="w-2.5 h-2.5 rounded-full"
+                  [class.bg-emerald-400]="status.isUp('lab')"
+                  [class.bg-amber-400]="!status.isUp('lab')"
+                ></span>
                 <h3 class="font-display font-bold text-sm text-white">Diagnostic Laboratory</h3>
               </div>
-              <span class="font-mono text-[11px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">ONLINE</span>
+              <span
+                class="font-mono text-[11px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                >ONLINE</span
+              >
             </div>
-            <p class="text-xs text-slate-400 mb-4">Blood chemistry, hematology panels, and automated safety flagging for abnormal or critical readings.</p>
-            <div class="pt-3 border-t border-slate-700/70 flex items-center justify-between font-mono text-[11px] text-slate-400">
+            <p class="text-xs text-slate-400 mb-4">
+              Blood chemistry, hematology panels, and automated safety flagging for abnormal or
+              critical readings.
+            </p>
+            <div
+              class="pt-3 border-t border-slate-700/70 flex items-center justify-between font-mono text-[11px] text-slate-400"
+            >
               <span>Turnaround: <strong class="text-slate-200">Same-Day Results</strong></span>
               <span>Sync: <strong class="text-emerald-400">Instant</strong></span>
             </div>
           </div>
 
           <!-- 5. Hospital Pharmacy -->
-          <div class="scroll-reveal p-5 rounded-xl bg-slate-800/70 border border-slate-700/80 transition-all duration-300" data-reveal="up" style="transition-delay: 260ms;">
+          <div
+            class="scroll-reveal p-5 rounded-xl bg-slate-800/70 border border-slate-700/80 transition-all duration-300"
+            data-reveal="up"
+            style="transition-delay: 260ms"
+          >
             <div class="flex items-center justify-between mb-3">
               <div class="flex items-center gap-2.5">
-                <span class="w-2.5 h-2.5 rounded-full" [class.bg-emerald-400]="status.isUp('pharmacy')" [class.bg-amber-400]="!status.isUp('pharmacy')"></span>
+                <span
+                  class="w-2.5 h-2.5 rounded-full"
+                  [class.bg-emerald-400]="status.isUp('pharmacy')"
+                  [class.bg-amber-400]="!status.isUp('pharmacy')"
+                ></span>
                 <h3 class="font-display font-bold text-sm text-white">Hospital Pharmacy</h3>
               </div>
-              <span class="font-mono text-[11px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">ONLINE</span>
+              <span
+                class="font-mono text-[11px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                >ONLINE</span
+              >
             </div>
-            <p class="text-xs text-slate-400 mb-4">Direct digital prescriptions from consulting rooms, verified stock availability, and fast counter pickup.</p>
-            <div class="pt-3 border-t border-slate-700/70 flex items-center justify-between font-mono text-[11px] text-slate-400">
+            <p class="text-xs text-slate-400 mb-4">
+              Direct digital prescriptions from consulting rooms, verified stock availability, and
+              fast counter pickup.
+            </p>
+            <div
+              class="pt-3 border-t border-slate-700/70 flex items-center justify-between font-mono text-[11px] text-slate-400"
+            >
               <span>Counters Open: <strong class="text-slate-200">4 Windows</strong></span>
               <span>Sync: <strong class="text-emerald-400">Instant</strong></span>
             </div>
           </div>
 
           <!-- 6. Medical Staff & Specialists -->
-          <div class="scroll-reveal p-5 rounded-xl bg-slate-800/70 border border-slate-700/80 transition-all duration-300" data-reveal="up" style="transition-delay: 320ms;">
+          <div
+            class="scroll-reveal p-5 rounded-xl bg-slate-800/70 border border-slate-700/80 transition-all duration-300"
+            data-reveal="up"
+            style="transition-delay: 320ms"
+          >
             <div class="flex items-center justify-between mb-3">
               <div class="flex items-center gap-2.5">
-                <span class="w-2.5 h-2.5 rounded-full" [class.bg-emerald-400]="status.isUp('staff')" [class.bg-amber-400]="!status.isUp('staff')"></span>
+                <span
+                  class="w-2.5 h-2.5 rounded-full"
+                  [class.bg-emerald-400]="status.isUp('staff')"
+                  [class.bg-amber-400]="!status.isUp('staff')"
+                ></span>
                 <h3 class="font-display font-bold text-sm text-white">Medical Staff Directory</h3>
               </div>
-              <span class="font-mono text-[11px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">ONLINE</span>
+              <span
+                class="font-mono text-[11px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                >ONLINE</span
+              >
             </div>
-            <p class="text-xs text-slate-400 mb-4">On-duty physicians, nursing teams, department specialists, and real-time consultation slot rosters.</p>
-            <div class="pt-3 border-t border-slate-700/70 flex items-center justify-between font-mono text-[11px] text-slate-400">
+            <p class="text-xs text-slate-400 mb-4">
+              On-duty physicians, nursing teams, department specialists, and real-time consultation
+              slot rosters.
+            </p>
+            <div
+              class="pt-3 border-t border-slate-700/70 flex items-center justify-between font-mono text-[11px] text-slate-400"
+            >
               <span>Specialists On-Duty: <strong class="text-slate-200">42 Active</strong></span>
               <span>Sync: <strong class="text-emerald-400">Instant</strong></span>
             </div>
           </div>
-
         </div>
 
         <!-- Live Care Activity Feed + 3 Patient Care Commitments -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch scroll-reveal" data-reveal="up" style="transition-delay: 120ms;">
-          
+        <div
+          class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch scroll-reveal"
+          data-reveal="up"
+          style="transition-delay: 120ms"
+        >
           <!-- Three Core Patient & Clinical Commitments (7 Cols) -->
           <div class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div class="p-5 rounded-xl bg-slate-800/40 border border-slate-800 flex flex-col justify-between">
+            <div
+              class="p-5 rounded-xl bg-slate-800/40 border border-slate-800 flex flex-col justify-between"
+            >
               <div>
-                <div class="w-9 h-9 rounded-lg bg-sky-500/10 border border-sky-500/30 text-sky-400 flex items-center justify-center mb-3">
-                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                <div
+                  class="w-9 h-9 rounded-lg bg-sky-500/10 border border-sky-500/30 text-sky-400 flex items-center justify-center mb-3"
+                >
+                  <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
                   </svg>
                 </div>
-                <h4 class="font-display font-bold text-sm text-white mb-1.5">Strict Medical Confidentiality</h4>
+                <h4 class="font-display font-bold text-sm text-white mb-1.5">
+                  Strict Medical Confidentiality
+                </h4>
                 <p class="text-xs text-slate-400 leading-relaxed">
-                  Every clinician and patient signs in with verified credentials so sensitive medical records are only visible to authorized care providers.
+                  Every clinician and patient signs in with verified credentials so sensitive
+                  medical records are only visible to authorized care providers.
                 </p>
               </div>
               <div class="mt-4 pt-3 border-t border-slate-800 font-mono text-[10px] text-sky-400">
@@ -1408,16 +2423,33 @@
               </div>
             </div>
 
-            <div class="p-5 rounded-xl bg-slate-800/40 border border-slate-800 flex flex-col justify-between">
+            <div
+              class="p-5 rounded-xl bg-slate-800/40 border border-slate-800 flex flex-col justify-between"
+            >
               <div>
-                <div class="w-9 h-9 rounded-lg bg-teal-500/10 border border-teal-500/30 text-teal-400 flex items-center justify-center mb-3">
-                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                <div
+                  class="w-9 h-9 rounded-lg bg-teal-500/10 border border-teal-500/30 text-teal-400 flex items-center justify-center mb-3"
+                >
+                  <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                    />
                   </svg>
                 </div>
-                <h4 class="font-display font-bold text-sm text-white mb-1.5">Instant Department Handoffs</h4>
+                <h4 class="font-display font-bold text-sm text-white mb-1.5">
+                  Instant Department Handoffs
+                </h4>
                 <p class="text-xs text-slate-400 leading-relaxed">
-                  As soon as a doctor orders a blood panel or prescribes medication, the lab and pharmacy receive the request immediately—eliminating paper slips.
+                  As soon as a doctor orders a blood panel or prescribes medication, the lab and
+                  pharmacy receive the request immediately—eliminating paper slips.
                 </p>
               </div>
               <div class="mt-4 pt-3 border-t border-slate-800 font-mono text-[10px] text-teal-400">
@@ -1425,26 +2457,47 @@
               </div>
             </div>
 
-            <div class="p-5 rounded-xl bg-slate-800/40 border border-slate-800 flex flex-col justify-between">
+            <div
+              class="p-5 rounded-xl bg-slate-800/40 border border-slate-800 flex flex-col justify-between"
+            >
               <div>
-                <div class="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mb-3">
-                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+                <div
+                  class="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mb-3"
+                >
+                  <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"
+                    />
                   </svg>
                 </div>
-                <h4 class="font-display font-bold text-sm text-white mb-1.5">Uninterrupted 24/7 Reliability</h4>
+                <h4 class="font-display font-bold text-sm text-white mb-1.5">
+                  Uninterrupted 24/7 Reliability
+                </h4>
                 <p class="text-xs text-slate-400 leading-relaxed">
-                  Each hospital department operates independently so emergency triage, lab testing, and pharmacy dispensing never slow down during peak hours.
+                  Each hospital department operates independently so emergency triage, lab testing,
+                  and pharmacy dispensing never slow down during peak hours.
                 </p>
               </div>
-              <div class="mt-4 pt-3 border-t border-slate-800 font-mono text-[10px] text-emerald-400">
+              <div
+                class="mt-4 pt-3 border-t border-slate-800 font-mono text-[10px] text-emerald-400"
+              >
                 Continuous Hospital Operations
               </div>
             </div>
           </div>
 
           <!-- Live Clinical Coordination Feed (5 Cols) -->
-          <div class="lg:col-span-5 rounded-xl bg-slate-950 border border-slate-800 p-4 flex flex-col justify-between font-mono text-xs">
+          <div
+            class="lg:col-span-5 rounded-xl bg-slate-950 border border-slate-800 p-4 flex flex-col justify-between font-mono text-xs"
+          >
             <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
               <div class="flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
@@ -1452,40 +2505,57 @@
               </div>
               <span class="text-[10px] text-slate-500">REAL-TIME</span>
             </div>
-            <div id="amqp-log-container" class="space-y-2 text-[11px] overflow-y-auto max-h-44 pr-1">
+            <div
+              id="amqp-log-container"
+              class="space-y-2 text-[11px] overflow-y-auto max-h-44 pr-1"
+            >
               @for (entry of amqpLog(); track entry.time + entry.topic) {
-                <div class="text-slate-300 bg-sky-950/40 px-2 py-1 rounded border border-sky-800/50">
+                <div
+                  class="text-slate-300 bg-sky-950/40 px-2 py-1 rounded border border-sky-800/50"
+                >
                   <span class="text-slate-500">[{{ entry.time }}]</span>
-                  <span class="text-sky-400 font-semibold"> {{ entry.topic }}</span> ({{ entry.detail }}) → {{ entry.target }}
+                  <span class="text-sky-400 font-semibold"> {{ entry.topic }}</span> ({{
+                    entry.detail
+                  }}) → {{ entry.target }}
                   <span class="text-emerald-400"> Instant</span>
                 </div>
               }
             </div>
           </div>
-
         </div>
-
       </div>
     </section>
   </main>
 
   <!-- 6. Clean Clinical Footer -->
-  <footer class="bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 text-sm">
+  <footer
+    class="bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 text-sm"
+  >
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-10">
-        
         <!-- Brand & Campus Address (2 cols) -->
         <div class="lg:col-span-2 space-y-3">
           <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-slate-900 dark:bg-sky-600 flex items-center justify-center text-white">
-              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+            <div
+              class="w-8 h-8 rounded-lg bg-slate-900 dark:bg-sky-600 flex items-center justify-center text-white"
+            >
+              <svg
+                class="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
               </svg>
             </div>
-            <span class="font-display font-extrabold text-base text-slate-900 dark:text-white">SGH — Système de Gestion Hospitalière</span>
+            <span class="font-display font-extrabold text-base text-slate-900 dark:text-white"
+              >SGH — Système de Gestion Hospitalière</span
+            >
           </div>
           <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm leading-relaxed">
-            St. Gabriel Hospital: Distributed clinical workflow and hospital resource management platform connecting outpatient &amp; inpatient care teams with patients.
+            St. Gabriel Hospital: Distributed clinical workflow and hospital resource management
+            platform connecting outpatient &amp; inpatient care teams with patients.
           </p>
           <div class="pt-2 text-xs font-mono text-slate-500 dark:text-slate-400 space-y-1">
             <div>📍 Campus Hospitalier Universitaire — Avenue Pasteur, Sector B, Building 4</div>
@@ -1495,46 +2565,145 @@
 
         <!-- Department Shortcuts -->
         <div>
-          <h3 class="font-mono text-xs uppercase tracking-wider font-semibold text-slate-900 dark:text-white mb-3">Department Workspaces</h3>
+          <h3
+            class="font-mono text-xs uppercase tracking-wider font-semibold text-slate-900 dark:text-white mb-3"
+          >
+            Department Workspaces
+          </h3>
           <ul class="space-y-2 text-xs">
-            <li><button (click)="openAuthModal('staff', 'Physician Consultation')" class="hover:text-sky-600 dark:hover:text-sky-400 transition-colors">Clinical Consultation Workbench</button></li>
-            <li><button (click)="openAuthModal('staff', 'Diagnostic Laboratory')" class="hover:text-sky-600 dark:hover:text-sky-400 transition-colors">Diagnostic Laboratory LIS</button></li>
-            <li><button (click)="openAuthModal('staff', 'Pharmacy Dispensing')" class="hover:text-sky-600 dark:hover:text-sky-400 transition-colors">Pharmacy &amp; Atomic Stock</button></li>
-            <li><button (click)="openAuthModal('staff', 'Reception & Admissions')" class="hover:text-sky-600 dark:hover:text-sky-400 transition-colors">Reception &amp; ADT Admissions</button></li>
-            <li><button (click)="openAuthModal('staff', 'Billing & Accounting')" class="hover:text-sky-600 dark:hover:text-sky-400 transition-colors">Hospital Billing &amp; Cashier</button></li>
+            <li>
+              <button
+                (click)="openAuthModal('staff', 'Physician Consultation')"
+                class="hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
+              >
+                Clinical Consultation Workbench
+              </button>
+            </li>
+            <li>
+              <button
+                (click)="openAuthModal('staff', 'Diagnostic Laboratory')"
+                class="hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
+              >
+                Diagnostic Laboratory LIS
+              </button>
+            </li>
+            <li>
+              <button
+                (click)="openAuthModal('staff', 'Pharmacy Dispensing')"
+                class="hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
+              >
+                Pharmacy &amp; Atomic Stock
+              </button>
+            </li>
+            <li>
+              <button
+                (click)="openAuthModal('staff', 'Reception & Admissions')"
+                class="hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
+              >
+                Reception &amp; ADT Admissions
+              </button>
+            </li>
+            <li>
+              <button
+                (click)="openAuthModal('staff', 'Billing & Accounting')"
+                class="hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
+              >
+                Hospital Billing &amp; Cashier
+              </button>
+            </li>
           </ul>
         </div>
 
         <!-- Patient Services -->
         <div>
-          <h3 class="font-mono text-xs uppercase tracking-wider font-semibold text-slate-900 dark:text-white mb-3">Patient Self-Service</h3>
+          <h3
+            class="font-mono text-xs uppercase tracking-wider font-semibold text-slate-900 dark:text-white mb-3"
+          >
+            Patient Self-Service
+          </h3>
           <ul class="space-y-2 text-xs">
-            <li><a href="#patient-portal" (click)="switchPatientPortalTab('appointments')" class="hover:text-teal-600 dark:hover:text-teal-400 transition-colors">Schedule Outpatient Visit</a></li>
-            <li><a href="#patient-portal" (click)="switchPatientPortalTab('consultations')" class="hover:text-teal-600 dark:hover:text-teal-400 transition-colors">Consultation Summaries</a></li>
-            <li><a href="#patient-portal" (click)="switchPatientPortalTab('invoices')" class="hover:text-teal-600 dark:hover:text-teal-400 transition-colors">Online Invoice Settlement</a></li>
-            <li><button (click)="openAuthModal('patient')" class="hover:text-teal-600 dark:hover:text-teal-400 transition-colors">Patient Portal Sign-In</button></li>
+            <li>
+              <a
+                href="#patient-portal"
+                (click)="switchPatientPortalTab('appointments')"
+                class="hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
+                >Schedule Outpatient Visit</a
+              >
+            </li>
+            <li>
+              <a
+                href="#patient-portal"
+                (click)="switchPatientPortalTab('consultations')"
+                class="hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
+                >Consultation Summaries</a
+              >
+            </li>
+            <li>
+              <a
+                href="#patient-portal"
+                (click)="switchPatientPortalTab('invoices')"
+                class="hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
+                >Online Invoice Settlement</a
+              >
+            </li>
+            <li>
+              <button
+                (click)="openAuthModal('patient')"
+                class="hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
+              >
+                Patient Portal Sign-In
+              </button>
+            </li>
           </ul>
         </div>
 
         <!-- Hospital Services & Support -->
         <div>
-          <h3 class="font-mono text-xs uppercase tracking-wider font-semibold text-slate-900 dark:text-white mb-3">Hospital Support</h3>
+          <h3
+            class="font-mono text-xs uppercase tracking-wider font-semibold text-slate-900 dark:text-white mb-3"
+          >
+            Hospital Support
+          </h3>
           <ul class="space-y-2 text-xs">
-            <li><a href="#system-status" class="hover:text-sky-600 dark:hover:text-sky-400 transition-colors">Live Department Availability</a></li>
-            <li><a href="#system-status" (click)="simulateRabbitMQFlow()" class="hover:text-sky-600 dark:hover:text-sky-400 transition-colors">Patient Care Journey Tracker</a></li>
-            <li><span class="text-slate-400 dark:text-slate-500">Outpatient Desk: 07:00 – 20:00</span></li>
-            <li><span class="text-slate-400 dark:text-slate-500">Patient Assistance: care&#64;sgh-hospital.org</span></li>
+            <li>
+              <a
+                href="#system-status"
+                class="hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
+                >Live Department Availability</a
+              >
+            </li>
+            <li>
+              <a
+                href="#system-status"
+                (click)="simulateRabbitMQFlow()"
+                class="hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
+                >Patient Care Journey Tracker</a
+              >
+            </li>
+            <li>
+              <span class="text-slate-400 dark:text-slate-500">Outpatient Desk: 07:00 – 20:00</span>
+            </li>
+            <li>
+              <span class="text-slate-400 dark:text-slate-500"
+                >Patient Assistance: care&#64;sgh-hospital.org</span
+              >
+            </li>
           </ul>
         </div>
-
       </div>
 
-      <div class="pt-8 border-t border-slate-200/80 dark:border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-        <div>© 2026 SGH (Système de Gestion Hospitalière). Dedicated to safe, coordinated patient care.</div>
+      <div
+        class="pt-8 border-t border-slate-200/80 dark:border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500"
+      >
+        <div>
+          © 2026 SGH (Système de Gestion Hospitalière). Dedicated to safe, coordinated patient care.
+        </div>
         <div class="flex items-center gap-4 font-mono text-[11px]">
           <span>Emergency: 24/7</span>
           <span>•</span>
-          <span class="text-emerald-600 dark:text-emerald-400">All Hospital Departments Active</span>
+          <span class="text-emerald-600 dark:text-emerald-400"
+            >All Hospital Departments Active</span
+          >
         </div>
       </div>
     </div>
@@ -1542,15 +2711,30 @@
 
   <!-- Portal Access Interactive Modal -->
   @if (authModalOpen()) {
-    <div id="auth-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm">
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full shadow-clinical-lg overflow-hidden">
+    <div
+      id="auth-modal"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm"
+    >
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full shadow-clinical-lg overflow-hidden"
+      >
         <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
           <div class="flex items-center gap-2.5">
             <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
             <span class="font-mono text-xs tracking-wider uppercase">SGH SECURE PORTAL ACCESS</span>
           </div>
-          <button (click)="closeAuthModal()" class="text-slate-400 hover:text-white p-1" aria-label="Close modal">
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <button
+            (click)="closeAuthModal()"
+            class="text-slate-400 hover:text-white p-1"
+            aria-label="Close modal"
+          >
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -1558,7 +2742,9 @@
 
         <div class="p-6">
           <!-- Mode Switcher -->
-          <div class="grid grid-cols-2 gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl mb-5 text-xs font-semibold">
+          <div
+            class="grid grid-cols-2 gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl mb-5 text-xs font-semibold"
+          >
             <button
               (click)="setAuthModalMode('staff')"
               class="py-2 rounded-lg transition-all"
@@ -1589,25 +2775,44 @@
 
           @if (authModalMode() === 'staff') {
             <div class="mb-4">
-              <label class="block text-xs font-mono uppercase text-slate-500 dark:text-slate-400 mb-1.5">Select Hospital Department</label>
+              <label
+                class="block text-xs font-mono uppercase text-slate-500 dark:text-slate-400 mb-1.5"
+                >Select Hospital Department</label
+              >
               <select
                 [value]="modalSelectedRole()"
                 (change)="modalSelectedRole.set($any($event.target).value)"
                 class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
               >
-                <option value="Attending Physician (Consultations)">Attending Physician (Consultations)</option>
-                <option value="Triage Nurse (Vital Signs &amp; Intake)">Triage Nurse (Vital Signs &amp; Intake)</option>
-                <option value="Laboratory Specialist (Diagnostics)">Laboratory Specialist (Diagnostics)</option>
-                <option value="Hospital Pharmacist (Medication Dispensing)">Hospital Pharmacist (Medication Dispensing)</option>
-                <option value="Reception &amp; Patient Billing">Reception &amp; Patient Billing</option>
+                <option value="Attending Physician (Consultations)">
+                  Attending Physician (Consultations)
+                </option>
+                <option value="Triage Nurse (Vital Signs &amp; Intake)">
+                  Triage Nurse (Vital Signs &amp; Intake)
+                </option>
+                <option value="Laboratory Specialist (Diagnostics)">
+                  Laboratory Specialist (Diagnostics)
+                </option>
+                <option value="Hospital Pharmacist (Medication Dispensing)">
+                  Hospital Pharmacist (Medication Dispensing)
+                </option>
+                <option value="Reception &amp; Patient Billing">
+                  Reception &amp; Patient Billing
+                </option>
               </select>
             </div>
           }
 
           <form (submit)="handleSimulatedLogin($event)" class="space-y-4">
             <div>
-              <label class="block text-xs font-mono uppercase text-slate-500 dark:text-slate-400 mb-1.5">
-                {{ authModalMode() === 'staff' ? 'Staff Badge ID / Professional Email' : 'Patient File Number (MRN) or Email' }}
+              <label
+                class="block text-xs font-mono uppercase text-slate-500 dark:text-slate-400 mb-1.5"
+              >
+                {{
+                  authModalMode() === 'staff'
+                    ? 'Staff Badge ID / Professional Email'
+                    : 'Patient File Number (MRN) or Email'
+                }}
               </label>
               <input
                 type="text"
@@ -1618,7 +2823,10 @@
               />
             </div>
             <div>
-              <label class="block text-xs font-mono uppercase text-slate-500 dark:text-slate-400 mb-1.5">Personal Password</label>
+              <label
+                class="block text-xs font-mono uppercase text-slate-500 dark:text-slate-400 mb-1.5"
+                >Personal Password</label
+              >
               <input
                 type="password"
                 required
@@ -1632,14 +2840,22 @@
               class="w-full py-3 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-semibold text-sm shadow-sm transition-all flex items-center justify-center gap-2"
             >
               <span>Access Hospital Portal</span>
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
                 <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
             </button>
           </form>
 
           @if (modalFeedback(); as fb) {
-            <div class="mt-4 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-mono">
+            <div
+              class="mt-4 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-mono"
+            >
               {{ fb }}
             </div>
           }
@@ -1650,7 +2866,10 @@
 
   <!-- Non-intrusive Clinical Notification Toast -->
   @if (toastVisible()) {
-    <div id="clinical-toast" class="fixed bottom-5 right-5 z-50 max-w-sm bg-slate-900 text-white border border-slate-700 rounded-xl shadow-clinical-lg p-4 text-xs animate-fadeIn">
+    <div
+      id="clinical-toast"
+      class="fixed bottom-5 right-5 z-50 max-w-sm bg-slate-900 text-white border border-slate-700 rounded-xl shadow-clinical-lg p-4 text-xs animate-fadeIn"
+    >
       <div class="flex items-start gap-3">
         <span class="w-2.5 h-2.5 rounded-full bg-teal-400 mt-1 shrink-0"></span>
         <div>
@@ -1660,5 +2879,4 @@
       </div>
     </div>
   }
-
 </div>

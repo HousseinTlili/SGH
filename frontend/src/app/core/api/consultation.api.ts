@@ -141,6 +141,8 @@ export class ConsultationApi {
   }
 
   deleteAttachment(consultationId: string, attachmentId: string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/consultations/${consultationId}/attachments/${attachmentId}`);
+    return this.http.delete<void>(
+      `${this.base}/consultations/${consultationId}/attachments/${attachmentId}`,
+    );
   }
 }

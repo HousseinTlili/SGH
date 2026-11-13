@@ -11,15 +11,7 @@ export interface DrugDialogData {
   drug?: Drug;
 }
 
-export const DRUG_FORMS = [
-  'TABLET',
-  'CAPSULE',
-  'SYRUP',
-  'INJECTION',
-  'CREAM',
-  'DROPS',
-  'INHALER',
-];
+export const DRUG_FORMS = ['TABLET', 'CAPSULE', 'SYRUP', 'INJECTION', 'CREAM', 'DROPS', 'INHALER'];
 
 @Component({
   selector: 'app-drug-dialog',
@@ -133,8 +125,7 @@ export const DRUG_FORMS = [
 export class DrugDialogComponent {
   protected readonly data: DrugDialogData =
     inject<DrugDialogData>(MAT_DIALOG_DATA, { optional: true }) ?? {};
-  protected readonly dialogRef =
-    inject<MatDialogRef<DrugDialogComponent, DrugInput>>(MatDialogRef);
+  protected readonly dialogRef = inject<MatDialogRef<DrugDialogComponent, DrugInput>>(MatDialogRef);
 
   protected readonly drugForms = DRUG_FORMS;
 

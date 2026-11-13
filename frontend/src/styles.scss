@@ -144,7 +144,9 @@ app-status {
   border-radius: var(--sgh-radius);
   box-shadow: var(--sgh-shadow-xs);
   padding: var(--sgh-space-5);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 
   &:hover {
     border-color: var(--sgh-border);

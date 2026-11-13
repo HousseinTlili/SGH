@@ -72,7 +72,7 @@ export const routes: Routes = [
         path: 'notifications',
         loadChildren: () =>
           import('./features/notifications/notifications.routes').then(
-            (m) => m.NOTIFICATION_ROUTES
+            (m) => m.NOTIFICATION_ROUTES,
           ),
       },
       {

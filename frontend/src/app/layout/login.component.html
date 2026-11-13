@@ -28,7 +28,9 @@
         </h2>
 
         <p class="showcase-lead">
-          Continuous patient vitals telemetry, instant diagnostic laboratory reporting, and closed-loop electronic prescriptions—connecting care teams with patients without paper delays.
+          Continuous patient vitals telemetry, instant diagnostic laboratory reporting, and
+          closed-loop electronic prescriptions—connecting care teams with patients without paper
+          delays.
         </p>
 
         <!-- Live Telemetry Mini-HUD -->
@@ -145,163 +147,163 @@
         </div>
 
         @if (activeMode() === 'signin') {
-        <div class="form-header">
-          <div class="portal-badge">
-            <mat-icon>lock</mat-icon>
-            <span>Authorized Portal Access</span>
-          </div>
-
-          <h1 id="login-title" class="form-title">
-            Sign in {{ mockAuth ? '(mock mode)' : '' }}
-          </h1>
-          <p class="form-subtitle">
-            @if (mockAuth) {
-              Enter your clinical credentials or select any seeded persona to test specialist roles.
-            } @else {
-              Enter your hospital credentials to sign in directly, or authenticate via Keycloak SSO.
-            }
-          </p>
-        </div>
-
-        @if (errorMessage()) {
-          <div class="login-error-alert" role="alert">
-            <mat-icon class="error-icon">error</mat-icon>
-            <span>{{ errorMessage() }}</span>
-          </div>
-        }
-
-        @if (mockAuth) {
-          <!-- Quick Demo Role Dropdown Menu (the 8 button.user elements for tests and quick test drives) -->
-          <div class="role-selector-wrap" [class.is-open]="roleMenuOpen()">
-            <span class="selector-label">Demo Quick Access</span>
-            <button
-              type="button"
-              class="selector-trigger"
-              (click)="toggleRoleMenu()"
-              [attr.aria-expanded]="roleMenuOpen()"
-              aria-haspopup="true"
-            >
-              <div class="trigger-left">
-                <div class="trigger-icon" aria-hidden="true">
-                  <mat-icon>bolt</mat-icon>
-                </div>
-                <div class="trigger-text">
-                  <span class="trigger-heading">Select a Role to Sign In</span>
-                  <span class="trigger-sub">8 seeded personas available</span>
-                </div>
-              </div>
-              <mat-icon class="trigger-chevron" aria-hidden="true">
-                {{ roleMenuOpen() ? 'expand_less' : 'expand_more' }}
-              </mat-icon>
-            </button>
-
-            <!-- Dropdown Options Menu -->
-            <div class="selector-dropdown" [class.open]="roleMenuOpen()" role="menu">
-              <div class="dropdown-header">
-                <span>Choose a persona to launch immediately:</span>
-              </div>
-              <div class="dropdown-items">
-                @for (user of users; track user.username) {
-                  <button
-                    type="button"
-                    class="user dropdown-item"
-                    (click)="selectRole(user.username)"
-                    [attr.aria-label]="'Sign in as ' + user.fullName + ' (' + user.username + ')'"
-                    role="menuitem"
-                  >
-                    <div class="item-avatar" aria-hidden="true">
-                      <mat-icon>{{ getDetails(user.username).icon }}</mat-icon>
-                    </div>
-                    <div class="item-content">
-                      <div class="item-top">
-                        <strong class="item-name">{{ user.fullName }}</strong>
-                        <span class="item-role-chip">{{ user.roles[0] }}</span>
-                      </div>
-                      <div class="item-bottom">
-                        <span class="item-title">{{ getDetails(user.username).title }}</span>
-                        <span class="item-username">&#64;{{ user.username }}</span>
-                      </div>
-                    </div>
-                  </button>
-                }
-              </div>
+          <div class="form-header">
+            <div class="portal-badge">
+              <mat-icon>lock</mat-icon>
+              <span>Authorized Portal Access</span>
             </div>
+
+            <h1 id="login-title" class="form-title">Sign in {{ mockAuth ? '(mock mode)' : '' }}</h1>
+            <p class="form-subtitle">
+              @if (mockAuth) {
+                Enter your clinical credentials or select any seeded persona to test specialist
+                roles.
+              } @else {
+                Enter your hospital credentials to sign in directly, or authenticate via Keycloak
+                SSO.
+              }
+            </p>
           </div>
 
-          <div class="card-divider">
-            <span class="divider-line" aria-hidden="true"></span>
-            <span class="divider-text">OR SIGN IN WITH CREDENTIALS</span>
-            <span class="divider-line" aria-hidden="true"></span>
-          </div>
-        }
-
-        <!-- Credentials Form (Active in BOTH modes: Direct Keycloak grant in real mode, mock in mock mode) -->
-        <form class="signin-form" (submit)="onSubmit($event)">
-          <div class="field-block">
-            <label for="username" class="field-label">Username or Staff ID / MRN</label>
-            <div class="input-wrap">
-              <mat-icon class="input-icon" aria-hidden="true">person</mat-icon>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                class="field-input"
-                [(ngModel)]="usernameInput"
-                placeholder="e.g. doctor1, patient1, nurse1"
-                required
-              />
+          @if (errorMessage()) {
+            <div class="login-error-alert" role="alert">
+              <mat-icon class="error-icon">error</mat-icon>
+              <span>{{ errorMessage() }}</span>
             </div>
-          </div>
+          }
 
-          <div class="field-block">
-            <label for="password" class="field-label">Security Password</label>
-            <div class="input-wrap">
-              <mat-icon class="input-icon" aria-hidden="true">lock</mat-icon>
-              <input
-                id="password"
-                name="password"
-                [type]="showPassword() ? 'text' : 'password'"
-                class="field-input"
-                [(ngModel)]="passwordInput"
-                placeholder="Enter password"
-              />
+          @if (mockAuth) {
+            <!-- Quick Demo Role Dropdown Menu (the 8 button.user elements for tests and quick test drives) -->
+            <div class="role-selector-wrap" [class.is-open]="roleMenuOpen()">
+              <span class="selector-label">Demo Quick Access</span>
               <button
                 type="button"
-                class="toggle-eye"
-                (click)="toggleShowPassword()"
-                [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+                class="selector-trigger"
+                (click)="toggleRoleMenu()"
+                [attr.aria-expanded]="roleMenuOpen()"
+                aria-haspopup="true"
               >
-                <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                <div class="trigger-left">
+                  <div class="trigger-icon" aria-hidden="true">
+                    <mat-icon>bolt</mat-icon>
+                  </div>
+                  <div class="trigger-text">
+                    <span class="trigger-heading">Select a Role to Sign In</span>
+                    <span class="trigger-sub">8 seeded personas available</span>
+                  </div>
+                </div>
+                <mat-icon class="trigger-chevron" aria-hidden="true">
+                  {{ roleMenuOpen() ? 'expand_less' : 'expand_more' }}
+                </mat-icon>
               </button>
+
+              <!-- Dropdown Options Menu -->
+              <div class="selector-dropdown" [class.open]="roleMenuOpen()" role="menu">
+                <div class="dropdown-header">
+                  <span>Choose a persona to launch immediately:</span>
+                </div>
+                <div class="dropdown-items">
+                  @for (user of users; track user.username) {
+                    <button
+                      type="button"
+                      class="user dropdown-item"
+                      (click)="selectRole(user.username)"
+                      [attr.aria-label]="'Sign in as ' + user.fullName + ' (' + user.username + ')'"
+                      role="menuitem"
+                    >
+                      <div class="item-avatar" aria-hidden="true">
+                        <mat-icon>{{ getDetails(user.username).icon }}</mat-icon>
+                      </div>
+                      <div class="item-content">
+                        <div class="item-top">
+                          <strong class="item-name">{{ user.fullName }}</strong>
+                          <span class="item-role-chip">{{ user.roles[0] }}</span>
+                        </div>
+                        <div class="item-bottom">
+                          <span class="item-title">{{ getDetails(user.username).title }}</span>
+                          <span class="item-username">&#64;{{ user.username }}</span>
+                        </div>
+                      </div>
+                    </button>
+                  }
+                </div>
+              </div>
             </div>
-          </div>
 
-          <button mat-flat-button class="signin-cta" type="submit" [disabled]="loading()">
-            @if (loading()) {
-              <span>Signing In...</span>
-            } @else {
-              <span>Sign In to Portal</span>
-            }
-          </button>
-        </form>
+            <div class="card-divider">
+              <span class="divider-line" aria-hidden="true"></span>
+              <span class="divider-text">OR SIGN IN WITH CREDENTIALS</span>
+              <span class="divider-line" aria-hidden="true"></span>
+            </div>
+          }
 
-        @if (!mockAuth) {
-          <div class="card-divider">
-            <span class="divider-line" aria-hidden="true"></span>
-            <span class="divider-text">OR ENTERPRISE SSO</span>
-            <span class="divider-line" aria-hidden="true"></span>
-          </div>
+          <!-- Credentials Form (Active in BOTH modes: Direct Keycloak grant in real mode, mock in mock mode) -->
+          <form class="signin-form" (submit)="onSubmit($event)">
+            <div class="field-block">
+              <label for="username" class="field-label">Username or Staff ID / MRN</label>
+              <div class="input-wrap">
+                <mat-icon class="input-icon" aria-hidden="true">person</mat-icon>
+                <input
+                  id="username"
+                  name="username"
+                  type="text"
+                  class="field-input"
+                  [(ngModel)]="usernameInput"
+                  placeholder="e.g. doctor1, patient1, nurse1"
+                  required
+                />
+              </div>
+            </div>
 
-          <button
-            mat-stroked-button
-            class="keycloak-sso-btn"
-            type="button"
-            (click)="signInWithKeycloak()"
-          >
-            <mat-icon>lock_open</mat-icon>
-            <span>Sign in with Keycloak</span>
-          </button>
-        }
+            <div class="field-block">
+              <label for="password" class="field-label">Security Password</label>
+              <div class="input-wrap">
+                <mat-icon class="input-icon" aria-hidden="true">lock</mat-icon>
+                <input
+                  id="password"
+                  name="password"
+                  [type]="showPassword() ? 'text' : 'password'"
+                  class="field-input"
+                  [(ngModel)]="passwordInput"
+                  placeholder="Enter password"
+                />
+                <button
+                  type="button"
+                  class="toggle-eye"
+                  (click)="toggleShowPassword()"
+                  [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+                >
+                  <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+              </div>
+            </div>
+
+            <button mat-flat-button class="signin-cta" type="submit" [disabled]="loading()">
+              @if (loading()) {
+                <span>Signing In...</span>
+              } @else {
+                <span>Sign In to Portal</span>
+              }
+            </button>
+          </form>
+
+          @if (!mockAuth) {
+            <div class="card-divider">
+              <span class="divider-line" aria-hidden="true"></span>
+              <span class="divider-text">OR ENTERPRISE SSO</span>
+              <span class="divider-line" aria-hidden="true"></span>
+            </div>
+
+            <button
+              mat-stroked-button
+              class="keycloak-sso-btn"
+              type="button"
+              (click)="signInWithKeycloak()"
+            >
+              <mat-icon>lock_open</mat-icon>
+              <span>Sign in with Keycloak</span>
+            </button>
+          }
         } @else {
           <!-- SIGN UP / REGISTRATION VIEW -->
           <div class="form-header">
@@ -312,7 +314,9 @@
 
             <h1 class="form-title">Request Hospital Account</h1>
             <p class="form-subtitle">
-              Register as clinical or medical staff. Your account will be submitted with <strong>Pending Approval</strong> status and must be activated by the Hospital Administrator before login.
+              Register as clinical or medical staff. Your account will be submitted with
+              <strong>Pending Approval</strong> status and must be activated by the Hospital
+              Administrator before login.
             </p>
           </div>
 
@@ -438,7 +442,11 @@
 
               <div class="admin-notice-box">
                 <mat-icon class="notice-icon">admin_panel_settings</mat-icon>
-                <span><strong>Admin Approval Required:</strong> Your account will be created with <code>active = false</code>. The hospital operations administrator must review and activate your account before you can log in.</span>
+                <span
+                  ><strong>Admin Approval Required:</strong> Your account will be created with
+                  <code>active = false</code>. The hospital operations administrator must review and
+                  activate your account before you can log in.</span
+                >
               </div>
 
               <button mat-flat-button class="signin-cta" type="submit" [disabled]="loading()">

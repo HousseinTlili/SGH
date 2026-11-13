@@ -119,7 +119,9 @@ interface FlattenedLabResult {
               <h1 class="patient-name">{{ patientDisplayName() }}</h1>
               <app-status-badge [status]="consultation()!.status" />
               <div class="specialty-badge-pill" [class.specialty-cardiology]="isCardiology()">
-                <mat-icon class="specialty-icon">{{ isCardiology() ? 'favorite' : 'medical_services' }}</mat-icon>
+                <mat-icon class="specialty-icon">{{
+                  isCardiology() ? 'favorite' : 'medical_services'
+                }}</mat-icon>
                 <span>{{ doctorSpecialty() }}</span>
               </div>
               @if (consultation()!.status === 'SIGNED' && consultation()!.signedAt) {
@@ -175,15 +177,44 @@ interface FlattenedLabResult {
                     </div>
                     <span class="cardiology-badge">Cardiology Active</span>
                   </div>
-                  <p class="card-desc">Specialty examination guidelines and quick assessment inserts:</p>
+                  <p class="card-desc">
+                    Specialty examination guidelines and quick assessment inserts:
+                  </p>
                   <div class="cue-chips">
-                    <button type="button" class="cue-btn" (click)="insertCue('obj', 'Cardiac Auscultation: Normal S1/S2 rhythm, regular rate. No murmurs, rubs, or gallops audible.')">
+                    <button
+                      type="button"
+                      class="cue-btn"
+                      (click)="
+                        insertCue(
+                          'obj',
+                          'Cardiac Auscultation: Normal S1/S2 rhythm, regular rate. No murmurs, rubs, or gallops audible.'
+                        )
+                      "
+                    >
                       <mat-icon>add</mat-icon> Heart Sounds (Normal)
                     </button>
-                    <button type="button" class="cue-btn" (click)="insertCue('obj', 'Peripheral Vascular: Radial & dorsalis pedis pulses 2+ symmetric. Capillary refill < 2s. No jugular venous distension (JVD) or lower extremity edema.')">
+                    <button
+                      type="button"
+                      class="cue-btn"
+                      (click)="
+                        insertCue(
+                          'obj',
+                          'Peripheral Vascular: Radial & dorsalis pedis pulses 2+ symmetric. Capillary refill < 2s. No jugular venous distension (JVD) or lower extremity edema.'
+                        )
+                      "
+                    >
                       <mat-icon>add</mat-icon> Vascular & Edema Exam
                     </button>
-                    <button type="button" class="cue-btn" (click)="insertCue('assess', 'Atypical chest discomfort. Hemodynamically stable. Rule out acute coronary syndrome; recommended 12-lead ECG and cardiac enzymes.')">
+                    <button
+                      type="button"
+                      class="cue-btn"
+                      (click)="
+                        insertCue(
+                          'assess',
+                          'Atypical chest discomfort. Hemodynamically stable. Rule out acute coronary syndrome; recommended 12-lead ECG and cardiac enzymes.'
+                        )
+                      "
+                    >
                       <mat-icon>add</mat-icon> Cardiac Assessment
                     </button>
                   </div>
@@ -671,7 +702,12 @@ interface FlattenedLabResult {
                     <p class="modal-caption">{{ prev.caption }}</p>
                   }
                 </div>
-                <button mat-icon-button type="button" aria-label="Close preview" (click)="closePreview()">
+                <button
+                  mat-icon-button
+                  type="button"
+                  aria-label="Close preview"
+                  (click)="closePreview()"
+                >
                   <mat-icon>close</mat-icon>
                 </button>
               </div>
@@ -962,8 +998,13 @@ interface FlattenedLabResult {
       animation: heartPulse 1.8s ease-in-out infinite;
     }
     @keyframes heartPulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.18); }
+      0%,
+      100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.18);
+      }
     }
     .card-title {
       font-weight: 700;
@@ -1627,7 +1668,8 @@ export class ConsultationWorkspaceComponent implements OnInit {
   }
 
   insertCue(target: 'obj' | 'assess', text: string): void {
-    const control = target === 'obj' ? this.soapForm.controls.objective : this.soapForm.controls.assessment;
+    const control =
+      target === 'obj' ? this.soapForm.controls.objective : this.soapForm.controls.assessment;
     const current = control.value;
     const next = current ? `${current}\n${text}` : text;
     control.setValue(next);
@@ -1692,12 +1734,16 @@ export class ConsultationWorkspaceComponent implements OnInit {
           next: (created) => {
             this.uploadingAttachment.set(false);
             this.attachments.update((list) => [...list, created]);
-            this.snackBar.open('Clinical attachment uploaded successfully', 'Dismiss', { duration: 3000 });
+            this.snackBar.open('Clinical attachment uploaded successfully', 'Dismiss', {
+              duration: 3000,
+            });
             input.value = '';
           },
           error: (err: { message?: string }) => {
             this.uploadingAttachment.set(false);
-            this.snackBar.open(err.message || 'Failed to upload attachment', 'Dismiss', { duration: 3000 });
+            this.snackBar.open(err.message || 'Failed to upload attachment', 'Dismiss', {
+              duration: 3000,
+            });
             input.value = '';
           },
         });
@@ -1729,7 +1775,9 @@ export class ConsultationWorkspaceComponent implements OnInit {
             this.snackBar.open('Attachment removed', 'Dismiss', { duration: 3000 });
           },
           error: (err: { message?: string }) => {
-            this.snackBar.open(err.message || 'Failed to delete attachment', 'Dismiss', { duration: 3000 });
+            this.snackBar.open(err.message || 'Failed to delete attachment', 'Dismiss', {
+              duration: 3000,
+            });
           },
         });
       });

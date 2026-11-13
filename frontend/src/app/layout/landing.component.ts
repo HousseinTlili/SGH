@@ -415,7 +415,10 @@ export class LandingComponent {
       ...logs.slice(0, 5),
     ]);
 
-    this.showToast('Care Update Shared', `${picked.topic}: ${picked.detail} sent to ${picked.target}.`);
+    this.showToast(
+      'Care Update Shared',
+      `${picked.topic}: ${picked.detail} sent to ${picked.target}.`,
+    );
   }
 
   triggerRxVerifyToast(): void {
@@ -570,7 +573,9 @@ export class LandingComponent {
   // ---------------------------------------------------------------------------
   private init3DTilt(): void {
     if (typeof window === 'undefined') return;
-    const card = this.elementRef.nativeElement.querySelector('#hero-workstation-card') as HTMLElement;
+    const card = this.elementRef.nativeElement.querySelector(
+      '#hero-workstation-card',
+    ) as HTMLElement;
     if (
       !card ||
       typeof window.matchMedia !== 'function' ||

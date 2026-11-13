@@ -1,7 +1,11 @@
 <div *appServiceGate="'reception'">
   <app-page-header
     [title]="isDoctor() ? 'My Clinical Agenda' : 'Hospital Appointments & Agenda'"
-    [subtitle]="isDoctor() ? 'Daily patient consultation schedule and clinic queue' : 'Manage patient bookings, clinic schedules, and reception check-ins'"
+    [subtitle]="
+      isDoctor()
+        ? 'Daily patient consultation schedule and clinic queue'
+        : 'Manage patient bookings, clinic schedules, and reception check-ins'
+    "
   >
     <div class="header-actions">
       <!-- View Switcher -->
@@ -117,7 +121,8 @@
               {{ patientNames()[checkedInPatient()!.patientId] || 'Patient' }}
             </h3>
             <p class="callout-meta">
-              Scheduled: {{ checkedInPatient()!.startAt | localDatetime }} • Reason: {{ checkedInPatient()!.reason }}
+              Scheduled: {{ checkedInPatient()!.startAt | localDatetime }} • Reason:
+              {{ checkedInPatient()!.reason }}
             </p>
           </div>
           <div class="callout-actions">
@@ -142,9 +147,7 @@
         <div class="sgh-card empty-agenda">
           <mat-icon class="empty-icon">event_busy</mat-icon>
           <h3>No appointments scheduled for this day</h3>
-          <p class="sgh-muted">
-            There are no patient visits booked for {{ periodTitle() }}.
-          </p>
+          <p class="sgh-muted">There are no patient visits booked for {{ periodTitle() }}.</p>
           <div class="empty-actions">
             <button mat-stroked-button (click)="goToToday()" type="button">Go to Today</button>
             @if (canCreate()) {
@@ -202,7 +205,9 @@
                   @if (!isDoctor()) {
                     <div class="doc-row">
                       <mat-icon class="doc-icon">stethoscope</mat-icon>
-                      <span class="doc-text">{{ doctorNames()[appt.doctorId] || 'Physician' }}</span>
+                      <span class="doc-text">{{
+                        doctorNames()[appt.doctorId] || 'Physician'
+                      }}</span>
                     </div>
                   }
                 </div>
@@ -388,9 +393,7 @@
                 </div>
               }
               @if (cell.appointments.length > 3) {
-                <div class="month-more-chip">
-                  +{{ cell.appointments.length - 3 }} more
-                </div>
+                <div class="month-more-chip">+{{ cell.appointments.length - 3 }} more</div>
               }
             </div>
           </div>

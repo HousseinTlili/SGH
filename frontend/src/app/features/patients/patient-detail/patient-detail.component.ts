@@ -238,7 +238,7 @@ export class PatientDetailComponent implements OnInit {
   // Blood pressure SVG chart
   readonly bpChart = computed<BpChartData | null>(() => {
     const items = this.chronologicalVitals().filter(
-      (v) => v.systolic !== undefined && v.diastolic !== undefined
+      (v) => v.systolic !== undefined && v.diastolic !== undefined,
     );
     if (items.length < 2) return null;
 
@@ -286,11 +286,11 @@ export class PatientDetailComponent implements OnInit {
 
     const sysPath = sysPoints.reduce(
       (acc, pt, i) => `${acc} ${i === 0 ? 'M' : 'L'} ${pt.x} ${pt.y}`,
-      ''
+      '',
     );
     const diaPath = diaPoints.reduce(
       (acc, pt, i) => `${acc} ${i === 0 ? 'M' : 'L'} ${pt.x} ${pt.y}`,
-      ''
+      '',
     );
 
     return { sysPoints, diaPoints, sysPath, diaPath, dates };
@@ -333,10 +333,7 @@ export class PatientDetailComponent implements OnInit {
       });
     });
 
-    const path = points.reduce(
-      (acc, pt, i) => `${acc} ${i === 0 ? 'M' : 'L'} ${pt.x} ${pt.y}`,
-      ''
-    );
+    const path = points.reduce((acc, pt, i) => `${acc} ${i === 0 ? 'M' : 'L'} ${pt.x} ${pt.y}`, '');
     return { points, path, dates };
   });
 
@@ -378,10 +375,7 @@ export class PatientDetailComponent implements OnInit {
       });
     });
 
-    const path = points.reduce(
-      (acc, pt, i) => `${acc} ${i === 0 ? 'M' : 'L'} ${pt.x} ${pt.y}`,
-      ''
-    );
+    const path = points.reduce((acc, pt, i) => `${acc} ${i === 0 ? 'M' : 'L'} ${pt.x} ${pt.y}`, '');
     return { points, path, dates };
   });
 

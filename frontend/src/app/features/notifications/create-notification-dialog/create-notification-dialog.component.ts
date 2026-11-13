@@ -33,10 +33,19 @@ import type { NotificationSeverity } from '../../../core/models/notification';
     </h2>
 
     <mat-dialog-content class="dialog-content">
-      <form [formGroup]="form" class="alert-form" id="create-notification-form" (ngSubmit)="submit()">
+      <form
+        [formGroup]="form"
+        class="alert-form"
+        id="create-notification-form"
+        (ngSubmit)="submit()"
+      >
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Alert Title</mat-label>
-          <input matInput formControlName="title" placeholder="e.g. ICU Bed Alert or Maintenance Notice" />
+          <input
+            matInput
+            formControlName="title"
+            placeholder="e.g. ICU Bed Alert or Maintenance Notice"
+          />
           <mat-error *ngIf="form.controls.title.hasError('required')">Title is required</mat-error>
         </mat-form-field>
 
@@ -45,18 +54,22 @@ import type { NotificationSeverity } from '../../../core/models/notification';
             <mat-label>Event Type</mat-label>
             <mat-select formControlName="type">
               <mat-option value="system.alert">System Alert (system.alert)</mat-option>
-              <mat-option value="appointment.created">Appointment Created (appointment.created)</mat-option>
-              <mat-option value="appointment.cancelled">Appointment Cancelled (appointment.cancelled)</mat-option>
-              <mat-option value="clinical.alert">Clinical Urgent Triage (clinical.alert)</mat-option>
+              <mat-option value="appointment.created"
+                >Appointment Created (appointment.created)</mat-option
+              >
+              <mat-option value="appointment.cancelled"
+                >Appointment Cancelled (appointment.cancelled)</mat-option
+              >
+              <mat-option value="clinical.alert"
+                >Clinical Urgent Triage (clinical.alert)</mat-option
+              >
             </mat-select>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>Severity Level</mat-label>
             <mat-select formControlName="severity">
-              <mat-option value="INFO">
-                <span class="dot-info">●</span> INFO (Routine)
-              </mat-option>
+              <mat-option value="INFO"> <span class="dot-info">●</span> INFO (Routine) </mat-option>
               <mat-option value="WARNING">
                 <span class="dot-warning">●</span> WARNING (Action Required)
               </mat-option>
@@ -75,7 +88,9 @@ import type { NotificationSeverity } from '../../../core/models/notification';
             formControlName="message"
             placeholder="Detailed description of the clinical event or alert..."
           ></textarea>
-          <mat-error *ngIf="form.controls.message.hasError('required')">Message is required</mat-error>
+          <mat-error *ngIf="form.controls.message.hasError('required')"
+            >Message is required</mat-error
+          >
         </mat-form-field>
 
         <div *ngIf="errorMessage()" class="error-banner">
@@ -180,10 +195,19 @@ export class CreateNotificationDialogComponent {
   readonly errorMessage = signal<string | null>(null);
 
   readonly form = new FormGroup({
-    title: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(200)] }),
+    title: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(200)],
+    }),
     type: new FormControl('system.alert', { nonNullable: true, validators: [Validators.required] }),
-    severity: new FormControl<NotificationSeverity>('INFO', { nonNullable: true, validators: [Validators.required] }),
-    message: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(2000)] }),
+    severity: new FormControl<NotificationSeverity>('INFO', {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
+    message: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(2000)],
+    }),
   });
 
   submit(): void {
@@ -206,7 +230,10 @@ export class CreateNotificationDialogComponent {
         },
         error: (err: unknown) => {
           this.loading.set(false);
-          const msg = err instanceof Error ? err.message : 'Failed to create notification. Please verify service connection.';
+          const msg =
+            err instanceof Error
+              ? err.message
+              : 'Failed to create notification. Please verify service connection.';
           this.errorMessage.set(msg);
         },
       });
