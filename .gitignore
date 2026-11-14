@@ -25,3 +25,6 @@ Thumbs.db
 
 # local service runner (scripts/dev-services.sh)
 .run/
+
+# local agents configuration
+.agents/
