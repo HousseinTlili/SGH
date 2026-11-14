@@ -13,18 +13,24 @@ cd "$(dirname "$0")/.."
 ROOT="$(pwd)"
 RUN="$ROOT/.run"; mkdir -p "$RUN/logs" "$RUN/pids"
 
-ALL="staff patient reception consultation lab pharmacy notification gateway"
+ALL="eureka config staff patient reception consultation lab pharmacy notification gateway"
 
-port_of() { case "$1" in patient) echo 8081;; reception) echo 8082;; consultation) echo 8083;; lab) echo 8084;; pharmacy) echo 8085;; staff) echo 8086;; notification) echo 8087;; gateway) echo 8080;; *) return 1;; esac; }
-dir_of()  { case "$1" in patient) echo services/patient-service;; reception) echo services/reception-service;; consultation) echo services/doctor-service;; lab) echo services/lab-service;; pharmacy) echo services/pharmacy-service;; staff) echo services/staff-service;; notification) echo services/notification-service;; gateway) echo gateway;; esac; }
+port_of() { case "$1" in eureka) echo 8761;; config) echo 8888;; patient) echo 8081;; reception) echo 8082;; consultation) echo 8083;; lab) echo 8084;; pharmacy) echo 8085;; staff) echo 8086;; notification) echo 8087;; gateway) echo 8080;; *) return 1;; esac; }
+dir_of()  { case "$1" in eureka) echo services/eureka-server;; config) echo services/config-server;; patient) echo services/patient-service;; reception) echo services/reception-service;; consultation) echo services/doctor-service;; lab) echo services/lab-service;; pharmacy) echo services/pharmacy-service;; staff) echo services/staff-service;; notification) echo services/notification-service;; gateway) echo gateway;; esac; }
 
-healthy() { curl -fsS --max-time 2 "http://localhost:$(port_of "$1")/health" >/dev/null 2>&1; }
+healthy() {
+  case "$1" in
+    eureka) curl -fsS --max-time 2 "http://localhost:8761/actuator/health" >/dev/null 2>&1 || curl -fsS --max-time 2 "http://localhost:8761/" >/dev/null 2>&1 ;;
+    config) curl -fsS --max-time 2 "http://localhost:8888/actuator/health" >/dev/null 2>&1 ;;
+    *) curl -fsS --max-time 2 "http://localhost:$(port_of "$1")/health" >/dev/null 2>&1 ;;
+  esac
+}
 
 # Prepares (installs or builds) and prints the command that runs the service in the foreground.
 prepare() {
   local name="$1" dir; dir="$ROOT/$(dir_of "$1")"
   case "$name" in
-    patient|staff|gateway)
+    eureka|config|patient|staff|gateway)
       local jar; jar="$(ls "$dir"/target/*.jar 2>/dev/null | grep -v original | head -1)"
       if [ -z "$jar" ] || [ -n "$(find "$dir/src" "$dir/pom.xml" -newer "$jar" -print -quit 2>/dev/null)" ]; then
         echo "building $name ..." >&2
